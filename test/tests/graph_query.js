@@ -10,7 +10,7 @@ module.exports = (Instantiator, Databases) => {
     let db = new Instantiator.InstantORM.Core.DB.Database();
 
     let schemaUser = {
-      table: 'users',
+      name: 'users',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'username', type: 'string'},
@@ -21,7 +21,7 @@ module.exports = (Instantiator, Databases) => {
     };
 
     let schemaThread = {
-      table: 'threads',
+      name: 'threads',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'user_id', type: 'int'},
@@ -32,7 +32,7 @@ module.exports = (Instantiator, Databases) => {
     };
 
     let schemaPost = {
-      table: 'posts',
+      name: 'posts',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'user_id', type: 'int'},
@@ -44,7 +44,7 @@ module.exports = (Instantiator, Databases) => {
     };
 
     let schemaVote = {
-      table: 'votes',
+      name: 'votes',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'user_id', type: 'int'},
@@ -87,8 +87,8 @@ module.exports = (Instantiator, Databases) => {
       await db.transact(
         [schemaUser, schemaThread, schemaPost, schemaVote].map(schema => {
           return [
-            db.adapter.generateDropTableQuery(schema.table, true),
-            db.adapter.generateCreateTableQuery(schema.table, schema.columns)
+            db.adapter.generateDropTableQuery(schema.name, true),
+            db.adapter.generateCreateTableQuery(schema.name, schema.columns)
           ].join(';');
         }).join(';')
       );

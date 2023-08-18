@@ -149,7 +149,7 @@ class Model {
   * @return {string}
   */
   static table () {
-    return this.prototype.schema.table;
+    return this.prototype.schema.name;
   }
 
   /**
@@ -1162,12 +1162,12 @@ class Model {
     if (!this.inStorage()) {
 
       columns = this.fieldList().filter(v => !this.isFieldPrimaryKey(v) && this.get(v) !== undefined);
-      query = db.adapter.generateInsertQuery(this.schema.table, columns);
+      query = db.adapter.generateInsertQuery(this.schema.name, columns);
 
     } else {
 
       columns = ['id'].concat(this.changedFields().filter(v => !this.isFieldPrimaryKey(v)));
-      query = db.adapter.generateUpdateQuery(this.schema.table, columns);
+      query = db.adapter.generateUpdateQuery(this.schema.name, columns);
 
     }
 
@@ -1339,7 +1339,7 @@ class Model {
       throw new Error(`Model has not been saved`);
     }
     let columns = this.fieldList().filter(v => this.isFieldPrimaryKey(v));
-    let query = db.adapter.generateDeleteQuery(this.schema.table, columns);
+    let query = db.adapter.generateDeleteQuery(this.schema.name, columns);
     try {
       await db.query(
         query,

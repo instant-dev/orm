@@ -9,7 +9,7 @@ module.exports = (Instantiator, Databases) => {
     let db;
 
     let schemaParent = {
-      table: 'parents',
+      name: 'parents',
       columns: [
         {name: 'id', type: 'serial', properties: {primary_key: true}},
         {name: 'name', type: 'string', properties: { defaultValue: 'Keith'}},
@@ -35,7 +35,7 @@ module.exports = (Instantiator, Databases) => {
     );
 
     let schemaHouse = {
-      table: 'houses',
+      name: 'houses',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'material', type: 'string'},
@@ -51,7 +51,7 @@ module.exports = (Instantiator, Databases) => {
     House.joinsTo(Parent);
 
     const schemaSpecialItem = {
-      table: 'special_items',
+      name: 'special_items',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'name', type: 'string', properties: {unique: true}}
@@ -62,7 +62,7 @@ module.exports = (Instantiator, Databases) => {
 
     class User extends Instantiator.InstantORM.Core.Model {}
     User.setSchema({
-      table: 'users',
+      name: 'users',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'username', type: 'string'}
@@ -71,7 +71,7 @@ module.exports = (Instantiator, Databases) => {
 
     class Post extends Instantiator.InstantORM.Core.Model {}
     Post.setSchema({
-      table: 'posts',
+      name: 'posts',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'user_id', type: 'int'},
@@ -83,7 +83,7 @@ module.exports = (Instantiator, Databases) => {
 
     class Comment extends Instantiator.InstantORM.Core.Model {}
     Comment.setSchema({
-      table: 'comments',
+      name: 'comments',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'post_id', type: 'int'},
@@ -99,7 +99,7 @@ module.exports = (Instantiator, Databases) => {
 
       await db.transact(
         [schemaParent, schemaHouse, schemaSpecialItem].map(schema => {
-          return db.adapter.generateCreateTableQuery(schema.table, schema.columns);
+          return db.adapter.generateCreateTableQuery(schema.name, schema.columns);
         }).join(';'),
       );
 

@@ -16,7 +16,7 @@ module.exports = (Instantiator, Databases) => {
       ],
       tables: {
         parents: {
-          table: 'parents',
+          name: 'parents',
           columns: [
             {name: 'id', type: 'serial'},
             {name: 'name', type: 'string', properties: {nullable: false, unique: true}},
@@ -28,7 +28,7 @@ module.exports = (Instantiator, Databases) => {
           ]
         },
         children: {
-          table: 'children',
+          name: 'children',
           columns: [
             {name: 'id', type: 'serial'},
             {name: 'parent_id', type: 'int'},
@@ -272,8 +272,8 @@ module.exports = (Instantiator, Databases) => {
 
       // it('should fail to reconstitute database if schema mismatch', async () => {
       //
-      //   const originalTable = Instant.Schema.schema.models['Child'].table;
-      //   Instant.Schema.schema.models['Child'].table = 'fake_table';
+      //   const originalTable = Instant.Schema.schema.tables['Child'].name;
+      //   Instant.Schema.schema.tables['Child'].name = 'fake_table';
       //
       //   try {
       //     let results = await Instant.Migrator.Dangerous.reconstitute();
@@ -282,7 +282,7 @@ module.exports = (Instantiator, Databases) => {
       //     expect(e.message).to.contain('schema mismatch');
       //   }
       //
-      //   Instant.Schema.schema.models['Child'].table = originalTable;
+      //   Instant.Schema.schema.models['Child'].name = originalTable;
       //
       // });
 

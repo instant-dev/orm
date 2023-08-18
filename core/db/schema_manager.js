@@ -73,8 +73,8 @@ class SchemaManager {
       if (Object.keys(table).length > 2) {
         throw new Error(`Invalid schema: tables["${name}"] can only contain "table", "columns"`);
       }
-      if (!table['table'] || typeof table['table'] !== 'string') {
-        throw new Error(`Invalid schema: tables["${name}"] missing string "table"`);
+      if (!table['name'] || typeof table['name'] !== 'string') {
+        throw new Error(`Invalid schema: tables["${name}"] missing string "name"`);
       }
       if (!Array.isArray(table['columns'])) {
         throw new Error(`Invalid schema: tables["${name}"] missing array "columns"`);
@@ -200,7 +200,7 @@ class SchemaManager {
   findTableName (table, validate) {
     let tables = this.schema.tables;
     let name = Object.keys(tables).filter(function(v) {
-      return tables[v].table === table;
+      return tables[v].name === table;
     }).pop();
     if (!name && validate) {
       throw new Error(`No table matching "${table}" found`);
@@ -254,7 +254,7 @@ class SchemaManager {
     arrColumnData.forEach(columnData => this.mergeProperties(columnData));
 
     this.schema.tables[table] = {
-      table: table,
+      name: table,
       columns: arrColumnData
     };
 
@@ -305,7 +305,7 @@ class SchemaManager {
 
     let tables = this.schema.tables;
     let tableKey = Object.keys(tables).filter(function(t) {
-      return tables[t].table === table;
+      return tables[t].name === table;
     }).pop();
 
     if (!tableKey) {
@@ -336,7 +336,7 @@ class SchemaManager {
 
     let tables = this.schema.tables;
     let tableKey = Object.keys(tables).filter(function(t) {
-      return tables[t].table === table;
+      return tables[t].name === table;
     }).pop();
 
     if (!tableKey) {
@@ -371,8 +371,8 @@ class SchemaManager {
   dropColumn (table, column) {
 
     let tables = this.schema.tables;
-    let tableKey = Object.keys(tables).filter(function(t) {
-      return tables[t].table === table;
+    let tableKey = Object.keys(tables).filter(function (t) {
+      return tables[t].name === table;
     }).pop();
 
     if (!tableKey) {
@@ -397,7 +397,7 @@ class SchemaManager {
 
     let tables = this.schema.tables;
     let tableKey = Object.keys(tables).filter(function(t) {
-      return tables[t].table === table;
+      return tables[t].name === table;
     }).pop();
 
     if (!tableKey) {
@@ -514,7 +514,7 @@ class SchemaManager {
           return [
             '    "' + t + '": {',
             '',
-            '      "table": "' + curTable.table + '",',
+            '      "name": "' + curTable.name + '",',
             '',
             '      "columns": [',
             curTable.columns.map(function(columnData) {

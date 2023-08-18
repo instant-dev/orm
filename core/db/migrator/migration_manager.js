@@ -142,7 +142,7 @@ class MigrationManager extends Logger {
     let tables = Object.keys(tableObject).map(name => tableObject[name]);
     let indices = this._Schema.schema.indices;
     let queries = [];
-    queries = queries.concat(tables.map(table => this._Schema.db.adapter.generateCreateTableQuery(table.table, table.columns)));
+    queries = queries.concat(tables.map(table => this._Schema.db.adapter.generateCreateTableQuery(table.name, table.columns)));
     queries = queries.concat(indices.map(index => this._Schema.db.adapter.generateCreateIndexQuery(index.table, index.column, index.type)));
     return queries.join(';')
   }

@@ -122,7 +122,7 @@ class MigrationManagerDangerous {
   //   let models = Object.keys(modelObject).map(name => modelObject[name]);
   //   let indices = this.parent._Schema.schema.indices;
   //   let queries = [];
-  //   queries = queries.concat(models.map(model => this.parent._Schema.db.adapter.generateCreateTableQuery(model.table, model.columns)));
+  //   queries = queries.concat(models.map(model => this.parent._Schema.db.adapter.generateCreateTableQuery(model.name, model.columns)));
   //   queries = queries.concat(indices.map(index => this.parent._Schema.db.adapter.generateCreateIndexQuery(index.table, index.column, index.type)));
   //   let result = await this.parent._Schema.db.transact(queries.join(';'));
   //   this.parent.log(`Reconstituted from migration(id=${this.parent._Schema.getMigrationId()}, name=${row.name})`);

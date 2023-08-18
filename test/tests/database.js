@@ -9,7 +9,7 @@ module.exports = (Instantiator, Databases) => {
     let db;
 
     let myTable = {
-      table: 'test_objects',
+      name: 'test_objects',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'test', type: 'string'},
@@ -20,7 +20,7 @@ module.exports = (Instantiator, Databases) => {
     };
 
     let myReferenceTable = {
-      table: 'reference',
+      name: 'reference',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'test', type: 'string'},
@@ -31,7 +31,7 @@ module.exports = (Instantiator, Databases) => {
 
 
     let myTableWithJson = {
-      table: 'json_reference',
+      name: 'json_reference',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'test', type: 'string'},
@@ -114,9 +114,9 @@ module.exports = (Instantiator, Databases) => {
 
         await db.transact(
           [
-            db.adapter.generateCreateTableQuery(myTable.table, myTable.columns),
-            db.adapter.generateCreateTableQuery(myReferenceTable.table, myReferenceTable.columns),
-            db.adapter.generateCreateTableQuery(myTableWithJson.table, myTableWithJson.columns)
+            db.adapter.generateCreateTableQuery(myTable.name, myTable.columns),
+            db.adapter.generateCreateTableQuery(myReferenceTable.name, myReferenceTable.columns),
+            db.adapter.generateCreateTableQuery(myTableWithJson.name, myTableWithJson.columns)
           ].join(';')
         );
 
@@ -125,7 +125,7 @@ module.exports = (Instantiator, Databases) => {
       it('should be able to add a foreign key constraint', async () => {
 
         await db.query(
-          db.adapter.generateSimpleForeignKeyQuery(myTable.table, myReferenceTable.table),
+          db.adapter.generateSimpleForeignKeyQuery(myTable.name, myReferenceTable.name),
           []
         );
 
@@ -137,7 +137,7 @@ module.exports = (Instantiator, Databases) => {
 
         try {
           await db.query(
-            db.adapter.generateDropTableQuery(myReferenceTable.table),
+            db.adapter.generateDropTableQuery(myReferenceTable.name),
             []
           );
         } catch (err) {
@@ -151,7 +151,7 @@ module.exports = (Instantiator, Databases) => {
       it('should be able to drop a foreign key constraint', async () => {
 
         await db.query(
-          db.adapter.generateDropSimpleForeignKeyQuery(myTable.table, myReferenceTable.table),
+          db.adapter.generateDropSimpleForeignKeyQuery(myTable.name, myReferenceTable.name),
           []
         );
 
@@ -162,9 +162,9 @@ module.exports = (Instantiator, Databases) => {
 
         await db.transact(
           [
-            db.adapter.generateDropTableQuery(myTable.table),
-            db.adapter.generateDropTableQuery(myReferenceTable.table),
-            db.adapter.generateDropTableQuery(myTableWithJson.table)
+            db.adapter.generateDropTableQuery(myTable.name),
+            db.adapter.generateDropTableQuery(myReferenceTable.name),
+            db.adapter.generateDropTableQuery(myTableWithJson.name)
           ].join(';')
         );
 

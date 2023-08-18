@@ -297,7 +297,7 @@ class PostgresAdapter extends SQLAdapter {
     const typePropertyDefaults = this.db.adapter.typePropertyDefaults;
     tables.forEach(table => {
       let model = schema.tables[table.name] = {
-        table: table.name,
+        name: table.name,
         columns: table.columns.map(column => {
           let c = {
             name: column.name,

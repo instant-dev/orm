@@ -24,7 +24,7 @@ module.exports = (Instantiator, Databases) => {
     ];
 
     let schemaParent = {
-      table: 'parents',
+      name: 'parents',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'name', type: 'string'},
@@ -37,7 +37,7 @@ module.exports = (Instantiator, Databases) => {
     };
 
     let schemaCareer = {
-      table: 'careers',
+      name: 'careers',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'parent_id', type: 'int'},
@@ -49,7 +49,7 @@ module.exports = (Instantiator, Databases) => {
     };
 
     let schemaFriendship = {
-      table: 'friendships',
+      name: 'friendships',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'from_parent_id', type: 'int'},
@@ -60,7 +60,7 @@ module.exports = (Instantiator, Databases) => {
     };
 
     let schemaChild = {
-      table: 'children',
+      name: 'children',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'parent_id', type: 'int'},
@@ -74,7 +74,7 @@ module.exports = (Instantiator, Databases) => {
     };
 
     let schemaPartner = {
-      table: 'partners',
+      name: 'partners',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'parent_id', type: 'int'},
@@ -87,7 +87,7 @@ module.exports = (Instantiator, Databases) => {
     };
 
     let schemaPet = {
-      table: 'pets',
+      name: 'pets',
       columns: [
         {name: 'id', type: 'serial'},
         {name: 'parent_id', type: 'int'},
@@ -169,8 +169,8 @@ module.exports = (Instantiator, Databases) => {
             schemaPet
           ].map(schema => {
             return [
-              db.adapter.generateDropTableQuery(schema.table, true),
-              db.adapter.generateCreateTableQuery(schema.table, schema.columns)
+              db.adapter.generateDropTableQuery(schema.name, true),
+              db.adapter.generateCreateTableQuery(schema.name, schema.columns)
             ].join(';');
           }).join(';')
         )

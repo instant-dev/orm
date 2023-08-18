@@ -128,6 +128,10 @@ class SchemaManager {
     });
   }
 
+  getModel (name) {
+    return this.Models[name];
+  }
+
   clear () {
     this.setSchema(this.constructor.emptySchema());
   }

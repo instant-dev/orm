@@ -175,7 +175,7 @@ module.exports = (Instantiator, Databases) => {
         }
 
         expect(error).to.exist;
-        expect(error.message).to.contain('prepare directory');
+        expect(error.message).to.contain('Could not initialize');
 
       });
 
@@ -253,7 +253,7 @@ module.exports = (Instantiator, Databases) => {
         }
 
         expect(error).to.exist;
-        expect(error.message).to.contain('prepare directory');
+        expect(error.message).to.contain('Could not initialize');
 
       });
 

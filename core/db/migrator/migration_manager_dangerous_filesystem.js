@@ -11,7 +11,7 @@ class MigrationManagerDangerousFilesystem {
   }
 
   /**
-   * Clears filesystem filesystem migrations
+   * Clears filesystem migrations
    */
   clear () {
     let pathname = this.self.parent._Schema.migrationsDirectory;
@@ -30,17 +30,23 @@ class MigrationManagerDangerousFilesystem {
   }
 
   /**
-   * Prepares filesystem directory for migrations
+   * Makes sure a directory we want to use exists
    */
-  prepare () {
-    let pathname = this.self.parent._Schema.migrationsDirectory;
-    if (fs.existsSync(pathname)) {
-      throw new Error(
-        `Could not prepare directory "${pathname}" for migrations, already exists.\n` +
-        `Are you sure you meant to do this?\n` +
-        `Run filesystem.clear command to clear filesystem migration state first.`
-      );
-      fs.mkdirSync(pathname);
+  checkdir (pathname = '.') {
+    let cwd = process.cwd();
+    if (!fs.existsSync(pathname)) {
+      let paths = pathname.split('/');
+      for (let i = 0; i < paths.length; i++) {
+        let dirpath = path.join(cwd, ...paths.slice(0, i + 1));
+        if (!fs.existsSync(dirpath)) {
+          try {
+            fs.mkdirSync(dirpath);
+          } catch (e) {
+            console.error(e);
+            throw new Error(`Could not write directory "${dirpath}": ${e.message}`);
+          }
+        }
+      }
     }
   }
 
@@ -48,6 +54,14 @@ class MigrationManagerDangerousFilesystem {
    * Initializes filesystem filesystem migrations
    */
   initialize (json) {
+    let pathname = this.self.parent._Schema.migrationsDirectory;
+    if (fs.existsSync(pathname)) {
+      throw new Error(
+        `Could not initialize: "${pathname}" already exists.\n` +
+        `Please run filesystem.clear and try again.`
+      );
+    }
+    this.checkdir(pathname);
     json = JSON.parse(JSON.stringify(json));
     let tmpSchema = new SchemaManager(this.self.parent._Schema.db, json);
     let newJSON = JSON.parse(JSON.stringify(json));

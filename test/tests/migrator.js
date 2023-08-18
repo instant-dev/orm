@@ -19,7 +19,7 @@ module.exports = (Instantiator, Databases) => {
 
     after(async () => {
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      // Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
       Instant.disconnect();

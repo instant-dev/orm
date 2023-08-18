@@ -89,7 +89,6 @@ class MigrationManagerDangerous {
    * Saves current schema state into an empty migration table
    */
   async initialize () {
-    this.filesystem.prepare();
     let json = this.parent._Schema.schema;
     let queryResult = await this.parent._Schema.db.query(`SELECT COUNT(id) AS count_id FROM "${this.parent._Schema.migrationsTable}"`, []);
     let row = queryResult.rows[0];

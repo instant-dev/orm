@@ -45,10 +45,10 @@ class MigrationManagerDangerous {
   async drop () {
     let result = await this.parent._Schema.db.transact(
       [
-        this.parent._Schema.db.adapter.generateDropTableQuery(this.parent._Schema.migrationsTable, true),
+        this.parent._Schema.db.adapter.generateDropTableQuery(this.parent._Schema.constructor.migrationsTable, true),
       ].join(';')
     );
-    this.parent.log(`Table "${this.parent._Schema.migrationsTable}" dropped migrations`);
+    this.parent.log(`Table "${this.parent._Schema.constructor.migrationsTable}" dropped migrations`);
     return result;
   }
 
@@ -58,10 +58,10 @@ class MigrationManagerDangerous {
   async truncate () {
     let result = await this.parent._Schema.db.transact(
       [
-        this.parent._Schema.db.adapter.generateTruncateTableQuery(this.parent._Schema.migrationsTable),
+        this.parent._Schema.db.adapter.generateTruncateTableQuery(this.parent._Schema.constructor.migrationsTable),
       ].join(';')
     );
-    this.parent.log(`Table "${this.parent._Schema.migrationsTable}" cleared migrations`);
+    this.parent.log(`Table "${this.parent._Schema.constructor.migrationsTable}" cleared migrations`);
     return result;
   }
 
@@ -71,8 +71,8 @@ class MigrationManagerDangerous {
   async prepare () {
     let result = await this.parent._Schema.db.transact(
       [
-        this.parent._Schema.db.adapter.generateDropTableQuery(this.parent._Schema.migrationsTable, true),
-        this.parent._Schema.db.adapter.generateCreateTableQuery(this.parent._Schema.migrationsTable, [
+        this.parent._Schema.db.adapter.generateDropTableQuery(this.parent._Schema.constructor.migrationsTable, true),
+        this.parent._Schema.db.adapter.generateCreateTableQuery(this.parent._Schema.constructor.migrationsTable, [
           {name: 'id', type: 'int', properties: {nullable: false, primary_key: true}},
           {name: 'name', type: 'string'},
           {name: 'schema', type: 'json'},
@@ -81,7 +81,7 @@ class MigrationManagerDangerous {
         ])
       ].join(';')
     );
-    this.parent.log(`Table "${this.parent._Schema.migrationsTable}" prepared for new migrations`);
+    this.parent.log(`Table "${this.parent._Schema.constructor.migrationsTable}" prepared for new migrations`);
     return result;
   }
 
@@ -90,14 +90,14 @@ class MigrationManagerDangerous {
    */
   async initialize () {
     let json = this.parent._Schema.schema;
-    let queryResult = await this.parent._Schema.db.query(`SELECT COUNT(id) AS count_id FROM "${this.parent._Schema.migrationsTable}"`, []);
+    let queryResult = await this.parent._Schema.db.query(`SELECT COUNT(id) AS count_id FROM "${this.parent._Schema.constructor.migrationsTable}"`, []);
     let row = queryResult.rows[0];
     if (row.count_id) {
-      throw new Error(`Could not initialize: non-empty migration table "${this.parent._Schema.migrationsTable}" (${row.count_id} entries)`);
+      throw new Error(`Could not initialize: non-empty migration table "${this.parent._Schema.constructor.migrationsTable}" (${row.count_id} entries)`);
     }
     let migration = this.filesystem.initialize(json);
     let result = await this.commit(migration);
-    this.parent.log(`Table "${this.parent._Schema.migrationsTable}" initialized from migration(id=${json.migration_id})`);
+    this.parent.log(`Table "${this.parent._Schema.constructor.migrationsTable}" initialized from migration(id=${json.migration_id})`);
     return migration;
   }
 
@@ -106,16 +106,16 @@ class MigrationManagerDangerous {
   //  * Reconstitutes database state according to the migration state
   //  */
   // async reconstitute () {
-  //   let queryResult = await this.parent._Schema.db.query(`SELECT id, name, schema FROM "${this.parent._Schema.migrationsTable}" ORDER BY "id" DESC LIMIT 1`, []);
+  //   let queryResult = await this.parent._Schema.db.query(`SELECT id, name, schema FROM "${this.parent._Schema.constructor.migrationsTable}" ORDER BY "id" DESC LIMIT 1`, []);
   //   let row = queryResult.rows[0];
   //   if (!row) {
-  //     throw new Error(`Could not reconstitute: Migration table "${this.parent._Schema.migrationsTable}" empty, try running migrations or recording the schema`);
+  //     throw new Error(`Could not reconstitute: Migration table "${this.parent._Schema.constructor.migrationsTable}" empty, try running migrations or recording the schema`);
   //   }
   //   if (row.id !== this.parent._Schema.getMigrationId()) {
-  //     throw new Error(`Could not reconstitute: Migration table "${this.parent._Schema.migrationsTable}" id mismatch (database: ${row.id}, bootstrapper: ${this.parent._Schema.getMigrationId()})`);
+  //     throw new Error(`Could not reconstitute: Migration table "${this.parent._Schema.constructor.migrationsTable}" id mismatch (database: ${row.id}, bootstrapper: ${this.parent._Schema.getMigrationId()})`);
   //   }
   //   if (!deepEqual(row.schema, this.parent._Schema.schema)) {
-  //     throw new Error(`Could not reconstitute: Migration table "${this.parent._Schema.migrationsTable}" schema mismatch for migration(id=${row.id}, name=${row.name})`);
+  //     throw new Error(`Could not reconstitute: Migration table "${this.parent._Schema.constructor.migrationsTable}" schema mismatch for migration(id=${row.id}, name=${row.name})`);
   //   }
   //   let modelObject = this.parent._Schema.schema.models;
   //   let models = Object.keys(modelObject).map(name => modelObject[name]);
@@ -206,7 +206,7 @@ class MigrationManagerDangerous {
     queries.push(
       [
         this.parent._Schema.db.adapter.generateInsertQuery(
-          this.parent._Schema.migrationsTable,
+          this.parent._Schema.constructor.migrationsTable,
           ['id', 'name', 'commands', 'schema', 'created_at']
         ),
         [
@@ -236,7 +236,7 @@ class MigrationManagerDangerous {
   async getMigrations () {
     let result;
     try {
-      result = await this.parent._Schema.db.query(`SELECT "id", "name", "commands", "schema", "created_at" FROM "${this.parent._Schema.migrationsTable}" ORDER BY "id" ASC`, []);
+      result = await this.parent._Schema.db.query(`SELECT "id", "name", "commands", "schema", "created_at" FROM "${this.parent._Schema.constructor.migrationsTable}" ORDER BY "id" ASC`, []);
     } catch (e) {
       console.error(e);
       throw new Error(`Could not get database migrations: ${e.message}`);
@@ -515,7 +515,7 @@ class MigrationManagerDangerous {
       queries.push(
         [
           this.parent._Schema.db.adapter.generateDeleteQuery(
-            this.parent._Schema.migrationsTable,
+            this.parent._Schema.constructor.migrationsTable,
             ['id']
           ),
           [

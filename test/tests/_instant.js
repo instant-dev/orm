@@ -122,7 +122,7 @@ module.exports = (Instantiator, Databases) => {
         await Instant.Migrator.Dangerous.annihilate();
 
         try {
-          let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.migrationsTable}"`, []);
+          let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.constructor.migrationsTable}"`, []);
         } catch (e) {
           expect(e).to.exist;
         }
@@ -132,7 +132,7 @@ module.exports = (Instantiator, Databases) => {
       it('should prepare the database for migrations', async () => {
 
         await Instant.Migrator.Dangerous.prepare();
-        let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.migrationsTable}"`, []);
+        let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.constructor.migrationsTable}"`, []);
         expect(result.rows.length).to.equal(0);
 
       });
@@ -140,7 +140,7 @@ module.exports = (Instantiator, Databases) => {
       it('should successfully initialize with migration_id = null in schema', async () => {
 
         await Instant.Migrator.Dangerous.initialize();
-        let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.migrationsTable}"`, []);
+        let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.constructor.migrationsTable}"`, []);
 
         expect(result.rows.length).to.equal(1);
 
@@ -153,7 +153,7 @@ module.exports = (Instantiator, Databases) => {
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
-        let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.migrationsTable}"`, []);
+        let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.constructor.migrationsTable}"`, []);
 
         expect(result.rows.length).to.equal(1);
 
@@ -201,7 +201,7 @@ module.exports = (Instantiator, Databases) => {
         Instant.Migrator.Dangerous.filesystem.clear();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
-        let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.migrationsTable}"`, []);
+        let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.constructor.migrationsTable}"`, []);
         expect(result.rows.length).to.equal(0);
 
       });
@@ -231,7 +231,7 @@ module.exports = (Instantiator, Databases) => {
 
         Instant.Schema.setMigrationId(migrationId);
         await Instant.Migrator.Dangerous.initialize();
-        let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.migrationsTable}"`, []);
+        let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.constructor.migrationsTable}"`, []);
 
         expect(result.rows.length).to.equal(1);
 

@@ -44,14 +44,14 @@ class MigrationManager extends Logger {
   async isEnabled () {
     let result = await this._Schema.db.query(
       `SELECT "table_name" FROM "information_schema"."tables" WHERE "table_schema" = 'public' AND "table_name" = $1`,
-      [this._Schema.migrationsTable]
+      [this._Schema.constructor.migrationsTable]
     );
-    return !!(result.rows[0] && result.rows[0].table_name === this._Schema.migrationsTable);
+    return !!(result.rows[0] && result.rows[0].table_name === this._Schema.constructor.migrationsTable);
   }
 
   async getMigrations () {
     let result = await this._Schema.db.query(
-      `SELECT "${this._Schema.migrationsTable}"."id", "${this._Schema.migrationsTable}"."schema", "${this._Schema.migrationsTable}"."commands" FROM "${this._Schema.migrationsTable}" ORDER BY "id" ASC LIMIT 1`,
+      `SELECT "${this._Schema.constructor.migrationsTable}"."id", "${this._Schema.constructor.migrationsTable}"."schema", "${this._Schema.constructor.migrationsTable}"."commands" FROM "${this._Schema.constructor.migrationsTable}" ORDER BY "id" ASC LIMIT 1`,
       []
     );
     return result.rows;
@@ -59,7 +59,7 @@ class MigrationManager extends Logger {
 
   async getLatestSchema () {
     let result = await this._Schema.db.query(
-      `SELECT "${this._Schema.migrationsTable}"."schema" FROM "${this._Schema.migrationsTable}" ORDER BY "id" DESC LIMIT 1`,
+      `SELECT "${this._Schema.constructor.migrationsTable}"."schema" FROM "${this._Schema.constructor.migrationsTable}" ORDER BY "id" DESC LIMIT 1`,
       []
     );
     if (!result.rows.length) {
@@ -73,7 +73,7 @@ class MigrationManager extends Logger {
    * Introspect the schema directly from the database
    */
   async getIntrospectSchema () {
-    let schema = await this._Schema.db.adapter.introspect(this._Schema.migrationsTable);
+    let schema = await this._Schema.db.adapter.introspect(this._Schema.constructor.migrationsTable);
     return this._Schema.constructor.validate(schema);
   }
 

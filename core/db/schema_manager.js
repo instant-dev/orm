@@ -1,19 +1,17 @@
 const Database = require('./database.js');
 const Model = require('../lib/model.js');
 
-const SchemaUtilities = require('./schema_utilities.js');
-
 const fs = require('fs');
 const path = require('path');
 const inflect = require('i')();
 
 class SchemaManager {
 
-  migrationsTable = '_instant_migrations';
-  migrationsDirectory = './instant/migrations';
-  cacheDirectory = './instant/cache';
-  cacheSchemaFile = 'schema.json';
-  modelsDirectory = './instant/models';
+  static migrationsTable = '_instant_migrations';
+  static migrationsDirectory = './instant/migrations';
+  static cacheDirectory = './instant/cache';
+  static cacheSchemaFile = 'schema.json';
+  static modelsDirectory = './instant/models';
 
   /**
    * Makes sure a directory we want to use exists
@@ -158,12 +156,14 @@ class SchemaManager {
       throw new Error('Migrator requires valid database instance');
     }
     this.db = db;
-    this.utilities = new SchemaUtilities(this);
     this.setSchema(schema);
   }
 
   getCacheFilename () {
-    return path.join(this.cacheDirectory, this.cacheSchemaFile);
+    return path.join(
+      this.constructor.cacheDirectory,
+      this.constructor.cacheSchemaFile
+    );
   }
 
   isCacheAvailable () {
@@ -176,12 +176,12 @@ class SchemaManager {
 
   readModels (schema) {
     let Models = {};
-    if (fs.existsSync(this.modelsDirectory)) {
-      let filenames = fs.readdirSync(this.modelsDirectory);
+    if (fs.existsSync(this.constructor.modelsDirectory)) {
+      let filenames = fs.readdirSync(this.constructor.modelsDirectory);
       let cwd = process.cwd();
       filenames.forEach(filename => {
         let _Model;
-        let pathname = path.join(cwd, this.modelsDirectory, filename);
+        let pathname = path.join(cwd, this.constructor.modelsDirectory, filename);
         try {
           _Model = require(pathname);
         } catch (e) {

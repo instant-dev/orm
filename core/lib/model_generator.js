@@ -1,5 +1,7 @@
-const Database = require('./database.js');
-const Model = require('../lib/model.js');
+const SchemaManager = require('../db/schema_manager.js');
+const Model = require('./model.js');
+
+const Logger = require('../logger.js');
 
 const fs = require('fs');
 const path = require('path');
@@ -47,14 +49,10 @@ class __templateClass__ extends Model {
 
 }
 
-class SchemaUtilities {
-
-  constructor (Schema) {
-    this._Schema = Schema;
-  }
+class ModelGenerator extends Logger {
 
   clearModels () {
-    let pathname = this._Schema.modelsDirectory;
+    let pathname = SchemaManager.modelsDirectory;
     if (fs.existsSync(pathname)) {
       fs.readdirSync(pathname).forEach(filename => {
         let fullpath = path.join(pathname, filename);
@@ -63,10 +61,10 @@ class SchemaUtilities {
     }
   }
 
-  writeModel (tableName, className) {
+  extend (tableName, className) {
 
     if (!tableName) {
-      throw new Error(`generateModel required tableName`);
+      throw new Error(`extend requires tableName`);
     }
 
     tableName = tableName + '';
@@ -110,9 +108,9 @@ class SchemaUtilities {
       `module.exports = ${className};`
     ].join('\n');
 
-    this._Schema.constructor.checkdir(this._Schema.modelsDirectory);
+    SchemaManager.checkdir(SchemaManager.modelsDirectory);
 
-    let pathname = path.join(this._Schema.modelsDirectory, `${filename}.js`);
+    let pathname = path.join(SchemaManager.modelsDirectory, `${filename}.js`);
 
     if (fs.existsSync(pathname)) {
       throw new Error(
@@ -121,6 +119,7 @@ class SchemaUtilities {
     }
 
     fs.writeFileSync(pathname, output);
+    this.log(`Generated "${pathname}" to extend "${tableName}"`);
 
     return true;
 
@@ -128,4 +127,4 @@ class SchemaUtilities {
 
 }
 
-module.exports = SchemaUtilities;
+module.exports = ModelGenerator;

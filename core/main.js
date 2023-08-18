@@ -10,7 +10,6 @@ class InstantORM extends Logger {
     DB: {
       Database: require('./db/database.js'),
       SchemaManager: require('./db/schema_manager.js'),
-      SchemaUtilities: require('./db/schema_utilities.js'),
       MigrationManager: require('./db/migrator/migration_manager.js'),
       Migration: require('./db/migrator/migration.js')
     },
@@ -20,6 +19,7 @@ class InstantORM extends Logger {
     Model: require('./lib/model.js'),
     ModelArray: require('./lib/model_array.js'),
     ModelFactory: require('./lib/model_factory.js'),
+    ModelGenerator: require('./lib/model_generator.js'),
     RelationshipGraph: require('./lib/relationship_graph.js')
   };
 
@@ -35,6 +35,7 @@ class InstantORM extends Logger {
     };
     this._Schema = null;
     this._Migrator = null;
+    this._Generator = null;
     this._Models = {};
   }
 
@@ -191,6 +192,7 @@ class InstantORM extends Logger {
     this._Schema = new this.constructor.Core.DB.SchemaManager(db, json);
     this._Migrator = new this.constructor.Core.DB.MigrationManager(this._Schema);
     this._Migrator.enableLogs(this._logLevel); // Pass through logging
+    this._Generator = new this.constructor.Core.ModelGenerator();
     return this._Schema;
   }
 
@@ -204,6 +206,12 @@ class InstantORM extends Logger {
     this.__checkConnection__();
     this.__checkSchema__();
     return this._Migrator;
+  }
+
+  get Generator () {
+    this.__checkConnection__();
+    this.__checkSchema__();
+    return this._Generator;
   }
 
   Model (name) {

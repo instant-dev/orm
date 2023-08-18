@@ -7,11 +7,11 @@ module.exports = (Instantiator, Databases) => {
   const Instant = Instantiator();
   // Instant.enableLogs(2);
 
-  describe('InstantORM.Core.DB.SchemaUtilities', async () => {
+  describe('InstantORM.Core.ModelGenerator', async () => {
 
     before(async () => {
       await Instant.connect(Databases['main']);
-      Instant.Schema.utilities.clearModels();
+      Instant.Generator.clearModels();
       Instant.Migrator.enableDangerous();
       Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
@@ -28,7 +28,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('should do a thing', async () => {
 
-      Instant.Schema.utilities.writeModel('my_model');
+      Instant.Generator.extend('my_model');
       expect(true).to.exist;
 
     });

@@ -1,0 +1,23 @@
+{
+  "name": "orm",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha ./test/runner.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^3.2.4",
+    "colors": "^1.4.0",
+    "deep-equal": "^2.2.2",
+    "i": "^0.3.7",
+    "pg": "^8.11.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0"
+  }
+}

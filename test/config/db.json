@@ -1,0 +1,41 @@
+{
+
+  "development": {
+    "main": {
+      "adapter": "postgres",
+      "host": "localhost",
+      "port": "5432",
+      "user": "postgres",
+      "password": "",
+      "database": "instant_test"
+    },
+    "readonly": {
+      "adapter": "postgres",
+      "host": "localhost",
+      "port": "5432",
+      "user": "postgres",
+      "password": "",
+      "database": "instant_test_readonly"
+    }
+  },
+
+  "test": {
+    "main": {
+      "adapter": "postgres",
+      "host": "localhost",
+      "port": "5432",
+      "user": "postgres",
+      "password": "",
+      "database": "travis_ci_test"
+    },
+    "readonly": {
+      "adapter": "postgres",
+      "host": "localhost",
+      "port": "5432",
+      "user": "postgres",
+      "password": "",
+      "database": "travis_ci_test_readonly"
+    }
+  }
+
+}

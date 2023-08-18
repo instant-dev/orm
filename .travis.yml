@@ -1,0 +1,9 @@
+language: node_js
+node_js:
+  - "16.18.0"
+addons:
+  postgresql: "14.2"
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres
+  - psql -c 'create database travis_ci_test_readonly;' -U postgres
+env: NODE_ENV=test

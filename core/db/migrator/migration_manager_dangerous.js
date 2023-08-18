@@ -228,6 +228,7 @@ class MigrationManagerDangerous {
       throw e;
     }
     this.parent._Schema.update(migrationJSON.id);
+    this.filesystem.writeSchema(this.parent._Schema);
     this.parent.log(`Ran migration(id=${migrationJSON.id}, name=${migrationJSON.name}) successfully! (${migrationJSON.up.map(cmd => cmd[0]).join(', ')})`);
     return true;
   }
@@ -534,6 +535,7 @@ class MigrationManagerDangerous {
       this.parent._Schema.update(rollback.prevId);
       this.parent.log(`Rolled back migration(id=${migration.id}, name=${migration.name}) successfully! (${migration.down.map(cmd => cmd[0]).join(', ')})`);
     }
+    this.filesystem.writeSchema(this.parent._Schema);
     this.parent.log(`Rollback complete!`);
     return true;
   }

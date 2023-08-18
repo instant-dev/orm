@@ -2,14 +2,16 @@ const Database = require('./database.js');
 const Model = require('../lib/model.js');
 
 const fs = require('fs');
+const path = require('path');
 const inflect = require('i')();
 
 class SchemaManager {
 
   migrationsTable = '_instant_migrations';
   migrationsDirectory = './instant/migrations';
+  cacheDirectory = './instant/cache';
+  cacheSchemaFile = 'schema.json';
   modelsDirectory = './instant/models';
-  schemaFile = './instant/schema.json';
 
   static emptySchema () {
     return {
@@ -110,12 +112,42 @@ class SchemaManager {
     return json;
   }
 
+  static readSchemaFile (pathname) {
+    let file;
+    let json;
+    try {
+      file = fs.readFileSync(pathname);
+    } catch (e) {
+      console.error(e);
+      throw new Error(`Could not load schema from file: "${pathname}"`)
+    }
+    try {
+      json = JSON.parse(file.toString());
+    } catch (e) {
+      console.error(e);
+      throw new Error(`Could not parse schema from file: "${pathname}"`)
+    }
+    return this.validate(json);
+  }
+
   constructor (db, schema) {
     if (!(db instanceof Database)) {
       throw new Error('Migrator requires valid database instance');
     }
     this.db = db;
     this.setSchema(schema);
+  }
+
+  getCacheFilename () {
+    return path.join(this.cacheDirectory, this.cacheSchemaFile);
+  }
+
+  isCacheAvailable () {
+    return fs.existsSync(this.getCacheFilename());
+  }
+
+  toJSON () {
+    return JSON.parse(JSON.stringify(this.schema));
   }
 
   setSchema (schema) {

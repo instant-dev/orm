@@ -14,18 +14,22 @@ class MigrationManagerDangerousFilesystem {
    * Clears filesystem migrations
    */
   clear () {
-    let pathname = this.self.parent._Schema.migrationsDirectory;
-    if (fs.existsSync(pathname)) {
-      let fileList = fs.readdirSync(pathname);
-      fileList.forEach(filename => {
-        let filepath = path.join(pathname, filename);
-        let stat = fs.statSync(filepath);
-        if (stat.isFile()) {
-          fs.unlinkSync(filepath);
-        }
-      });
-      fs.rmdirSync(pathname);
-    }
+    [
+      this.self.parent._Schema.migrationsDirectory,
+      this.self.parent._Schema.cacheDirectory
+    ].forEach(pathname => {
+      if (fs.existsSync(pathname)) {
+        let fileList = fs.readdirSync(pathname);
+        fileList.forEach(filename => {
+          let filepath = path.join(pathname, filename);
+          let stat = fs.statSync(filepath);
+          if (stat.isFile()) {
+            fs.unlinkSync(filepath);
+          }
+        });
+        fs.rmdirSync(pathname);
+      }
+    });
     this.self.parent.log(`Cleared filesystem migrations`);
   }
 
@@ -134,6 +138,24 @@ class MigrationManagerDangerousFilesystem {
     fs.writeFileSync(fullpath, buffer);
     this.self.parent.log(`Wrote migration to disk at "${filename}" (${migrationJSON.up.map(cmd => cmd[0]).join(', ')})`);
     return fullpath;
+  }
+
+  /**
+   * Writes a migration to the filesystem
+   */
+  writeSchema (schema) {
+    let json;
+    if (schema instanceof SchemaManager) {
+      json = schema.toJSON();
+    } else {
+      json = SchemaManager.validate(schema);
+    }
+    let pathname = this.self.parent._Schema.cacheDirectory;
+    this.checkdir(pathname);
+    let filename = this.self.parent._Schema.cacheSchemaFile;
+    let fullpath = path.join(pathname, filename);
+    fs.writeFileSync(fullpath, JSON.stringify(json, null, 2));
+    this.self.parent.log(`Wrote cache of schema to disk at "${fullpath}"`);
   }
 
   /**

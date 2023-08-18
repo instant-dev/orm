@@ -1,6 +1,8 @@
 const Database = require('./database.js');
 const Model = require('../lib/model.js');
 
+const SchemaUtilities = require('./schema_utilities.js');
+
 const fs = require('fs');
 const path = require('path');
 const inflect = require('i')();
@@ -12,6 +14,27 @@ class SchemaManager {
   cacheDirectory = './instant/cache';
   cacheSchemaFile = 'schema.json';
   modelsDirectory = './instant/models';
+
+  /**
+   * Makes sure a directory we want to use exists
+   */
+  static checkdir (pathname = '.') {
+    let cwd = process.cwd();
+    if (!fs.existsSync(pathname)) {
+      let paths = pathname.split('/');
+      for (let i = 0; i < paths.length; i++) {
+        let dirpath = path.join(cwd, ...paths.slice(0, i + 1));
+        if (!fs.existsSync(dirpath)) {
+          try {
+            fs.mkdirSync(dirpath);
+          } catch (e) {
+            console.error(e);
+            throw new Error(`Could not write directory "${dirpath}": ${e.message}`);
+          }
+        }
+      }
+    }
+  }
 
   static emptySchema () {
     return {
@@ -135,6 +158,7 @@ class SchemaManager {
       throw new Error('Migrator requires valid database instance');
     }
     this.db = db;
+    this.utilities = new SchemaUtilities(this);
     this.setSchema(schema);
   }
 
@@ -150,12 +174,42 @@ class SchemaManager {
     return JSON.parse(JSON.stringify(this.schema));
   }
 
+  readModels (schema) {
+    let Models = {};
+    if (fs.existsSync(this.modelsDirectory)) {
+      let filenames = fs.readdirSync(this.modelsDirectory);
+      let cwd = process.cwd();
+      filenames.forEach(filename => {
+        let _Model;
+        let pathname = path.join(cwd, this.modelsDirectory, filename);
+        try {
+          _Model = require(pathname);
+        } catch (e) {
+          console.error(e);
+          throw new Error(`Could not load model from "${pathname}":\n${e.message}`);
+        }
+        if (!Model.isPrototypeOf(_Model)) {
+          throw new Error(
+            `Model in "${pathname}" invalid: does not extend InstantORM.Core.Model\n` +
+            `Are you sure it's being exported correctly?`
+          );
+        } else if (!_Model.tableName) {
+          throw new Error(`Model in "${pathname}" invalid: missing static tableName`);
+        }
+      });
+    }
+    return Models;
+  }
+
   setSchema (schema) {
     this.schema = this.constructor.validate(schema);
     this.Models = {};
+    const Models = this.readModels(this.schema);
     Object.keys(this.schema.tables).forEach(name => {
       let className = inflect.classify(name);
-      const _Model = {[className]: class extends Model {}}[className];
+      const _Model = Models[name]
+        ? {[className]: class extends Models[name] {}}[className]
+        : {[className]: class extends Model {}}[className];
       _Model.setDatabase(this.db);
       _Model.setSchema(this.schema.tables[name]);
       this.Models[name] = _Model;

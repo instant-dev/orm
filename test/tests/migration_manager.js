@@ -7,7 +7,7 @@ module.exports = (Instantiator, Databases) => {
   const Instant = Instantiator();
   // Instant.enableLogs(2);
 
-  describe('InstantORM.Core.DB.Migrator', async () => {
+  describe('InstantORM.Core.DB.MigrationManager', async () => {
 
     before(async () => {
       await Instant.connect(Databases['main']);
@@ -19,7 +19,7 @@ module.exports = (Instantiator, Databases) => {
 
     after(async () => {
       Instant.Migrator.enableDangerous();
-      // Instant.Migrator.Dangerous.reset();
+      Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
       Instant.disconnect();

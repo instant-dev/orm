@@ -34,27 +34,6 @@ class MigrationManagerDangerousFilesystem {
   }
 
   /**
-   * Makes sure a directory we want to use exists
-   */
-  checkdir (pathname = '.') {
-    let cwd = process.cwd();
-    if (!fs.existsSync(pathname)) {
-      let paths = pathname.split('/');
-      for (let i = 0; i < paths.length; i++) {
-        let dirpath = path.join(cwd, ...paths.slice(0, i + 1));
-        if (!fs.existsSync(dirpath)) {
-          try {
-            fs.mkdirSync(dirpath);
-          } catch (e) {
-            console.error(e);
-            throw new Error(`Could not write directory "${dirpath}": ${e.message}`);
-          }
-        }
-      }
-    }
-  }
-
-  /**
    * Initializes filesystem filesystem migrations
    */
   initialize (json) {
@@ -65,7 +44,7 @@ class MigrationManagerDangerousFilesystem {
         `Please run filesystem.clear and try again.`
       );
     }
-    this.checkdir(pathname);
+    SchemaManager.checkdir(pathname);
     json = JSON.parse(JSON.stringify(json));
     let tmpSchema = new SchemaManager(this.self.parent._Schema.db, json);
     let newJSON = JSON.parse(JSON.stringify(json));
@@ -151,7 +130,7 @@ class MigrationManagerDangerousFilesystem {
       json = SchemaManager.validate(schema);
     }
     let pathname = this.self.parent._Schema.cacheDirectory;
-    this.checkdir(pathname);
+    SchemaManager.checkdir(pathname);
     let filename = this.self.parent._Schema.cacheSchemaFile;
     let fullpath = path.join(pathname, filename);
     fs.writeFileSync(fullpath, JSON.stringify(json, null, 2));

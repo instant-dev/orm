@@ -2,6 +2,9 @@ const child_process = require('child_process');
 const os = require('os');
 const fs = require('fs');
 
+// For importing models from SchemaUtilities
+process.env.__INSTANT_MODEL_IMPORT = '../../index.js';
+
 let args = [];
 try {
   args = JSON.parse(process.env.npm_argv);

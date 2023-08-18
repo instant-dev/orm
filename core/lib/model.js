@@ -95,7 +95,7 @@ class Model {
     try {
       let model = await this.findBy(field, data[field], txn);
       model.read(data);
-      return await model.save();
+      return await model.save(txn);
     } catch (e) {
       if (e.notFound) {
         return await this.create(data, txn);
@@ -505,19 +505,20 @@ class Model {
       throw new Error(`Calculated field "${calcField}" for "${this.name}" already exists!`);
     }
 
-    let columnLookup = this.columnLookup();
-
-    if (columnLookup[calcField]) {
-      throw new Error(`Cannot create calculated field "${calcField}" for "${this.name}", field already exists.`);
-    }
-
     let fields = utilities.getFunctionParameters(fnCompute);
 
-    fields.forEach(f => {
-      if (!columnLookup[f]) {
-        throw new Error(`Calculation function error: "${calcField} for "${this.name}" using field "${f}", "${f}" does not exist.`)
-      }
-    });
+    // TODO: reimplement, currently schema is loaded after this
+    // let columnLookup = this.columnLookup();
+
+    // if (columnLookup[calcField]) {
+    //  throw new Error(`Cannot create calculated field "${calcField}" for "${this.name}", field already exists.`);
+    // }
+
+    // fields.forEach(f => {
+    //   if (!columnLookup[f]) {
+    //     throw new Error(`Calculation function error: "${calcField} for "${this.name}" using field "${f}", "${f}" does not exist.`)
+    //   }
+    // });
 
     this.prototype._calculations[calcField] = {
       calculate: fnCompute,

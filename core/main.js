@@ -10,6 +10,7 @@ class InstantORM extends Logger {
     DB: {
       Database: require('./db/database.js'),
       SchemaManager: require('./db/schema_manager.js'),
+      SchemaUtilities: require('./db/schema_utilities.js'),
       MigrationManager: require('./db/migrator/migration_manager.js'),
       Migration: require('./db/migrator/migration.js')
     },

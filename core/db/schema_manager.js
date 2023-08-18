@@ -13,7 +13,7 @@ class SchemaManager {
     return {
       migration_id: null,
       indices: [],
-      models: {}
+      tables: {}
     };
   }
 
@@ -24,7 +24,7 @@ class SchemaManager {
     json = JSON.parse(JSON.stringify(json)); // create a copy
     let keys = Object.keys(json);
     if (Object.keys(json).length > 3) {
-      throw new Error(`Invalid schema: can only contain "migration_id", "indices", "models"`);
+      throw new Error(`Invalid schema: can only contain "migration_id", "indices", "tables"`);
     }
     if (!('migration_id' in json)) {
       throw new Error(`Invalid schema: missing "migration_id"`);
@@ -58,46 +58,46 @@ class SchemaManager {
         throw new Error(`Invalid schema: indices[${i}] missing string "type"`);
       }
     });
-    if (!('models' in json)) {
-      throw new Error(`Invalid schema: missing "models"`);
+    if (!('tables' in json)) {
+      throw new Error(`Invalid schema: missing "tables"`);
     }
-    let models = json['models'];
-    if (!models || typeof models !== 'object' || models.constructor !== Object) {
-      throw new Error(`Invalid schema: "models" must be an object`);
+    let tables = json['tables'];
+    if (!tables || typeof tables !== 'object' || tables.constructor !== Object) {
+      throw new Error(`Invalid schema: "tables" must be an object`);
     }
-    Object.keys(models).forEach(name => {
-      let model = models[name];
-      if (!model || typeof model !== 'object' || model.constructor !== Object) {
-        throw new Error(`Invalid schema: models["${name}"] must be an object`);
+    Object.keys(tables).forEach(name => {
+      let table = tables[name];
+      if (!table || typeof table !== 'object' || table.constructor !== Object) {
+        throw new Error(`Invalid schema: tables["${name}"] must be an object`);
       }
-      if (Object.keys(model).length > 2) {
-        throw new Error(`Invalid schema: models["${name}"] can only contain "table", "columns"`);
+      if (Object.keys(table).length > 2) {
+        throw new Error(`Invalid schema: tables["${name}"] can only contain "table", "columns"`);
       }
-      if (!model['table'] || typeof model['table'] !== 'string') {
-        throw new Error(`Invalid schema: models["${name}"] missing string "table"`);
+      if (!table['table'] || typeof table['table'] !== 'string') {
+        throw new Error(`Invalid schema: tables["${name}"] missing string "table"`);
       }
-      if (!Array.isArray(model['columns'])) {
-        throw new Error(`Invalid schema: models["${name}"] missing array "columns"`);
+      if (!Array.isArray(table['columns'])) {
+        throw new Error(`Invalid schema: tables["${name}"] missing array "columns"`);
       }
-      model['columns'].forEach((column, i) => {
+      table['columns'].forEach((column, i) => {
         if (!('properties' in column)) {
           column['properties'] = {};
         }
         if (Object.keys(column).length > 3) {
-          throw new Error(`Invalid schema: models["${name}"].columns[${i}] can only contain "name", "type", "properties"`);
+          throw new Error(`Invalid schema: tables["${name}"].columns[${i}] can only contain "name", "type", "properties"`);
         }
         if (!column['name'] || typeof column['name'] !== 'string') {
-          throw new Error(`Invalid schema: models["${name}"].columns[${i}] missing string "name"`);
+          throw new Error(`Invalid schema: tables["${name}"].columns[${i}] missing string "name"`);
         }
         if (!column['type'] || typeof column['type'] !== 'string') {
-          throw new Error(`Invalid schema: models["${type}"].columns[${i}] missing string "type"`);
+          throw new Error(`Invalid schema: tables["${type}"].columns[${i}] missing string "type"`);
         }
         if (
           !column['properties'] ||
           typeof column['properties'] !== 'object' ||
           column['properties'].constructor !== Object
         ) {
-          throw new Error(`Invalid schema: models["${type}"].columns[${i}]["properties"] must be an object`);
+          throw new Error(`Invalid schema: tables["${type}"].columns[${i}]["properties"] must be an object`);
         }
         // Clean up empty properties
         if (Object.keys(column['properties']).length === 0) {
@@ -119,11 +119,11 @@ class SchemaManager {
   setSchema (schema) {
     this.schema = this.constructor.validate(schema);
     this.Models = {};
-    Object.keys(this.schema.models).forEach(name => {
+    Object.keys(this.schema.tables).forEach(name => {
       let className = inflect.classify(name);
       const _Model = {[className]: class extends Model {}}[className];
       _Model.setDatabase(this.db);
-      _Model.setSchema(this.schema.models[name]);
+      _Model.setSchema(this.schema.tables[name]);
       this.Models[name] = _Model;
     });
   }
@@ -149,20 +149,20 @@ class SchemaManager {
     return id;
   }
 
-  listModelNames () {
-    return Object.keys(this.schema.models);
+  listTableNames () {
+    return Object.keys(this.schema.tables);
   }
 
-  listModels () {
-    const models = this.schema.models;
-    return this.listModelNames().map(name => {
-      const sourceModel = models[name];
-      let model = {};
-      model.name = name;
+  listTables () {
+    const tables = this.schema.tables;
+    return this.listTableNames().map(name => {
+      const sourceModel = tables[name];
+      let table = {};
+      table.name = name;
       Object.keys(sourceModel).forEach(key => {
-        model[key] = sourceModel[key];
+        table[key] = sourceModel[key];
       });
-      return model;
+      return table;
     });
   }
 
@@ -197,20 +197,20 @@ class SchemaManager {
 
   }
 
-  findModelName (table, validate) {
-    let models = this.schema.models;
-    let name = Object.keys(models).filter(function(v) {
-      return models[v].table === table;
+  findTableName (table, validate) {
+    let tables = this.schema.tables;
+    let name = Object.keys(tables).filter(function(v) {
+      return tables[v].table === table;
     }).pop();
     if (!name && validate) {
-      throw new Error(`No model matching table "${table}" found`);
+      throw new Error(`No table matching "${table}" found`);
     }
     return name;
   }
 
   findModelSchemaEntry (table, validate) {
-    let modelName = this.findModelName(table, validate);
-    return this.schema.models[modelName];
+    let tableName = this.findTableName(table, validate);
+    return this.schema.tables[tableName];
   }
 
   findIndexSchemaEntry (table, column, validate) {
@@ -224,18 +224,11 @@ class SchemaManager {
 
   createTable (table, arrColumnData) {
 
-    // let tableClass = modelName || inflect.classify(table);
-    let tableClass = table; // Always set the model name to the table name
-
     // Make sure we copy the data so we don't alter original data
     arrColumnData = JSON.parse(JSON.stringify(arrColumnData));
 
-    if (this.schema.models[tableClass]) {
-      throw new Error('Model with name "' + tableClass + '" already exists in your schema');
-    }
-
-    if (this.findModelName(table)) {
-      throw new Error('Table with name "' + table + '" already exists in your schema.');
+    if (this.schema.tables[table]) {
+      throw new Error('Table with name "' + table + '" already exists in your schema');
     }
 
     arrColumnData = arrColumnData.slice();
@@ -260,7 +253,7 @@ class SchemaManager {
 
     arrColumnData.forEach(columnData => this.mergeProperties(columnData));
 
-    this.schema.models[tableClass] = {
+    this.schema.tables[table] = {
       table: table,
       columns: arrColumnData
     };
@@ -271,13 +264,13 @@ class SchemaManager {
 
   dropTable (table) {
 
-    let tableClass = this.findModelName(table);
+    let tableClass = this.findTableName(table);
 
     if (!tableClass) {
       throw new Error('Table "' + table + '" does not exist in your schema');
     }
 
-    delete this.schema.models[tableClass];
+    delete this.schema.tables[tableClass];
 
     return true;
 
@@ -285,22 +278,22 @@ class SchemaManager {
 
   renameTable (table, newTableName, renameModel, newModelName) {
 
-    let tableClass = this.findModelName(table);
+    let tableClass = this.findTableName(table);
 
     if (!tableClass) {
       throw new Error('Table "' + table + '" does not exist in your schema');
     }
 
-    this.schema.models[tableClass].table = newTableName;
+    this.schema.tables[tableClass].table = newTableName;
 
     if (renameModel) {
       let newClass = newModelName || inflect.classify(newTableName);
-      this.schema.models[newClass] = this.schema.models[tableClass];
-      delete this.schema.models[tableClass];
+      this.schema.tables[newClass] = this.schema.tables[tableClass];
+      delete this.schema.tables[tableClass];
       tableClass = newClass;
     }
 
-    return this.schema.models[tableClass];
+    return this.schema.tables[tableClass];
 
   }
 
@@ -310,16 +303,16 @@ class SchemaManager {
       delete properties.unique;
     }
 
-    let models = this.schema.models;
-    let modelKey = Object.keys(models).filter(function(t) {
-      return models[t].table === table;
+    let tables = this.schema.tables;
+    let tableKey = Object.keys(tables).filter(function(t) {
+      return tables[t].table === table;
     }).pop();
 
-    if (!modelKey) {
+    if (!tableKey) {
       throw new Error('Table "' + table + '" does not exist');
     }
 
-    let schemaFieldData = models[modelKey].columns.filter(function(v) {
+    let schemaFieldData = tables[tableKey].columns.filter(function(v) {
       return v.name === column;
     }).pop();
 
@@ -341,18 +334,18 @@ class SchemaManager {
       delete properties.unique;
     }
 
-    let models = this.schema.models;
-    let modelKey = Object.keys(models).filter(function(t) {
-      return models[t].table === table;
+    let tables = this.schema.tables;
+    let tableKey = Object.keys(tables).filter(function(t) {
+      return tables[t].table === table;
     }).pop();
 
-    if (!modelKey) {
+    if (!tableKey) {
       throw new Error('Table "' + table + '" does not exist');
     }
 
-    let modelSchema = models[modelKey];
+    let tableSchema = tables[tableKey];
 
-    let schemaFieldData = modelSchema.columns.filter(function(v) {
+    let schemaFieldData = tableSchema.columns.filter(function(v) {
       return v.name === column;
     }).pop();
 
@@ -369,7 +362,7 @@ class SchemaManager {
       columnData.properties = properties;
     }
 
-    modelSchema.columns.push(columnData);
+    tableSchema.columns.push(columnData);
 
     return true;
 
@@ -377,24 +370,24 @@ class SchemaManager {
 
   dropColumn (table, column) {
 
-    let models = this.schema.models;
-    let modelKey = Object.keys(models).filter(function(t) {
-      return models[t].table === table;
+    let tables = this.schema.tables;
+    let tableKey = Object.keys(tables).filter(function(t) {
+      return tables[t].table === table;
     }).pop();
 
-    if (!modelKey) {
+    if (!tableKey) {
       throw new Error('Table "' + table + '" does not exist');
     }
 
-    let modelSchema = models[modelKey];
+    let tableSchema = tables[tableKey];
 
-    let columnIndex = modelSchema.columns.map(function(v, i) { return v.name; }).indexOf(column);
+    let columnIndex = tableSchema.columns.map(function(v, i) { return v.name; }).indexOf(column);
 
     if (columnIndex === -1) {
       throw new Error('Column "' + column + '" of table "' + table + '" does not exist');
     }
 
-    modelSchema.columns.splice(columnIndex, 1);
+    tableSchema.columns.splice(columnIndex, 1);
 
     return true;
 
@@ -402,18 +395,18 @@ class SchemaManager {
 
   renameColumn (table, column, newColumn) {
 
-    let models = this.schema.models;
-    let modelKey = Object.keys(models).filter(function(t) {
-      return models[t].table === table;
+    let tables = this.schema.tables;
+    let tableKey = Object.keys(tables).filter(function(t) {
+      return tables[t].table === table;
     }).pop();
 
-    if (!modelKey) {
+    if (!tableKey) {
       throw new Error('Table "' + table + '" does not exist');
     }
 
-    let modelSchema = models[modelKey];
+    let tableSchema = tables[tableKey];
 
-    let schemaFieldData = modelSchema.columns.filter(function(v) {
+    let schemaFieldData = tableSchema.columns.filter(function(v) {
       return v.name === column;
     }).pop();
 
@@ -450,11 +443,11 @@ class SchemaManager {
 
   addForeignKey (table, referenceTable) {
 
-    if (!this.findModelName(table)) {
+    if (!this.findTableName(table)) {
       throw new Error('Table with name "' + table + '" does not exist in your schema.');
     }
 
-    if (!this.findModelName(referenceTable)) {
+    if (!this.findTableName(referenceTable)) {
       throw new Error('Table with name "' + referenceTable + '" does not exist in your schema.');
     }
 
@@ -464,11 +457,11 @@ class SchemaManager {
 
   dropForeignKey (table, referenceTable) {
 
-    if (!this.findModelName(table)) {
+    if (!this.findTableName(table)) {
       throw new Error('Table with name "' + table + '" does not exist in your schema.');
     }
 
-    if (!this.findModelName(referenceTable)) {
+    if (!this.findTableName(referenceTable)) {
       throw new Error('Table with name "' + referenceTable + '" does not exist in your schema.');
     }
 
@@ -478,9 +471,9 @@ class SchemaManager {
 
   prettyPrint () {
 
-    let models = this.schema.models;
+    let tables = this.schema.tables;
     let indices = this.schema.indices;
-    let hasModels = !!Object.keys(models).length;
+    let hasModels = !!Object.keys(tables).length;
     let hasIndices = indices.length;
 
     let fileData = [
@@ -514,10 +507,10 @@ class SchemaManager {
 
       fileData = fileData.concat([
         '',
-        '  "models": {',
+        '  "tables": {',
         '',
-        Object.keys(models).sort().map(function(t) {
-          let curTable = models[t];
+        Object.keys(tables).sort().map(function(t) {
+          let curTable = tables[t];
           return [
             '    "' + t + '": {',
             '',
@@ -549,7 +542,7 @@ class SchemaManager {
 
       fileData = fileData.concat([
         '',
-        '  "models": {}',
+        '  "tables": {}',
         ''
       ]);
 

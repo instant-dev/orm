@@ -37,7 +37,7 @@ module.exports = (Instantiator, Databases) => {
 
       expect(schema.migration_id).to.equal(null);
       expect(schema.indices.length).to.equal(0);
-      expect(Object.keys(schema.models).length).to.equal(0);
+      expect(Object.keys(schema.tables).length).to.equal(0);
 
     });
 
@@ -89,7 +89,7 @@ module.exports = (Instantiator, Databases) => {
       expect(json.down[0]).to.deep.equal(['alterColumn', 'blog_posts', 'title', 'string']);
       expect(json.down[1]).to.deep.equal(['dropTable', 'blog_posts']);
 
-      expect(Instant.Schema.findModelName('blog_posts')).to.not.exist;
+      expect(Instant.Schema.findTableName('blog_posts')).to.not.exist;
 
     });
 

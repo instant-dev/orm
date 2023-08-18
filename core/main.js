@@ -49,6 +49,8 @@ class InstantORM extends Logger {
     let db = this.addDatabase('main', cfg);
     if (schema !== null) {
       await this.loadSchema(schema);
+    } else {
+      await this.loadSchema(this.constructor.Core.DB.SchemaManager.emptySchema());
     }
     return db;
   }

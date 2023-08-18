@@ -138,11 +138,11 @@ class MigrationManager extends Logger {
 
   setSchema (schema) {
     this._Schema.setSchema(schema);
-    let modelObject = this._Schema.schema.models;
-    let models = Object.keys(modelObject).map(name => modelObject[name]);
+    let tableObject = this._Schema.schema.tables;
+    let tables = Object.keys(tableObject).map(name => tableObject[name]);
     let indices = this._Schema.schema.indices;
     let queries = [];
-    queries = queries.concat(models.map(model => this._Schema.db.adapter.generateCreateTableQuery(model.table, model.columns)));
+    queries = queries.concat(tables.map(table => this._Schema.db.adapter.generateCreateTableQuery(table.table, table.columns)));
     queries = queries.concat(indices.map(index => this._Schema.db.adapter.generateCreateIndexQuery(index.table, index.column, index.type)));
     return queries.join(';')
   }

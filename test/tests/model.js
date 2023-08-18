@@ -535,15 +535,15 @@ module.exports = (Instantiator, Databases) => {
         try {
           results = await Instantiator.InstantORM.Core.ModelFactory.createFromModels(
             {
-              Parent: Parent,
-              House: House
+              parents: Parent,
+              houses: House
             },
             {
-              Parent: [
+              parents: [
                 {name: 'Hurley'},
                 {name: 'Boone'}
               ],
-              House: [
+              houses: [
                 {material: 'straw'},
                 {material: 'wood'}
               ]
@@ -559,15 +559,15 @@ module.exports = (Instantiator, Databases) => {
 
         let results = await Instantiator.InstantORM.Core.ModelFactory.createFromModels(
           {
-            Parent: Parent,
-            House: House
+            parents: Parent,
+            houses: House
           },
           {
-            Parent: [
+            parents: [
               {name: 'Hurley', age: 20},
               {name: 'Boone', age: 20}
             ],
-            House: [
+            houses: [
               {material: 'straw'},
               {material: 'wood'}
             ]

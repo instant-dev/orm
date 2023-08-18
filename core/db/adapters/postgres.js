@@ -290,13 +290,13 @@ class PostgresAdapter extends SQLAdapter {
     let schema = {
       migration_id: null,
       indices: [],
-      models: {}
+      tables: {}
     };
 
     // First prepare models...
     const typePropertyDefaults = this.db.adapter.typePropertyDefaults;
     tables.forEach(table => {
-      let model = schema.models[inflect.classify(table.name)] = {
+      let model = schema.tables[table.name] = {
         table: table.name,
         columns: table.columns.map(column => {
           let c = {

@@ -49,17 +49,17 @@ class ModelFactory {
       Object.keys(objModelData)
         .forEach(name => {
           if (!Models[name]) {
-            throw new Error(`No such model: "${name}"`);
+            throw new Error(`No such table: "${name}"`);
           }
         });
       let ModelsFiltered = Object.keys(Models)
         .map(name => Models[name])
         .filter(Model => {
-          return objModelData[Model.name] && objModelData[Model.name].length;
+          return objModelData[Model.table()] && objModelData[Model.table()].length;
         });
       let results = await Promise.all(
         ModelsFiltered.map(Model => {
-          return new this(Model).create(objModelData[Model.name])
+          return new this(Model).create(objModelData[Model.table()])
         })
       );
       return results;

@@ -14,8 +14,8 @@ module.exports = (Instantiator, Databases) => {
       indices: [
         {table: 'parents', column: 'shirt', type: 'btree'}
       ],
-      models: {
-        Parent: {
+      tables: {
+        parents: {
           table: 'parents',
           columns: [
             {name: 'id', type: 'serial'},
@@ -27,7 +27,7 @@ module.exports = (Instantiator, Databases) => {
             {name: 'updated_at', type: 'datetime'}
           ]
         },
-        Child: {
+        children: {
           table: 'children',
           columns: [
             {name: 'id', type: 'serial'},
@@ -45,7 +45,7 @@ module.exports = (Instantiator, Databases) => {
 
     before(async () => {
       Instant.disconnect();
-      await Instant.connect(Databases['main']);
+      await Instant.connect(Databases['main'], null);
       Instant.Migrator.enableDangerous();
       Instant.Migrator.Dangerous.filesystem.clear();
       await Instant.Migrator.Dangerous.annihilate();
@@ -65,16 +65,6 @@ module.exports = (Instantiator, Databases) => {
     it('should load a schema via #connect', async () => {
 
       await Instant.connect(Databases['main'], schema);
-      expect(Instant.Schema).to.exist;
-
-    });
-
-    it('should load a schema via #loadSchema', async () => {
-
-      Instant.disconnect();
-      await Instant.connect(Databases['main'], null);
-      await Instant.loadSchema(schema);
-
       expect(Instant.Schema).to.exist;
 
     });
@@ -218,7 +208,7 @@ module.exports = (Instantiator, Databases) => {
 
       it('should fail to find models before db initialized', async () => {
 
-        const modelNames = Instant.Schema.listModelNames();
+        const modelNames = Instant.Schema.listTableNames();
 
         let error;
 
@@ -269,7 +259,7 @@ module.exports = (Instantiator, Databases) => {
 
       it('should succeed at finding models after db initialized', async () => {
 
-        const modelNames = Instant.Schema.listModelNames();
+        const modelNames = Instant.Schema.listTableNames();
 
         for (let i = 0; i < modelNames.length; i++) {
           let name = modelNames[i];
@@ -300,7 +290,7 @@ module.exports = (Instantiator, Databases) => {
 
         Instant.Migrator.Dangerous.filesystem.clear();
         let results = await Instant.Migrator.Dangerous.bootstrap();
-        const modelNames = Instant.Schema.listModelNames();
+        const modelNames = Instant.Schema.listTableNames();
 
         for (let i = 0; i < modelNames.length; i++) {
           let name = modelNames[i];
@@ -352,11 +342,11 @@ module.exports = (Instantiator, Databases) => {
       it('should bootstrap from a seed', async () => {
 
         const seed = {
-          Parent: [
+          parents: [
             {name: 'Hurley'},
             {name: 'Boone'}
           ],
-          Child: [
+          children: [
             {name: 'Locke', parent_id: 2},
             {name: 'Sayid', parent_id: 1}
           ]
@@ -399,8 +389,8 @@ module.exports = (Instantiator, Databases) => {
 
         let schema = await Instant.Migrator.getLatestSchema();
 
-        expect(schema.models['Parent']).to.exist;
-        expect(schema.models['Child']).to.exist;
+        expect(schema.tables['parents']).to.exist;
+        expect(schema.tables['children']).to.exist;
         expect(schema).to.deep.equal(Instant.Schema.schema);
 
       });

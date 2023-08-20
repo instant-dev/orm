@@ -38,6 +38,7 @@ class SchemaManager {
     return {
       migration_id: null,
       indices: [],
+      foreign_keys: [],
       tables: {}
     };
   }
@@ -48,8 +49,8 @@ class SchemaManager {
     }
     json = JSON.parse(JSON.stringify(json)); // create a copy
     let keys = Object.keys(json);
-    if (Object.keys(json).length > 3) {
-      throw new Error(`Invalid schema: can only contain "migration_id", "indices", "tables"`);
+    if (Object.keys(json).length > 4) {
+      throw new Error(`Invalid schema: can only contain "migration_id", "indices", "foreign_keys", "tables"`);
     }
     if (!('migration_id' in json)) {
       throw new Error(`Invalid schema: missing "migration_id"`);
@@ -81,6 +82,26 @@ class SchemaManager {
       }
       if (!index['type'] || typeof index['type'] !== 'string') {
         throw new Error(`Invalid schema: indices[${i}] missing string "type"`);
+      }
+    });
+    if (!('foreign_keys' in json)) {
+      throw new Error(`Invalid schema: missing "foreign_keys"`);
+    }
+    if (!Array.isArray(json['foreign_keys'])) {
+      throw new Error(`Invalid schema: "foreign_keys" must be an array`);
+    }
+    json['foreign_keys'].forEach((index, i) => {
+      if (Object.keys(index).length > 3) {
+        throw new Error(`Invalid schema: foreign_keys[${i}] can only contain "table", "column", "type"`);
+      }
+      if (!index['table'] || typeof index['table'] !== 'string') {
+        throw new Error(`Invalid schema: foreign_keys[${i}] missing string "table"`);
+      }
+      if (!index['column'] || typeof index['column'] !== 'string') {
+        throw new Error(`Invalid schema: foreign_keys[${i}] missing string "column"`);
+      }
+      if (!index['type'] || typeof index['type'] !== 'string') {
+        throw new Error(`Invalid schema: foreign_keys[${i}] missing string "type"`);
       }
     });
     if (!('tables' in json)) {

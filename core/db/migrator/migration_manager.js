@@ -195,24 +195,17 @@ class MigrationManager extends Logger {
     return this._Schema.db.adapter.generateDropIndexQuery(table, column);
   }
 
-  // TODO: Experimental. Currently unused.
-  addForeignKey (table, referenceTable) {
-    if (this._Schema.db.adapter.supportsForeignKey) {
-      this._Schema.addForeignKey(table, referenceTable);
-      return this._Schema.db.adapter.generateSimpleForeignKeyQuery(table, referenceTable);
-    } else {
-      throw new Error(`${this._Schema.db.adapter.constructor.name} does not support foreign keys`);
-    }
+  addForeignKey (table, column, parentTable, parentColumn, behavior) {
+    behavior = JSON.parse(JSON.stringify(behavior || {}));
+    // mock the foreign key, eg add to schema but not db
+    behavior.mock = behavior.mock || !this._Schema.db.adapter.supportsForeignKey;
+    this._Schema.addForeignKey(table, column, parentTable, parentColumn, behavior);
+    return this._Schema.db.adapter.generateForeignKeyQuery(table, column, parentTable, parentColumn, behavior);
   }
 
-  // TODO: Experimental. Currently unused.
-  dropForeignKey (table, referenceTable) {
-    if (this._Schema.db.adapter.supportsForeignKey) {
-      this._Schema.dropForeignKey(table, referenceTable);
-      return this._Schema.db.adapter.generateDropSimpleForeignKeyQuery(table, referenceTable);
-    } else {
-      throw new Error(`${this._Schema.db.adapter.constructor.name} does not support foreign keys`);
-    }
+  dropForeignKey (table, column, parentColumn, behavior) {
+    this._Schema.dropForeignKey(table, column, parentTable, parentColumn);
+    return this._Schema.db.adapter.generateDropForeignKeyQuery(table, column, parentTable, parentColumn);
   }
 
 };

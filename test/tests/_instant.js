@@ -11,6 +11,7 @@ module.exports = (Instantiator, Databases) => {
 
     const schema = {
       migration_id: null,
+      foreign_keys: [],
       indices: [
         {table: 'parents', column: 'shirt', type: 'btree'}
       ],

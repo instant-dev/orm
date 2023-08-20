@@ -125,7 +125,7 @@ module.exports = (Instantiator, Databases) => {
       it('should be able to add a foreign key constraint', async () => {
 
         await db.query(
-          db.adapter.generateSimpleForeignKeyQuery(myTable.name, myReferenceTable.name),
+          db.adapter.generateForeignKeyQuery(myTable.name, myTable.columns[0].name, myReferenceTable.name, myReferenceTable.columns[0].name),
           []
         );
 
@@ -151,7 +151,7 @@ module.exports = (Instantiator, Databases) => {
       it('should be able to drop a foreign key constraint', async () => {
 
         await db.query(
-          db.adapter.generateDropSimpleForeignKeyQuery(myTable.name, myReferenceTable.name),
+          db.adapter.generateDropForeignKeyQuery(myTable.name, myTable.columns[0].name, myReferenceTable.name, myReferenceTable.columns[0].name),
           []
         );
 

@@ -289,6 +289,7 @@ class PostgresAdapter extends SQLAdapter {
     let indices = indexResult.rows;
     let schema = {
       migration_id: null,
+      foreign_keys: [],
       indices: [],
       tables: {}
     };
@@ -721,28 +722,30 @@ class PostgresAdapter extends SQLAdapter {
 
   }
 
-  generateSimpleForeignKeyQuery (table, referenceTable) {
-    return [
-      'ALTER TABLE',
-        this.escapeField(table),
-      'ADD CONSTRAINT',
-        `${this.generateConstraint(table, referenceTable, 'id_fk')}`,
-      'FOREIGN KEY',
-        `(${this.escapeField(`${inflect.singularize(referenceTable)}_id`)})`,
-      'REFERENCES',
-        `${this.escapeField(referenceTable)} (${this.escapeField('id')})`
-    ].join(' ');
-
+  generateForeignKeyQuery (table, columnName, parentTable, parentColumnName, behavior) {
+    behavior = behavior || {};
+    return (behavior.mock)
+      ? ''
+      : [
+        'ALTER TABLE',
+          this.escapeField(table),
+        'ADD CONSTRAINT',
+          `${this.generateConstraint(table, columnName, `_${parentTable}_${parentColumnName}_fk`)}`,
+        'FOREIGN KEY',
+          `(${this.escapeField(columnName)})`,
+        'REFERENCES',
+          `${this.escapeField(parentTable)} (${parentColumnName})`,
+        (behavior.cascade ? `ON DELETE CASCADE` : '')
+      ].join(' ').trim();
   }
 
-  generateDropSimpleForeignKeyQuery (table, referenceTable) {
+  generateDropForeignKeyQuery (table, columnName, parentTable, parentColumnName) {
     return [
       'ALTER TABLE',
         this.escapeField(table),
       'DROP CONSTRAINT IF EXISTS',
-        `${this.generateConstraint(table, referenceTable, 'id_fk')}`,
+        `${this.generateConstraint(table, columnName, `_${parentTable}_${parentColumnName}_fk`)}`,
     ].join(' ');
-
   }
 
   generateRenameSequenceQuery (table, columnName, newTable, newColumnName) {

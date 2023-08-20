@@ -209,6 +209,31 @@ class Migration extends Logger {
     }
   }
 
+  addForeignKey (table, column, parentTable, parentColumn, behavior) {
+    if (!this.name) {
+      this.name = `add_foreign_key_on_${table}_column_${column}`;
+    }
+    if (!this.parent) {
+      this.up.addForeignKey(table, column, parentTable, parentColumn, behavior);
+      this.down.dropForeignKey(table, column);
+    } else {
+      this.addCommand(['addForeignKey', table, column, parentTable, parentColumn, behavior]);
+    }
+  }
+
+  dropForeignKey (table, column) {
+    if (!this.name) {
+      this.name = `drop_foreign_key_on_${table}_column_${column}`;
+    }
+    if (!this.parent) {
+      let foreignKey = this._Schema.findForeignKeySchemaEntry(table, column, true);
+      this.up.dropForeignKey(table, column);
+      this.down.addForeignKey(table, column, foreignKey.parentTable, foreignKey.parentColumn, foreignKey.behavior);
+    } else {
+      this.addCommand(['dropForeignKey', table, column]);
+    }
+  }
+
   /**
    * ===
    * Static methods used for command validation
@@ -227,6 +252,8 @@ class Migration extends Logger {
     renameColumn: ['table:string', 'column:string', 'newColumn:string'],
     createIndex: ['table:string', 'column:string', 'type:?indexType'],
     dropIndex: ['table:string', 'column:string'],
+    addForeignKey: ['table:string', 'column:string', 'parentTable:string', 'parentColumn:string', 'behavior:?object'],
+    dropForeignKey: ['table:string', 'column:string']
   };
 
   // Validations for the specific types to make sure commands will work

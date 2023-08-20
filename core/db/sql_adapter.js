@@ -59,8 +59,8 @@ class SQLAdapter {
   generateCreateIndex (table, columnName, indexType) {}
   generateDropIndex (table, columnName) {}
 
-  generateForeignKeyQuery (table, referenceTable) {}
-  generateDropForeignKeyQuery (table, referenceTable) {}
+  generateForeignKeyQuery (table, columnName, parentTable, parentColumnName, behavior) {}
+  generateDropForeignKeyQuery (table, columnName) {}
 
   sanitize (type, value) {
 

@@ -90,18 +90,35 @@ class SchemaManager {
     if (!Array.isArray(json['foreign_keys'])) {
       throw new Error(`Invalid schema: "foreign_keys" must be an array`);
     }
-    json['foreign_keys'].forEach((index, i) => {
-      if (Object.keys(index).length > 3) {
-        throw new Error(`Invalid schema: foreign_keys[${i}] can only contain "table", "column", "type"`);
+    json['foreign_keys'].forEach((foreignKey, i) => {
+      foreignKey['behavior'] = foreignKey['behavior'] || {};
+      if (Object.keys(foreignKey).length > 5) {
+        throw new Error(`Invalid schema: foreign_keys[${i}] can only contain "table", "column", "parentTable", "parentColumn", "behavior"`);
       }
-      if (!index['table'] || typeof index['table'] !== 'string') {
+      if (!foreignKey['table'] || typeof foreignKey['table'] !== 'string') {
         throw new Error(`Invalid schema: foreign_keys[${i}] missing string "table"`);
       }
-      if (!index['column'] || typeof index['column'] !== 'string') {
+      if (!foreignKey['column'] || typeof foreignKey['column'] !== 'string') {
         throw new Error(`Invalid schema: foreign_keys[${i}] missing string "column"`);
       }
-      if (!index['type'] || typeof index['type'] !== 'string') {
-        throw new Error(`Invalid schema: foreign_keys[${i}] missing string "type"`);
+      if (!foreignKey['parentTable'] || typeof foreignKey['parentTable'] !== 'string') {
+        throw new Error(`Invalid schema: foreign_keys[${i}] missing string "parentTable"`);
+      }
+      if (!foreignKey['parentColumn'] || typeof foreignKey['parentColumn'] !== 'string') {
+        throw new Error(`Invalid schema: foreign_keys[${i}] missing string "parentColumn"`);
+      }
+      if (!foreignKey['parentColumn'] || typeof foreignKey['parentColumn'] !== 'string') {
+        throw new Error(`Invalid schema: foreign_keys[${i}] missing string "parentColumn"`);
+      }
+      if (
+        !foreignKey['behavior'] ||
+        typeof foreignKey['behavior'] !== 'object' ||
+        foreignKey['behavior'].constructor !== Object
+      ) {
+        throw new Error(`Invalid schema: foreign_keys[${i}]["behavior"] must be an object`);
+      }
+      if (Object.keys(foreignKey['behavior']).length === 0) {
+        delete foreignKey['behavior'];
       }
     });
     if (!('tables' in json)) {
@@ -305,6 +322,17 @@ class SchemaManager {
     if (!index && validate) {
       throw new Error(`No index for table "${table}" column "${column}" found`);
     }
+    return index;
+  }
+
+  findForeignKeySchemaEntry (table, column, validate) {
+    let foreignKey = this.schema.foreign_keys.find(foreignKey => {
+      return foreignKey.table === table && foreignKey.column === column;
+    });
+    if (!index && validate) {
+      throw new Error(`No foreign key for table "${table}" column "${column}" found`);
+    }
+    return foreignKey;
   }
 
   createTable (table, arrColumnData) {
@@ -497,6 +525,10 @@ class SchemaManager {
 
   createIndex (table, column, type) {
 
+    if (!this.findTableName(table)) {
+      throw new Error('Table with name "' + table + '" does not exist in your schema.');
+    }
+
     if (this.schema.indices.filter(function(v) {
       return v.table === table && v.column === column;
     }).length) {
@@ -516,30 +548,64 @@ class SchemaManager {
 
   }
 
-  addForeignKey (table, referenceTable) {
+  addForeignKey (table, columnName, parentTable, parentColumnName, behavior) {
 
     if (!this.findTableName(table)) {
       throw new Error('Table with name "' + table + '" does not exist in your schema.');
     }
 
-    if (!this.findTableName(referenceTable)) {
-      throw new Error('Table with name "' + referenceTable + '" does not exist in your schema.');
+    if (!this.findTableName(parentTable)) {
+      throw new Error('Table with name "' + parentTable + '" (parent) does not exist in your schema.');
     }
 
+    const foundKey = this.schema.foreign_keys.find(fk => {
+      return fk.table === table &&
+        fk.column === columnName
+    });
+
+    if (foundKey) {
+      throw new Error(`Foreign key for "${table}"."${columnName}" already exists in your schema.`);
+    }
+
+    let foreignKey = {
+      table: table,
+      column: columnName,
+      parentTable: parentTable,
+      parentColumn: parentColumnName
+    };
+
+    if (behavior && Object.keys(behavior).length) {
+      foreignKey.behavior = behavior;
+    }
+
+    const referenceCheck = {};
+    let referenceChain = [];
+    let parentForeignKey = foreignKey;
+    while (parentForeignKey) {
+      referenceChain.push(`"${parentForeignKey.table}"."${parentForeignKey.column}"`);
+      if (referenceCheck[parentForeignKey.table]) {
+        throw new Error(
+          `Foreign key circular reference for "${parentForeignKey.table}":\n` +
+          referenceChain.join(' -> ')
+        );
+      } else {
+        referenceCheck[parentForeignKey.table] = true;
+      }
+      parentForeignKey = this.schema.foreign_keys.find(fk => {
+        return fk.table === parentForeignKey.parentTable;
+      });
+    }
+
+    this.schema.foreign_keys.push(foreignKey);
     return true;
 
   }
 
-  dropForeignKey (table, referenceTable) {
+  dropForeignKey (table, columnName) {
 
-    if (!this.findTableName(table)) {
-      throw new Error('Table with name "' + table + '" does not exist in your schema.');
-    }
-
-    if (!this.findTableName(referenceTable)) {
-      throw new Error('Table with name "' + referenceTable + '" does not exist in your schema.');
-    }
-
+    this.schema.foreign_keys = this.schema.foreign_keys.filter(function(v) {
+      return !(v.table === table && v.column === columnName);
+    });
     return true;
 
   }

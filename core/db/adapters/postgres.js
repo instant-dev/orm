@@ -730,7 +730,7 @@ class PostgresAdapter extends SQLAdapter {
         'ALTER TABLE',
           this.escapeField(table),
         'ADD CONSTRAINT',
-          `${this.generateConstraint(table, columnName, `_${parentTable}_${parentColumnName}_fk`)}`,
+          `${this.generateConstraint(table, columnName, `_fk`)}`,
         'FOREIGN KEY',
           `(${this.escapeField(columnName)})`,
         'REFERENCES',
@@ -739,12 +739,12 @@ class PostgresAdapter extends SQLAdapter {
       ].join(' ').trim();
   }
 
-  generateDropForeignKeyQuery (table, columnName, parentTable, parentColumnName) {
+  generateDropForeignKeyQuery (table, columnName) {
     return [
       'ALTER TABLE',
         this.escapeField(table),
       'DROP CONSTRAINT IF EXISTS',
-        `${this.generateConstraint(table, columnName, `_${parentTable}_${parentColumnName}_fk`)}`,
+        `${this.generateConstraint(table, columnName, `_fk`)}`,
     ].join(' ');
   }
 

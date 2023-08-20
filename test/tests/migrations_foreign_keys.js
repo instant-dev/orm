@@ -30,8 +30,6 @@ module.exports = (Instantiator, Databases) => {
       it('should successfully create a foreign key', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
-        await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
 
@@ -75,6 +73,20 @@ module.exports = (Instantiator, Databases) => {
 
       });
 
+      it('should successfully drop a foreign key', async () => {
+
+        const migrationB = await Instant.Migrator.create(200);
+        migrationB.dropForeignKey('blog_posts', 'user_id');
+        Instant.Migrator.Dangerous.filesystem.write(migrationB);
+
+        await Instant.Migrator.Dangerous.migrate();
+
+        expect(Instant.Schema.schema.foreign_keys).to.exist;
+        expect(Instant.Schema.schema.foreign_keys).to.be.an('array');
+        expect(Instant.Schema.schema.foreign_keys).to.have.length(0);
+
+      });
+
       it('should fail to create a foreign key when table invalid', async () => {
 
         Instant.Migrator.enableDangerous();
@@ -96,13 +108,141 @@ module.exports = (Instantiator, Databases) => {
         let error;
 
         try {
-          migrationA.addForeignKey('blog_post', 'user_id', 'users', 'id');
+          migrationA.addForeignKey('blog_postx', 'user_id', 'users', 'id');
         } catch (e) {
           error = e;
         }
 
         expect(error).to.exist;
-        expect(error.message).to.include('"blog_post"');
+        expect(error.message).to.include('"blog_postx"');
+
+      });
+
+      it('should fail to create a foreign key when column invalid', async () => {
+
+        Instant.Migrator.enableDangerous();
+        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.annihilate();
+        await Instant.Migrator.Dangerous.prepare();
+        await Instant.Migrator.Dangerous.initialize();
+
+        const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
+        migrationA.createTable('users',[{name: 'username', type: 'string'}]);
+        migrationA.createTable(
+          'blog_posts',
+          [
+            {name: 'title', type: 'string'},
+            {name: 'user_id', type: 'int'}
+          ]
+        );
+
+        let error;
+
+        try {
+          migrationA.addForeignKey('blog_posts', 'user_idx', 'users', 'id');
+        } catch (e) {
+          error = e;
+        }
+
+        expect(error).to.exist;
+        expect(error.message).to.include('"blog_posts"');
+        expect(error.message).to.include('"user_idx"');
+
+      });
+
+      it('should fail to create a foreign key when parent table invalid', async () => {
+
+        Instant.Migrator.enableDangerous();
+        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.annihilate();
+        await Instant.Migrator.Dangerous.prepare();
+        await Instant.Migrator.Dangerous.initialize();
+
+        const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
+        migrationA.createTable('users',[{name: 'username', type: 'string'}]);
+        migrationA.createTable(
+          'blog_posts',
+          [
+            {name: 'title', type: 'string'},
+            {name: 'user_id', type: 'int'}
+          ]
+        );
+
+        let error;
+
+        try {
+          migrationA.addForeignKey('blog_posts', 'user_id', 'userx', 'id');
+        } catch (e) {
+          error = e;
+        }
+
+        expect(error).to.exist;
+        expect(error.message).to.include('"userx"');
+
+      });
+
+      it('should fail to create a foreign key when parent column invalid', async () => {
+
+        Instant.Migrator.enableDangerous();
+        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.annihilate();
+        await Instant.Migrator.Dangerous.prepare();
+        await Instant.Migrator.Dangerous.initialize();
+
+        const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
+        migrationA.createTable('users',[{name: 'username', type: 'string'}]);
+        migrationA.createTable(
+          'blog_posts',
+          [
+            {name: 'title', type: 'string'},
+            {name: 'user_id', type: 'int'}
+          ]
+        );
+
+        let error;
+
+        try {
+          migrationA.addForeignKey('blog_posts', 'user_id', 'users', 'idx');
+        } catch (e) {
+          error = e;
+        }
+
+        expect(error).to.exist;
+        expect(error.message).to.include('"users"');
+        expect(error.message).to.include('"idx"');
+
+      });
+
+      it('should fail to create a foreign key with a circular reference', async () => {
+
+        Instant.Migrator.enableDangerous();
+        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.annihilate();
+        await Instant.Migrator.Dangerous.prepare();
+        await Instant.Migrator.Dangerous.initialize();
+
+        const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
+        migrationA.createTable('users',[{name: 'username', type: 'string'}]);
+        migrationA.createTable(
+          'blog_posts',
+          [
+            {name: 'title', type: 'string'},
+            {name: 'user_id', type: 'int'}
+          ]
+        );
+
+        let error;
+
+        try {
+          migrationA.addForeignKey('blog_posts', 'user_id', 'users', 'id');
+          migrationA.addForeignKey('users', 'id', 'blog_posts', 'user_id');
+        } catch (e) {
+          error = e;
+        }
+        
+        expect(error).to.exist;
+        expect(error.message).to.include('Foreign key circular reference');
+        expect(error.message).to.satisfy(m => m.endsWith('\n"users"."id" -> "blog_posts"."user_id" -> "users"."id"'));
 
       });
 

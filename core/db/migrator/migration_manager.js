@@ -49,9 +49,9 @@ class MigrationManager extends Logger {
     return !!(result.rows[0] && result.rows[0].table_name === this._Schema.constructor.migrationsTable);
   }
 
-  async getMigrations () {
+  async listMigrations () {
     let result = await this._Schema.db.query(
-      `SELECT "${this._Schema.constructor.migrationsTable}"."id", "${this._Schema.constructor.migrationsTable}"."schema", "${this._Schema.constructor.migrationsTable}"."commands" FROM "${this._Schema.constructor.migrationsTable}" ORDER BY "id" ASC LIMIT 1`,
+      `SELECT "id", "schema", "commands" FROM "${this._Schema.constructor.migrationsTable}" ORDER BY "id" ASC`,
       []
     );
     return result.rows;
@@ -59,7 +59,7 @@ class MigrationManager extends Logger {
 
   async getLatestSchema () {
     let result = await this._Schema.db.query(
-      `SELECT "${this._Schema.constructor.migrationsTable}"."schema" FROM "${this._Schema.constructor.migrationsTable}" ORDER BY "id" DESC LIMIT 1`,
+      `SELECT "schema" FROM "${this._Schema.constructor.migrationsTable}" ORDER BY "id" DESC LIMIT 1`,
       []
     );
     if (!result.rows.length) {
@@ -92,7 +92,7 @@ class MigrationManager extends Logger {
     if (!isEnabled) {
       throw new Error(`Could not create new migration: Your database does not yet have migrations enabled. Try running "prepare".`);
     }
-    let migrations = await this.getMigrations();
+    let migrations = await this.listMigrations();
     if (!migrations.length) {
       throw new Error(`Could not create new migration: Your database does not yet have migrations initialized. Try running "initialize".`);
     }
@@ -111,12 +111,13 @@ class MigrationManager extends Logger {
       }
       migrationJSON.commands.up.forEach(command => {
         try {
-          Migration.validateCommand(command, this.db);
+          Migration.validateCommand(command, this._Schema.db);
         } catch (e) {
           throw new Error(`Could not create new migration: Invalid command in database for migration(id=${migrationJSON.id}):\n` + e.message);
         }
         tmpSchema[command[0]].apply(tmpSchema, command.slice(1));
       });
+      tmpSchema.setMigrationId(migrationJSON.id);
     });
     if (!deepEqual(tmpSchema.schema, this._Schema.schema)) {
       throw new Error(
@@ -196,16 +197,13 @@ class MigrationManager extends Logger {
   }
 
   addForeignKey (table, column, parentTable, parentColumn, behavior) {
-    behavior = JSON.parse(JSON.stringify(behavior || {}));
-    // mock the foreign key, eg add to schema but not db
-    behavior.mock = behavior.mock || !this._Schema.db.adapter.supportsForeignKey;
     this._Schema.addForeignKey(table, column, parentTable, parentColumn, behavior);
     return this._Schema.db.adapter.generateForeignKeyQuery(table, column, parentTable, parentColumn, behavior);
   }
 
-  dropForeignKey (table, column, parentColumn, behavior) {
-    this._Schema.dropForeignKey(table, column, parentTable, parentColumn);
-    return this._Schema.db.adapter.generateDropForeignKeyQuery(table, column, parentTable, parentColumn);
+  dropForeignKey (table, column) {
+    this._Schema.dropForeignKey(table, column);
+    return this._Schema.db.adapter.generateDropForeignKeyQuery(table, column);
   }
 
 };

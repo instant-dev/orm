@@ -332,7 +332,7 @@ class SchemaManager {
     let foreignKey = this.schema.foreign_keys.find(foreignKey => {
       return foreignKey.table === table && foreignKey.column === column;
     });
-    if (!index && validate) {
+    if (!foreignKey && validate) {
       throw new Error(`No foreign key for table "${table}" column "${column}" found`);
     }
     return foreignKey;
@@ -538,6 +538,7 @@ class SchemaManager {
   addForeignKey (table, columnName, parentTable, parentColumnName, behavior) {
 
     this.findTableColumn(table, columnName, true);
+    this.findTableColumn(parentTable, parentColumnName, true);
 
     const foundKey = this.schema.foreign_keys.find(fk => {
       return fk.table === table &&
@@ -556,23 +557,25 @@ class SchemaManager {
     };
 
     if (behavior && Object.keys(behavior).length) {
-      foreignKey.behavior = behavior;
+      foreignKey.behavior = JSON.parse(JSON.stringify(behavior));
     }
 
     const referenceCheck = {};
     let referenceChain = [];
     let parentForeignKey = foreignKey;
+    // Concat current key in to check for circular references
+    let foreignKeys = this.schema.foreign_keys.concat(foreignKey);
     while (parentForeignKey) {
       referenceChain.push(`"${parentForeignKey.table}"."${parentForeignKey.column}"`);
       if (referenceCheck[parentForeignKey.table]) {
         throw new Error(
-          `Foreign key circular reference for "${parentForeignKey.table}":\n` +
+          `Foreign key circular reference for "${foreignKey.table}"."${foreignKey.column}":\n` +
           referenceChain.join(' -> ')
         );
       } else {
         referenceCheck[parentForeignKey.table] = true;
       }
-      parentForeignKey = this.schema.foreign_keys.find(fk => {
+      parentForeignKey = foreignKeys.find(fk => {
         return fk.table === parentForeignKey.parentTable;
       });
     }

@@ -132,7 +132,7 @@ class Migration extends Logger {
       if (!this.name) {
         this.name = `alter_${table}_${column}`;
       }
-      let model = this._Schema.findModelSchemaEntry(table, true);
+      let model = this._Schema.findTable(table, true);
       let oldColumn = model.columns.find(c => c.name === column);
       let oldType = oldColumn.type;
       let oldProperties = oldColumn.properties;
@@ -160,7 +160,7 @@ class Migration extends Logger {
       if (!this.name) {
         this.name = `drop_${table}_column_${column}`;
       }
-      let model = this._Schema.findModelSchemaEntry(table, true);
+      let model = this._Schema.findTable(table, true);
       let oldColumn = model.columns.find(c => c.name === column);
       let oldType = oldColumn.type;
       let oldProperties = oldColumn.properties;
@@ -200,7 +200,7 @@ class Migration extends Logger {
       this.name = `drop_index_on_${table}_column_${column}`;
     }
     if (!this.parent) {
-      let index = this._Schema.findIndexSchemaEntry(table, column, true);
+      let index = this._Schema.findIndexEntry(table, column, true);
       let oldType = index.type;
       this.up.dropIndex(table, column);
       this.down.createIndex(table, column, oldType);
@@ -226,7 +226,7 @@ class Migration extends Logger {
       this.name = `drop_foreign_key_on_${table}_column_${column}`;
     }
     if (!this.parent) {
-      let foreignKey = this._Schema.findForeignKeySchemaEntry(table, column, true);
+      let foreignKey = this._Schema.findForeignKey(table, column, true);
       this.up.dropForeignKey(table, column);
       this.down.addForeignKey(table, column, foreignKey.parentTable, foreignKey.parentColumn, foreignKey.behavior);
     } else {

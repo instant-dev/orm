@@ -89,7 +89,7 @@ module.exports = (Instantiator, Databases) => {
       expect(json.down[0]).to.deep.equal(['alterColumn', 'blog_posts', 'title', 'string']);
       expect(json.down[1]).to.deep.equal(['dropTable', 'blog_posts']);
 
-      expect(Instant.Schema.findTableName('blog_posts')).to.not.exist;
+      expect(Instant.Schema.findTable('blog_posts')).to.not.exist;
 
     });
 

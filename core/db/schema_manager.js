@@ -299,23 +299,26 @@ class SchemaManager {
     return this.schema.indices.slice();
   }
 
-  findTableName (table, validate) {
+  findTable (table, validate) {
     let tables = this.schema.tables;
-    let name = Object.keys(tables).filter(function(v) {
-      return tables[v].name === table;
-    }).pop();
-    if (!name && validate) {
-      throw new Error(`No table matching "${table}" found`);
+    let key = Object.keys(tables).find(name => tables[name].name === table);
+    let t = tables[key];
+    if (!t && validate) {
+      throw new Error(`Table "${table}" does not exist in your schema`);
     }
-    return name;
+    return t || null;
   }
 
-  findModelSchemaEntry (table, validate) {
-    let tableName = this.findTableName(table, validate);
-    return this.schema.tables[tableName];
+  findTableColumn (table, column, validate) {
+    let t = this.findTable(table, validate);
+    let c = (t || {columns: []}).columns.find(c => c.name === column);
+    if (!c && validate) {
+      throw new Error(`Table "${table}" column "${column}" does not exist in your schema`);
+    }
+    return c || null;
   }
 
-  findIndexSchemaEntry (table, column, validate) {
+  findIndexEntry (table, column, validate) {
     let index = this.schema.indices.find(index => {
       return index.table === table && index.column === column;
     });
@@ -325,7 +328,7 @@ class SchemaManager {
     return index;
   }
 
-  findForeignKeySchemaEntry (table, column, validate) {
+  findForeignKey (table, column, validate) {
     let foreignKey = this.schema.foreign_keys.find(foreignKey => {
       return foreignKey.table === table && foreignKey.column === column;
     });
@@ -368,28 +371,15 @@ class SchemaManager {
   }
 
   dropTable (table) {
-
-    let tableClass = this.findTableName(table);
-
-    if (!tableClass) {
-      throw new Error('Table "' + table + '" does not exist in your schema');
-    }
-
-    delete this.schema.tables[tableClass];
-
+    this.findTable(table, true);
+    delete this.schema.tables[table];
     return true;
-
   }
 
   renameTable (table, newTableName, renameModel, newModelName) {
 
-    let tableClass = this.findTableName(table);
-
-    if (!tableClass) {
-      throw new Error('Table "' + table + '" does not exist in your schema');
-    }
-
-    this.schema.tables[tableClass].table = newTableName;
+    this.findTable(table, true);
+    this.schema.tables[table].table = newTableName;
 
     if (renameModel) {
       let newClass = newModelName || inflect.classify(newTableName);
@@ -525,10 +515,7 @@ class SchemaManager {
 
   createIndex (table, column, type) {
 
-    if (!this.findTableName(table)) {
-      throw new Error('Table with name "' + table + '" does not exist in your schema.');
-    }
-
+    this.findTable(table, true);
     if (this.schema.indices.filter(function(v) {
       return v.table === table && v.column === column;
     }).length) {
@@ -550,13 +537,7 @@ class SchemaManager {
 
   addForeignKey (table, columnName, parentTable, parentColumnName, behavior) {
 
-    if (!this.findTableName(table)) {
-      throw new Error('Table with name "' + table + '" does not exist in your schema.');
-    }
-
-    if (!this.findTableName(parentTable)) {
-      throw new Error('Table with name "' + parentTable + '" (parent) does not exist in your schema.');
-    }
+    this.findTableColumn(table, columnName, true);
 
     const foundKey = this.schema.foreign_keys.find(fk => {
       return fk.table === table &&

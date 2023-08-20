@@ -5,7 +5,7 @@ module.exports = (Instantiator, Databases) => {
   const path = require('path');
 
   const Instant = Instantiator();
-  Instant.enableLogs(4);
+  // Instant.enableLogs(4);
 
   describe('InstantORM.Core.DB.MigrationManager (Foreign Keys)', async () => {
 
@@ -27,7 +27,7 @@ module.exports = (Instantiator, Databases) => {
 
     describe('InstantORM.Core.DB.MigrationManager (Foreign Keys)', async () => {
 
-      it('should create serial fields without extra params (defaults included)', async () => {
+      it('should successfully create a foreign key', async () => {
 
         Instant.Migrator.enableDangerous();
         Instant.Migrator.Dangerous.reset();
@@ -72,6 +72,37 @@ module.exports = (Instantiator, Databases) => {
         expect(Instant.Schema.schema.foreign_keys[0].column).to.equal('user_id');
         expect(Instant.Schema.schema.foreign_keys[0].parentTable).to.equal('users');
         expect(Instant.Schema.schema.foreign_keys[0].parentColumn).to.equal('id');
+
+      });
+
+      it('should fail to create a foreign key when table invalid', async () => {
+
+        Instant.Migrator.enableDangerous();
+        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.annihilate();
+        await Instant.Migrator.Dangerous.prepare();
+        await Instant.Migrator.Dangerous.initialize();
+
+        const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
+        migrationA.createTable('users',[{name: 'username', type: 'string'}]);
+        migrationA.createTable(
+          'blog_posts',
+          [
+            {name: 'title', type: 'string'},
+            {name: 'user_id', type: 'int'}
+          ]
+        );
+
+        let error;
+
+        try {
+          migrationA.addForeignKey('blog_post', 'user_id', 'users', 'id');
+        } catch (e) {
+          error = e;
+        }
+
+        expect(error).to.exist;
+        expect(error.message).to.include('"blog_post"');
 
       });
 

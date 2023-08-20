@@ -115,16 +115,15 @@ class SchemaManager {
           throw new Error(`Invalid schema: tables["${name}"].columns[${i}] missing string "name"`);
         }
         if (!column['type'] || typeof column['type'] !== 'string') {
-          throw new Error(`Invalid schema: tables["${type}"].columns[${i}] missing string "type"`);
+          throw new Error(`Invalid schema: tables["${name}"].columns[${i}] missing string "type"`);
         }
         if (
           !column['properties'] ||
           typeof column['properties'] !== 'object' ||
           column['properties'].constructor !== Object
         ) {
-          throw new Error(`Invalid schema: tables["${type}"].columns[${i}]["properties"] must be an object`);
+          throw new Error(`Invalid schema: tables["${name}"].columns[${i}]["properties"] must be an object`);
         }
-        // Clean up empty properties
         if (Object.keys(column['properties']).length === 0) {
           delete column['properties'];
         }
@@ -262,33 +261,6 @@ class SchemaManager {
     return this.schema.indices.slice();
   }
 
-  mergeProperties (columnData, properties) {
-
-    properties = properties || {};
-
-    let defaults = this.db.adapter.typePropertyDefaults;
-
-    let oldProperties = this.db.adapter.getTypeProperties(columnData.type, columnData.properties) || {};
-    let newProperties = {};
-
-    this.db.adapter.typeProperties.forEach(function(v) {
-      if (properties.hasOwnProperty(v) && properties[v] !== defaults[v]) {
-        newProperties[v] = properties[v];
-      } else if (oldProperties.hasOwnProperty(v) && oldProperties[v] !== defaults[v]) {
-        newProperties[v] = oldProperties[v];
-      }
-    });
-
-    if (Object.keys(newProperties).length) {
-      columnData.properties = newProperties;
-    } else {
-      delete columnData.properties;
-    }
-
-    return columnData;
-
-  }
-
   findTableName (table, validate) {
     let tables = this.schema.tables;
     let name = Object.keys(tables).filter(function(v) {
@@ -323,11 +295,7 @@ class SchemaManager {
       throw new Error('Table with name "' + table + '" already exists in your schema');
     }
 
-    arrColumnData = arrColumnData.slice();
-
-    let columns = arrColumnData.map(function(v) {
-      return v.name;
-    });
+    let columns = arrColumnData.map(v => v.name);
 
     if (columns.indexOf('id') === -1) {
       arrColumnData.unshift({name: 'id', type: 'serial'});
@@ -340,10 +308,6 @@ class SchemaManager {
     if (columns.indexOf('updated_at') === -1) {
       arrColumnData.push({name: 'updated_at', type: 'datetime'});
     }
-
-    let defaults = this.db.adapter.typePropertyDefaults;
-
-    arrColumnData.forEach(columnData => this.mergeProperties(columnData));
 
     this.schema.tables[table] = {
       name: table,
@@ -413,8 +377,6 @@ class SchemaManager {
     }
 
     schemaFieldData.type = type;
-
-    this.mergeProperties(schemaFieldData, properties);
 
     return true;
 

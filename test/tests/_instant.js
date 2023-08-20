@@ -102,7 +102,7 @@ module.exports = (Instantiator, Databases) => {
 
     });
 
-    describe('InstantORM.Core.DB.Migrator (bootstrap)', async () => {
+    describe('InstantORM.Core.DB.MigrationManager (bootstrap)', async () => {
 
       it('should fail to access Dangerous mode before being enabled', async () => {
 

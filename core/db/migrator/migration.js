@@ -301,7 +301,19 @@ class Migration extends Logger {
       column['type'] = this.columnType(column['type'], db);
       if ('properties' in column) {
         column['properties'] = this.columnProperties(column['properties'], db);
-        if (!column['properties']) {
+        let keyLength = 0;
+        let defaultProperties = (
+          db.adapter.simpleTypes[column['type']] || {}
+        ).properties || {};
+        Object.keys(column['properties']).forEach(key => {
+          if (column['properties'][key] === defaultProperties[key]) {
+            delete column['properties'][key];
+          } else {
+            keyLength++;
+          }
+        });
+        // Clean up empty properties
+        if (keyLength === 0) {
           delete column['properties'];
         }
       }

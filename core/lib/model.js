@@ -324,6 +324,27 @@ class Model {
 
   }
 
+  static getColumnProperties (field) {
+    let column = this.column(field);
+    if (!column) {
+      throw new Error(`Column "${field}" not found for "${this.getName()}"`);
+    }
+    let db = this.prototype.db;
+    let columnProperties = column.properties || {};
+    let inheritProperties = (db.adapter.simpleTypes[column.type] || {}).properties || {};
+    let properties = {};
+    Object.keys(db.adapter.typePropertyDefaults).forEach(key => {
+      if (key in columnProperties) {
+        properties[key] = columnProperties[key];
+      } else if (key in inheritProperties) {
+        properties[key] = inheritProperties[key];
+      } else {
+        properties[key] = db.adapter.typePropertyDefaults[key];
+      }
+    });
+    return properties;
+  }
+
   /**
   * FIXME
   */
@@ -1089,8 +1110,8 @@ class Model {
   * @return {boolean}
   */
   isFieldArray (field) {
-    let fieldData = this._columnLookup[field];
-    return !!(fieldData && fieldData.properties && fieldData.properties.array);
+    let properties = this.constructor.getColumnProperties(field);
+    return properties.array;
   }
 
   /**
@@ -1099,8 +1120,8 @@ class Model {
   * @return {boolean}
   */
   isFieldPrimaryKey (field) {
-    let fieldData = this._columnLookup[field];
-    return !!(fieldData && fieldData.properties && fieldData.properties.primary_key);
+    let properties = this.constructor.getColumnProperties(field);
+    return !!properties.primary_key;
   }
 
   /**
@@ -1109,8 +1130,8 @@ class Model {
   * @return {any}
   */
   fieldDefaultValue (field) {
-    let fieldData = this._columnLookup[field];
-    return fieldData && fieldData.properties ? fieldData.properties.defaultValue : null;
+    let properties = this.constructor.getColumnProperties(field);
+    return properties.defaultValue || null;
   }
 
   /**

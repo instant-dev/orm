@@ -25,7 +25,7 @@ module.exports = (Instantiator, Databases) => {
       Instant.disconnect();
     });
 
-    describe('InstantORM.Core.DB.MigrationManager (Foreign Keys)', async () => {
+    describe('Foreign Key management', async () => {
 
       it('should successfully create a foreign key', async () => {
 
@@ -239,10 +239,85 @@ module.exports = (Instantiator, Databases) => {
         } catch (e) {
           error = e;
         }
-        
+
         expect(error).to.exist;
         expect(error.message).to.include('Foreign key circular reference');
         expect(error.message).to.satisfy(m => m.endsWith('\n"users"."id" -> "blog_posts"."user_id" -> "users"."id"'));
+
+      });
+
+    });
+
+    describe('Foreign Key joins', async () => {
+
+      it('should successfully join blog_posts to user', async () => {
+
+        Instant.Migrator.enableDangerous();
+        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.annihilate();
+        await Instant.Migrator.Dangerous.prepare();
+        await Instant.Migrator.Dangerous.initialize();
+
+        const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
+        migrationA.createTable('users',[{name: 'username', type: 'string'}]);
+        migrationA.createTable(
+          'blog_posts',
+          [
+            {name: 'title', type: 'string'},
+            {name: 'user_id', type: 'int'}
+          ]
+        );
+        migrationA.addForeignKey('blog_posts', 'user_id', 'users', 'id');
+        Instant.Migrator.Dangerous.filesystem.write(migrationA);
+
+        await Instant.Migrator.Dangerous.migrate();
+
+        let User = Instant.Model('User');
+        let BlogPost = Instant.Model('BlogPost');
+
+        let userA = await User.create({username: 'Arnold'});
+        let blogPostA = await BlogPost.create({title: 'Hello World!', user_id: userA.get('id')});
+        let userB = await User.create({username: 'Bernard'});
+        let blogPostB = await BlogPost.create({title: 'Goodbye Moon!', user_id: userB.get('id')});
+
+        let user1 = await User.query()
+          .join('blogPost')
+          .first();
+
+        expect(user1).to.exist;
+        expect(user1.get('username')).to.equal('Arnold');
+        expect(user1.joined('blogPost')).to.exist;
+        expect(user1.joined('blogPost').get('title')).to.equal('Hello World!');
+
+        let user2 = await User.query()
+          .join('blogPost')
+          .where({blogPost__title__icontains: 'moon'})
+          .first();
+
+        expect(user2).to.exist;
+        expect(user2.get('username')).to.equal('Bernard');
+        expect(user2.joined('blogPost')).to.exist;
+        expect(user2.joined('blogPost').get('title')).to.equal('Goodbye Moon!');
+
+      });
+
+      it('should fail to destroy user when foreign_key is set', async () => {
+
+        let User = Instant.Model('User');
+        let user = await User.query()
+          .join('blogPost')
+          .first();
+
+        let error;
+
+        try {
+          await user.destroy();
+        } catch (e) {
+          error = e;
+        }
+
+        expect(error).to.exist;
+        expect(error.message).to.contain('violates foreign key constraint');
 
       });
 

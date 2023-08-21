@@ -251,6 +251,27 @@ class SchemaManager {
       _Model.setSchema(this.schema.tables[name]);
       this.Models[name] = _Model;
     });
+    this.schema.foreign_keys.forEach(foreignKey => {
+      let _Model = this.Models[foreignKey.table];
+      let _Parent = this.Models[foreignKey.parentTable];
+      if (!_Model) {
+        throw new Error(`Invalid foreign key: "${foreignKey.table}" not found`);
+      }
+      if (!_Parent) {
+        throw new Error(`Invalid foreign key: "${foreignKey.parentTable}" not found`);
+      }
+      let behavior = foreignKey.behavior || {};
+      _Model.joinsTo(
+        _Parent,
+        {
+          via: foreignKey.column,
+          using: foreignKey.parentColumn,
+          multiple: !!behavior.multiple,
+          as: behavior.alias || null,
+          name: behavior.parentAlias || null
+        }
+      );
+    });
   }
 
   getModel (name) {

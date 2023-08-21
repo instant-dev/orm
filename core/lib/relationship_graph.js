@@ -121,10 +121,10 @@ class RelationshipNode {
     options = options || {};
 
     // one-to-one or many-to-one
-    // relationships always specified as many -> single
+    // relationships always specified as many (child) -> single (parent)
     options.multiple = !!options.multiple;
 
-    // name of this model on the model it is joined to
+    // name of this model on the parent it is joined to
     // via .joined(name) or composer query {name__id: 'x'}
     // eg .joined('children') or {children__id: 'x'}
     options.as = options.as || (
@@ -133,7 +133,7 @@ class RelationshipNode {
         : `${inflect.camelize(this.Model.getName(), false)}`
     );
 
-    // name of the joined model on this model
+    // name of the parent model on this model
     options.name = options.name || `${inflect.camelize(Model.getName(), false)}`;
 
     // column name to use for join on this model's table

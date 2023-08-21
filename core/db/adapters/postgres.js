@@ -56,13 +56,14 @@ class PostgresAdapter extends SQLAdapter {
   async executeClient (client, identifier, query, params) {
     let result;
     let t;
+    this.db.queryLog(`<${identifier}>`, query, params);
+    const start = new Date().valueOf();
     try {
-      this.db.queryLog(`<${identifier}>`, query, params);
-      const start = new Date().valueOf();
       result = await client.query(query, params);
       t = new Date().valueOf() - start;
       this.db.querySuccess(`<${identifier}> success (${t}ms)`);
     } catch (err) {
+      t = new Date().valueOf() - start;
       this.db.queryError(`<${identifier}> failed (${t}ms): ${err.message}`, err);
       throw new Error(err.message);
     }

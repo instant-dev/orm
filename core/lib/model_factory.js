@@ -1,6 +1,5 @@
 const ModelArray = require('./model_array.js');
 const fs = require('fs');
-const async = require('async');
 
 /**
 * Factory for creating models

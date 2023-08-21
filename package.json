@@ -9,7 +9,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "async": "^3.2.4",
     "colors": "^1.4.0",
     "deep-equal": "^2.2.2",
     "i": "^0.3.7",

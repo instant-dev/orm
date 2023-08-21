@@ -556,7 +556,7 @@ class SchemaManager {
 
   }
 
-  addForeignKey (table, columnName, parentTable, parentColumnName, behavior) {
+  createForeignKey (table, columnName, parentTable, parentColumnName, behavior) {
 
     this.findTableColumn(table, columnName, true);
     this.findTableColumn(parentTable, parentColumnName, true);

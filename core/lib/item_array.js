@@ -1,5 +1,3 @@
-const async = require('async');
-
 /**
 * Array of Items, for easy conversion to Objects
 * @class

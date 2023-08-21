@@ -42,7 +42,7 @@ module.exports = (Instantiator, Databases) => {
             {name: 'user_id', type: 'int'}
           ]
         );
-        migrationA.addForeignKey('blog_posts', 'user_id', 'users', 'id');
+        migrationA.createForeignKey('blog_posts', 'user_id', 'users', 'id');
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         await Instant.Migrator.Dangerous.migrate();
@@ -108,7 +108,7 @@ module.exports = (Instantiator, Databases) => {
         let error;
 
         try {
-          migrationA.addForeignKey('blog_postx', 'user_id', 'users', 'id');
+          migrationA.createForeignKey('blog_postx', 'user_id', 'users', 'id');
         } catch (e) {
           error = e;
         }
@@ -139,7 +139,7 @@ module.exports = (Instantiator, Databases) => {
         let error;
 
         try {
-          migrationA.addForeignKey('blog_posts', 'user_idx', 'users', 'id');
+          migrationA.createForeignKey('blog_posts', 'user_idx', 'users', 'id');
         } catch (e) {
           error = e;
         }
@@ -171,7 +171,7 @@ module.exports = (Instantiator, Databases) => {
         let error;
 
         try {
-          migrationA.addForeignKey('blog_posts', 'user_id', 'userx', 'id');
+          migrationA.createForeignKey('blog_posts', 'user_id', 'userx', 'id');
         } catch (e) {
           error = e;
         }
@@ -202,7 +202,7 @@ module.exports = (Instantiator, Databases) => {
         let error;
 
         try {
-          migrationA.addForeignKey('blog_posts', 'user_id', 'users', 'idx');
+          migrationA.createForeignKey('blog_posts', 'user_id', 'users', 'idx');
         } catch (e) {
           error = e;
         }
@@ -234,8 +234,8 @@ module.exports = (Instantiator, Databases) => {
         let error;
 
         try {
-          migrationA.addForeignKey('blog_posts', 'user_id', 'users', 'id');
-          migrationA.addForeignKey('users', 'id', 'blog_posts', 'user_id');
+          migrationA.createForeignKey('blog_posts', 'user_id', 'users', 'id');
+          migrationA.createForeignKey('users', 'id', 'blog_posts', 'user_id');
         } catch (e) {
           error = e;
         }
@@ -267,7 +267,7 @@ module.exports = (Instantiator, Databases) => {
             {name: 'user_id', type: 'int'}
           ]
         );
-        migrationA.addForeignKey('blog_posts', 'user_id', 'users', 'id');
+        migrationA.createForeignKey('blog_posts', 'user_id', 'users', 'id');
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         await Instant.Migrator.Dangerous.migrate();
@@ -431,10 +431,10 @@ module.exports = (Instantiator, Databases) => {
             {name: 'url', type: 'string', properties: {unique: true}}
           ]
         );
-        migrationA.addForeignKey('users', 'account_id', 'accounts', 'id');
-        migrationA.addForeignKey('blog_posts', 'user_id', 'users', 'id', {multiple: true});
-        migrationA.addForeignKey('images', 'blog_post_id', 'blog_posts', 'id', {multiple: true});
-        migrationA.addForeignKey('images', 'image_domain_url', 'image_domains', 'url',  {multiple: true});
+        migrationA.createForeignKey('users', 'account_id', 'accounts', 'id');
+        migrationA.createForeignKey('blog_posts', 'user_id', 'users', 'id', {multiple: true});
+        migrationA.createForeignKey('images', 'blog_post_id', 'blog_posts', 'id', {multiple: true});
+        migrationA.createForeignKey('images', 'image_domain_url', 'image_domains', 'url',  {multiple: true});
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         await Instant.Migrator.Dangerous.migrate();

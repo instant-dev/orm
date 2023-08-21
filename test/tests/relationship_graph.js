@@ -1,7 +1,6 @@
 module.exports = (Instantiator, Databases) => {
 
   const expect = require('chai').expect;
-  const async = require('async');
 
   const Instant = require('../../index.js')();
 

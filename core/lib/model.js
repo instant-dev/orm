@@ -6,7 +6,6 @@ const Composer = require('./composer.js');
 const ModelArray = require('./model_array.js');
 const utilities = require('./utilities.js');
 
-const async = require('async');
 const inflect = require('i')();
 const deepEqual = require('deep-equal');
 
@@ -480,39 +479,25 @@ class Model {
   * @param {string} field The field you'd like to verify
   * @param {any} value The value of the field you'd like to verify
   * @param {object} data Any additional field data, in key-value pairs
-  * @param {function} callback Callback to execute upon completion
   */
-  static verificationCheck (field, value, data, callback) {
+  static async verificationCheck (field, value, data) {
     data = data || {};
     data[field] = value;
-    return async.series(
-      (this.prototype._verifications[field] || []).map(verification => {
-        return cb => {
-          verification.action.apply(
-            this,
-            verification.fields
-              .map(field => data[field])
-              .concat(result => cb(null, result))
-          )
-        };
-      }),
-      (err, results) => {
-
-        if (err) {
-          return callback(err);
-        }
-
-        return callback(
-          null,
-          results.map((result, i) => {
-            return result ?
-              null :
-              this.prototype._verifications[field][i].message;
-          }).filter(v => !!v)
-        );
-
-      }
-    )
+    let verifications = this.prototype._verifications[field] || [];
+    let results;
+    for (let i = 0; i < verifications.length; i++) {
+      let verification = verifications[i];
+      let result = await verification.action.apply(
+        this,
+        verification.fields.map(field => data[field])
+      );
+      results.push(result);
+    }
+    return results.map((result, i) => {
+      return result ?
+        null :
+        this.prototype._verifications[field][i].message;
+    }).filter(v => !!v);
   }
 
   /**

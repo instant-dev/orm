@@ -196,8 +196,8 @@ class MigrationManager extends Logger {
     return this._Schema.db.adapter.generateDropIndexQuery(table, column);
   }
 
-  addForeignKey (table, column, parentTable, parentColumn, behavior) {
-    this._Schema.addForeignKey(table, column, parentTable, parentColumn, behavior);
+  createForeignKey (table, column, parentTable, parentColumn, behavior) {
+    this._Schema.createForeignKey(table, column, parentTable, parentColumn, behavior);
     return this._Schema.db.adapter.generateForeignKeyQuery(table, column, parentTable, parentColumn, behavior);
   }
 

@@ -209,15 +209,15 @@ class Migration extends Logger {
     }
   }
 
-  addForeignKey (table, column, parentTable, parentColumn, behavior) {
+  createForeignKey (table, column, parentTable, parentColumn, behavior) {
     if (!this.name) {
       this.name = `add_foreign_key_on_${table}_column_${column}`;
     }
     if (!this.parent) {
-      this.up.addForeignKey(table, column, parentTable, parentColumn, behavior);
+      this.up.createForeignKey(table, column, parentTable, parentColumn, behavior);
       this.down.dropForeignKey(table, column);
     } else {
-      this.addCommand(['addForeignKey', table, column, parentTable, parentColumn, behavior]);
+      this.addCommand(['createForeignKey', table, column, parentTable, parentColumn, behavior]);
     }
   }
 
@@ -228,7 +228,7 @@ class Migration extends Logger {
     if (!this.parent) {
       let foreignKey = this._Schema.findForeignKey(table, column, true);
       this.up.dropForeignKey(table, column);
-      this.down.addForeignKey(table, column, foreignKey.parentTable, foreignKey.parentColumn, foreignKey.behavior);
+      this.down.createForeignKey(table, column, foreignKey.parentTable, foreignKey.parentColumn, foreignKey.behavior);
     } else {
       this.addCommand(['dropForeignKey', table, column]);
     }
@@ -252,7 +252,7 @@ class Migration extends Logger {
     renameColumn: ['table:string', 'column:string', 'newColumn:string'],
     createIndex: ['table:string', 'column:string', 'type:?indexType'],
     dropIndex: ['table:string', 'column:string'],
-    addForeignKey: ['table:string', 'column:string', 'parentTable:string', 'parentColumn:string', 'behavior:?object'],
+    createForeignKey: ['table:string', 'column:string', 'parentTable:string', 'parentColumn:string', 'behavior:?object'],
     dropForeignKey: ['table:string', 'column:string']
   };
 

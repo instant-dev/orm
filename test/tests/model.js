@@ -605,7 +605,6 @@ module.exports = (Instantiator, Databases) => {
         try {
           await SpecialItem.create({name: 'unique-name'});
         } catch (e) {
-          console.log(e);
           error = e;
         }
 

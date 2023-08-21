@@ -248,7 +248,7 @@ module.exports = (Instantiator, Databases) => {
 
     });
 
-    describe('Foreign Key joins', async () => {
+    describe('Foreign Key simple joins', async () => {
 
       it('should successfully join blog_posts to user', async () => {
 
@@ -318,6 +318,328 @@ module.exports = (Instantiator, Databases) => {
 
         expect(error).to.exist;
         expect(error.message).to.contain('violates foreign key constraint');
+
+      });
+
+      it('should succeed at destroying user when foreign_key is set with destroyCascade', async () => {
+
+        let User = Instant.Model('User');
+        let user = await User.query()
+          .join('blogPost')
+          .first();
+
+        let userDeleted = await user.destroyCascade();
+
+        expect(userDeleted).to.exist;
+
+      });
+
+    });
+
+    describe('Foreign Key complex joins', async () => {
+
+      let seed = [
+        {
+          accounts: [
+            {email: 'bernard@test.com'},
+            {email: 'kevin@test.com'}
+          ]
+        },
+        {
+          users: [
+            {username: 'dancer', account_id: 1},
+            {username: 'fireball', account_id: 2}
+          ]
+        },
+        {
+          blog_posts: [
+            {title: 'So you think you can dance?', user_id: 1},
+            {title: 'Do the robot dance', user_id: 1},
+            {title: 'A friend in need is a friend indeed', user_id: 1},
+            {title: 'New photography', user_id: 2},
+            {title: 'Hoodies and shorts are great', user_id: 2}
+          ]
+        },
+        {
+          image_domains: [
+            {url: 'domain.site'},
+            {url: 'image.host'},
+            {url: 'bentley.car'}
+          ],
+        },
+        {
+          images: [
+            {filename: 'roy_kent.jpg', blog_post_id: 1, image_domain_url: 'domain.site'},
+            {filename: 'disco.png', blog_post_id: 1, image_domain_url: 'image.host'},
+            {filename: 'inferno.png', blog_post_id: 1, image_domain_url: 'image.host'},
+            {filename: 'ted_lasso.jpg', blog_post_id: 2, image_domain_url: 'domain.site'},
+            {filename: 'destructo.png', blog_post_id: 2, image_domain_url: 'bentley.car'},
+            {filename: 'bender.png', blog_post_id: 2, image_domain_url: 'bentley.car'},
+            {filename: 'dragon.jpg', blog_post_id: 3, image_domain_url: 'domain.site'},
+            {filename: 'friends.png', blog_post_id: 3, image_domain_url: 'image.host'},
+            {filename: 'enemies.png', blog_post_id: 3, image_domain_url: 'image.host'},
+            {filename: 'butterflies.jpg', blog_post_id: 4, image_domain_url: 'domain.site'},
+            {filename: 'sunset.png', blog_post_id: 4, image_domain_url: 'bentley.car'},
+            {filename: 'reservoir.png', blog_post_id: 4, image_domain_url: 'bentley.car'},
+            {filename: 'carhartt.jpg', blog_post_id: 5, image_domain_url: 'domain.site'},
+            {filename: 'dickies.png', blog_post_id: 5, image_domain_url: 'image.host'},
+            {filename: 'party.png', blog_post_id: 5, image_domain_url: 'image.host'}
+          ]
+        }
+      ];
+
+      it('should successfully migrate and seed', async () => {
+
+        Instant.Migrator.enableDangerous();
+        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.annihilate();
+        await Instant.Migrator.Dangerous.prepare();
+        await Instant.Migrator.Dangerous.initialize();
+
+        const migrationA = await Instant.Migrator.create(100, 'all_the_things');
+        migrationA.createTable(
+          'accounts',
+          [
+            {name: 'email', type: 'string'}
+          ]
+        );
+        migrationA.createTable(
+          'users',
+          [
+            {name: 'username', type: 'string'},
+            {name: 'account_id', type: 'int'}
+          ]
+        );
+        migrationA.createTable(
+          'blog_posts',
+          [
+            {name: 'title', type: 'string'},
+            {name: 'user_id', type: 'int'}
+          ]
+        );
+        migrationA.createTable(
+          'images',
+          [
+            {name: 'filename', type: 'string'},
+            {name: 'blog_post_id', type: 'int'},
+            {name: 'image_domain_url', type: 'string'}
+          ]
+        );
+        migrationA.createTable(
+          'image_domains',
+          [
+            {name: 'url', type: 'string', properties: {unique: true}}
+          ]
+        );
+        migrationA.addForeignKey('users', 'account_id', 'accounts', 'id');
+        migrationA.addForeignKey('blog_posts', 'user_id', 'users', 'id', {multiple: true});
+        migrationA.addForeignKey('images', 'blog_post_id', 'blog_posts', 'id', {multiple: true});
+        migrationA.addForeignKey('images', 'image_domain_url', 'image_domains', 'url',  {multiple: true});
+        Instant.Migrator.Dangerous.filesystem.write(migrationA);
+
+        await Instant.Migrator.Dangerous.migrate();
+        await Instant.Migrator.Dangerous.seed(seed);
+
+        let Account = Instant.Model('Account');
+        let User = Instant.Model('User');
+        let BlogPost = Instant.Model('BlogPost');
+        let ImageDomain = Instant.Model('ImageDomain');
+        let Image = Instant.Model('Image');
+
+        let accounts = await Account.query().end();
+        let users = await User.query().end();
+        let blogPosts = await BlogPost.query().end();
+        let imageDomains = await ImageDomain.query().end();
+        let images = await Image.query().end();
+
+        expect(accounts.length).to.equal(2);
+        expect(users.length).to.equal(2);
+        expect(blogPosts.length).to.equal(5);
+        expect(imageDomains.length).to.equal(3);
+        expect(images.length).to.equal(15);
+
+      });
+
+      it('should successfully join user to account and query by joined element', async () => {
+
+        let Account = Instant.Model('Account');
+        let accounts = await Account.query()
+          .join('user')
+          .where({user__username: 'fireball'})
+          .end();
+
+        expect(accounts.length).to.equal(1);
+        expect(accounts[0].get('email')).to.equal('kevin@test.com');
+        expect(accounts[0].joined('user')).to.exist;
+        expect(accounts[0].joined('user').get('username')).to.equal('fireball');
+
+      });
+
+      it('should successfully join blogPost to user and user to account and query by 2nd joined element', async () => {
+
+        let Account = Instant.Model('Account');
+        let accounts = await Account.query()
+          .join('user')
+          .join('user__blogPosts')
+          .where({user__blogPosts__title__contains: 'photography'})
+          .end();
+
+        expect(accounts.length).to.equal(1);
+        expect(accounts[0].get('email')).to.equal('kevin@test.com');
+        expect(accounts[0].joined('user')).to.exist;
+        expect(accounts[0].joined('user').get('username')).to.equal('fireball');
+        expect(accounts[0].joined('user').joined('blogPosts')).to.exist;
+        expect(accounts[0].joined('user').joined('blogPosts')).to.have.length(2);
+
+      });
+
+      it('should successfully join 2 layers, but join with restriction', async () => {
+
+        let Account = Instant.Model('Account');
+        let accounts = await Account.query()
+          .join('user')
+          .join('user__blogPosts', {title__contains: 'dance'})
+          .where({user__blogPosts__title__contains: 'robot dance'})
+          .end();
+
+        expect(accounts.length).to.equal(1);
+        expect(accounts[0].get('email')).to.equal('bernard@test.com');
+        expect(accounts[0].joined('user')).to.exist;
+        expect(accounts[0].joined('user').get('username')).to.equal('dancer');
+        expect(accounts[0].joined('user').joined('blogPosts')).to.exist;
+        expect(accounts[0].joined('user').joined('blogPosts')).to.have.length(2);
+
+      });
+
+      it('should successfully join all layers', async () => {
+
+        let Account = Instant.Model('Account');
+        let accounts = await Account.query()
+          .join('user')
+          .join('user__blogPosts')
+          .join('user__blogPosts__images')
+          .join('user__blogPosts__images__imageDomain')
+          .orderBy('email', 'DESC')
+          .end();
+
+        expect(accounts.length).to.equal(2);
+        expect(accounts[1].get('email')).to.equal('bernard@test.com');
+        expect(accounts[1].joined('user')).to.exist;
+        expect(accounts[1].joined('user').get('username')).to.equal('dancer');
+        expect(accounts[1].joined('user').joined('blogPosts')).to.exist;
+        expect(accounts[1].joined('user').joined('blogPosts')).to.have.length(3);
+        expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')).to.exist;
+        expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')).to.have.length(3);
+        expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')[0].joined('imageDomain')).to.exist;
+        expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')[0].joined('imageDomain').get('url')).to.equal(
+          accounts[0].joined('user').joined('blogPosts')[0].joined('images')[0].get('image_domain_url')
+        );
+
+      });
+
+      it('should successfully join all layers shorthand', async () => {
+
+        let Account = Instant.Model('Account');
+        let accounts = await Account.query()
+          .join('user__blogPosts__images__imageDomain')
+          .orderBy('email', 'DESC')
+          .end();
+
+        expect(accounts.length).to.equal(2);
+        expect(accounts[1].get('email')).to.equal('bernard@test.com');
+        expect(accounts[1].joined('user')).to.exist;
+        expect(accounts[1].joined('user').get('username')).to.equal('dancer');
+        expect(accounts[1].joined('user').joined('blogPosts')).to.exist;
+        expect(accounts[1].joined('user').joined('blogPosts')).to.have.length(3);
+        expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')).to.exist;
+        expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')).to.have.length(3);
+        expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')[0].joined('imageDomain')).to.exist;
+        expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')[0].joined('imageDomain').get('url')).to.equal(
+          accounts[0].joined('user').joined('blogPosts')[0].joined('images')[0].get('image_domain_url')
+        );
+
+      });
+
+      it('should fail to delete an Account based on foreign key constraints', async () => {
+
+        let Account = Instant.Model('Account');
+        let account = await Account.query()
+          .orderBy('email', 'ASC')
+          .first();
+
+        expect(account).to.exist;
+        expect(account.get('email')).to.equal('bernard@test.com');
+
+        let error;
+
+        try {
+          await account.destroy();
+        } catch (e) {
+          error = e;
+        }
+
+        expect(error).to.exist;
+        expect(error.message).to.contain('violates foreign key constraint');
+        expect(error.message).to.contain('"accounts"');
+        expect(error.message).to.contain('"users"');
+
+      });
+
+      it('should fail to delete an ImageDomain based on foreign key constraints', async () => {
+
+        let ImageDomain = Instant.Model('ImageDomain');
+        let imageDomain = await ImageDomain.query()
+          .orderBy('url', 'ASC')
+          .first();
+
+        expect(imageDomain).to.exist;
+        expect(imageDomain.get('url')).to.equal('bentley.car');
+
+        let error;
+
+        try {
+          await imageDomain.destroy();
+        } catch (e) {
+          error = e;
+        }
+
+        expect(error).to.exist;
+        expect(error.message).to.contain('violates foreign key constraint');
+        expect(error.message).to.contain('"image_domains"');
+        expect(error.message).to.contain('"images"');
+
+      });
+
+      it('should succeed at account.destroyCascade', async () => {
+
+        let Account = Instant.Model('Account');
+        let account = await Account.query()
+          .orderBy('email', 'ASC')
+          .first();
+
+        expect(account).to.exist;
+        expect(account.get('email')).to.equal('bernard@test.com');
+
+        let accountResult = await account.destroyCascade();
+
+        expect(accountResult).to.exist;
+
+        let User = Instant.Model('User');
+        let BlogPost = Instant.Model('BlogPost');
+        let ImageDomain = Instant.Model('ImageDomain');
+        let Image = Instant.Model('Image');
+
+        let accounts = await Account.query().end();
+        let users = await User.query().end();
+        let blogPosts = await BlogPost.query().end();
+        let imageDomains = await ImageDomain.query().end();
+        let images = await Image.query().end();
+
+        expect(accounts.length).to.equal(1);
+        expect(users.length).to.equal(1);
+        expect(blogPosts.length).to.equal(2);
+        expect(imageDomains.length).to.equal(3);
+        expect(images.length).to.equal(6);
 
       });
 

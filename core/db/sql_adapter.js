@@ -301,18 +301,19 @@ class SQLAdapter {
 
     } else {
 
+      let lastJoin = joins[joins.length - 1];
       subQuery = [
-        `SELECT ${this.escapeField(table)}.${this.escapeField(columnName)} FROM ${this.escapeField(table)}`
+        `SELECT ${this.escapeField(lastJoin.joinAlias)}.${this.escapeField(columnName)} FROM ${this.escapeField(table)} ${this.escapeField(lastJoin.joinAlias)}`
       ];
 
       subQuery = subQuery.concat(
         joins.slice().reverse().map((j, i) => {
           return [
-            `INNER JOIN ${this.escapeField(j.prevTable)} ON `,
-            `${this.escapeField(j.prevTable)}.${this.escapeField(j.prevColumn)} = `,
-            `${this.escapeField(j.joinTable)}.${this.escapeField(j.joinColumn)}`,
+            `INNER JOIN ${this.escapeField(j.prevTable)} ${this.escapeField(j.prevAlias)} ON `,
+            `${this.escapeField(j.prevAlias)}.${this.escapeField(j.prevColumn)} = `,
+            `${this.escapeField(j.joinAlias)}.${this.escapeField(j.joinColumn)}`,
             i === joins.length - 1 ?
-              ` AND ${this.escapeField(j.prevTable)}.${this.escapeField(j.prevColumn)} IN (${values.map((v, i) => '\$' + (i + 1))})` : ''
+              ` AND ${this.escapeField(j.prevAlias)}.${this.escapeField(j.prevColumn)} IN (${values.map((v, i) => '\$' + (i + 1))})` : ''
           ].join('')
         })
       ).join(' ');
@@ -551,7 +552,7 @@ class SQLAdapter {
             return [
               `INNER JOIN ${this.escapeField(join.joinTable)} AS ${this.escapeField(join.shortAlias || join.joinAlias)} ON `,
               `${this.escapeField(join.shortAlias || join.joinAlias)}.${this.escapeField(join.joinColumn)} = `,
-              `${this.escapeField(join.prevTable || table)}.${this.escapeField(join.prevColumn)}`,
+              `${this.escapeField(join.prevAlias || table)}.${this.escapeField(join.prevColumn)}`,
               i === jc.joins.length - 1 ?
                 [
                   ` AND `,

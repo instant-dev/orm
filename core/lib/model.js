@@ -1316,7 +1316,9 @@ class Model {
   * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
   */
   async destroyCascade (txn) {
-    await ModelArray.from([this]).destroyCascade(txn);
+    let models = ModelArray.from([this])
+    let result = await models.destroyCascade(txn);
+    return result[0];
   }
 
   /**

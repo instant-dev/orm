@@ -94,11 +94,11 @@ class ModelArray extends ItemArray {
   */
   async destroyCascade (txn) {
     if (this.filter(m => !m.inStorage()).length) {
-      return callback(new Error('Not all models are in storage'))
+      throw new Error('Not all models are in storage');
     }
     let db = this.Model.prototype.db;
     let source = txn ? txn : db;
-    let params = this.map(m => m.get('id'));
+    let params = Array.from(this.map(m => m.get('id')));
     let queries = [[db.adapter.generateDeleteAllQuery(this.Model.table(), 'id', params), params]];
     let children = this.Model.relationships().cascade();
     queries = queries.concat(
@@ -114,7 +114,7 @@ class ModelArray extends ItemArray {
         ];
       })
     ).reverse();
-    await db.transact(queries, txn);
+    await source.transact(queries);
     this.forEach(m => m._inStorage = false);
     return this;
   }

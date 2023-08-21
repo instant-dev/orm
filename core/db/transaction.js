@@ -59,6 +59,10 @@ class Transaction {
     return this.adapter.queryClient(this._client, sql, params, this.toString());
   }
 
+  async transact (preparedArray) {
+    return this.adapter.transact(preparedArray, this);
+  }
+
   async rollback () {
     await this.__check__(TXN_STATUS.IN_PROGRESS);
     let result;

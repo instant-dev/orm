@@ -74,7 +74,8 @@ class RelationshipPath {
 
       let join = {
         joinTable: edge.opposite(node).Model.table(),
-        prevTable: joins[joins.length - 1] ? joins[joins.length - 1].joinAlias : (firstTable || null),
+        prevTable: joins[joins.length - 1] ? joins[joins.length - 1].joinTable : (firstTable || null),
+        prevAlias: joins[joins.length - 1] ? joins[joins.length - 1].joinAlias : (firstTable || null),
       };
 
       if (edge.hasChild(node)) {

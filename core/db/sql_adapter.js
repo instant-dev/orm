@@ -697,6 +697,7 @@ class SQLAdapter {
 
 SQLAdapter.prototype.typePropertyDefaults = {
   // maxLength: null,
+  defaultValue: null,
   nullable: true,
   unique: false,
   primary_key: false,

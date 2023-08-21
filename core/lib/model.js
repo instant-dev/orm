@@ -330,18 +330,24 @@ class Model {
       throw new Error(`Column "${field}" not found for "${this.getName()}"`);
     }
     let db = this.prototype.db;
-    let columnProperties = column.properties || {};
-    let inheritProperties = (db.adapter.simpleTypes[column.type] || {}).properties || {};
     let properties = {};
-    Object.keys(db.adapter.typePropertyDefaults).forEach(key => {
-      if (key in columnProperties) {
+    let columnProperties = column.properties || {};
+    if (db) {
+      let inheritProperties = (db.adapter.simpleTypes[column.type] || {}).properties || {};
+      Object.keys(db.adapter.typePropertyDefaults).forEach(key => {
+        if (key in columnProperties) {
+          properties[key] = columnProperties[key];
+        } else if (key in inheritProperties) {
+          properties[key] = inheritProperties[key];
+        } else {
+          properties[key] = db.adapter.typePropertyDefaults[key];
+        }
+      });
+    } else {
+      Object.keys(columnProperties).forEach(key => {
         properties[key] = columnProperties[key];
-      } else if (key in inheritProperties) {
-        properties[key] = inheritProperties[key];
-      } else {
-        properties[key] = db.adapter.typePropertyDefaults[key];
-      }
-    });
+      });
+    }
     return properties;
   }
 
@@ -809,19 +815,14 @@ class Model {
   * @param {any} value The value to convert
   */
   convert (field, value) {
-
     if (!this.hasField(field) || value === null || value === undefined) {
       return null;
     }
-
     let dataType = this.getDataTypeOf(field);
-
     if (this.isFieldArray(field)) {
       return (value instanceof Array ? value : [value]).map(v => dataType.convert(v));
     }
-
     return dataType.convert(value);
-
   }
 
   /**
@@ -971,13 +972,10 @@ class Model {
   * @param {string} field Field for which you'd like to retrieve data.
   */
   get (field, defaultValue) {
-
     if (this._calculations[field]) {
       return this.calculate(field);
     }
-
     return this._data.hasOwnProperty(field) ? this._data[field] : defaultValue;
-
   }
 
   /**
@@ -985,9 +983,7 @@ class Model {
   * @param {String} joinName the name of the join (list of connectors separated by __)
   */
   joined (joinName) {
-
     return this._joinsCache[joinName];
-
   }
 
   /**

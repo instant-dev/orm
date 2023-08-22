@@ -89,14 +89,14 @@ class MigrationManagerDangerous {
    * Saves current schema state into an empty migration table
    */
   async initialize () {
-    let json = this.parent._Schema.schema;
     let queryResult = await this.parent._Schema.db.query(`SELECT COUNT(id) AS count_id FROM "${this.parent._Schema.constructor.migrationsTable}"`, []);
     let row = queryResult.rows[0];
     if (row.count_id) {
       throw new Error(`Could not initialize: non-empty migration table "${this.parent._Schema.constructor.migrationsTable}" (${row.count_id} entries)`);
     }
+    let json = await this.parent.getIntrospectSchema();
     let migration = this.filesystem.initialize(json);
-    let result = await this.commit(migration);
+    let result = await this.commit(migration, false);
     this.parent.log(`Table "${this.parent._Schema.constructor.migrationsTable}" initialized from migration(id=${json.migration_id})`);
     return migration;
   }
@@ -178,7 +178,7 @@ class MigrationManagerDangerous {
   /**
    * Commits a migration to the database
    */
-  async commit (migration) {
+  async commit (migration, applyMigration = true) {
     let migrationJSON;
     if (migration instanceof Migration) {
       migrationJSON = migration.toJSON();
@@ -200,8 +200,12 @@ class MigrationManagerDangerous {
         );
       }
     }
-    let queries = migrationJSON.up.map(command => {
-      return this.parent[command[0]].apply(this.parent, command.slice(1));
+    let queries = [];
+    migrationJSON.up.forEach(command => {
+      let query = this.parent[command[0]].apply(this.parent, command.slice(1));
+      if (applyMigration) {
+        queries.push(query);
+      }
     });
     queries.push(
       [

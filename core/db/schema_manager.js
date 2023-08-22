@@ -266,7 +266,7 @@ class SchemaManager {
         {
           via: foreignKey.column,
           using: foreignKey.parentColumn,
-          multiple: !!behavior.multiple,
+          multiple: !_Model.getColumnProperties(foreignKey.column).unique,
           as: behavior.alias || null,
           name: behavior.parentAlias || null
         }
@@ -543,6 +543,11 @@ class SchemaManager {
       throw new Error(`Index already exists on column "${column}" of table "${table}"`);
     }
     this.schema.indices.push({table, column, type});
+    this.schema.indices.sort((a, b) => {
+      let aid = [a.table, a.column, a.type].join('|');
+      let bid = [b.table, b.column, b.type].join('|');
+      return aid > bid ? 1 : -1;
+    });
     return true;
 
   }
@@ -602,6 +607,11 @@ class SchemaManager {
     }
 
     this.schema.foreign_keys.push(foreignKey);
+    this.schema.foreign_keys.sort((a, b) => {
+      let aid = [a.table, a.column, a.parentTable, a.parentColumn].join('|');
+      let bid = [b.table, b.column, b.parentTable, b.parentColumn].join('|');
+      return aid > bid ? 1 : -1;
+    });
     return true;
 
   }
@@ -612,93 +622,6 @@ class SchemaManager {
       return !(v.table === table && v.column === columnName);
     });
     return true;
-
-  }
-
-  prettyPrint () {
-
-    let tables = this.schema.tables;
-    let indices = this.schema.indices;
-    let hasModels = !!Object.keys(tables).length;
-    let hasIndices = indices.length;
-
-    let fileData = [
-      '{',
-      '',
-      '  "migration_id": ' + this.schema.migrationId + ((hasModels || hasIndices) ? ',' : ''),
-    ];
-
-    if (hasIndices) {
-
-      fileData = fileData.concat([
-        '',
-        '  "indices": [',
-          indices.map(function(indexData) {
-            return [
-              '    {',
-                [
-                  '"table": "' + indexData.table + '"',
-                  '"column": "' + indexData.column + '"',
-                  (indexData.type ? '"type": "' + indexData.type+ '"' : '')
-                ].filter(function(v) { return !!v; }).join(', '),
-              '}',
-            ].join('');
-          }).join(',\n'),
-        '  ]' + (hasModels ? ',' : ''),
-      ]);
-
-    }
-
-    if (hasModels) {
-
-      fileData = fileData.concat([
-        '',
-        '  "tables": {',
-        '',
-        Object.keys(tables).sort().map(function(t) {
-          let curTable = tables[t];
-          return [
-            '    "' + t + '": {',
-            '',
-            '      "name": "' + curTable.name + '",',
-            '',
-            '      "columns": [',
-            curTable.columns.map(function(columnData) {
-              return [
-                '        ',
-                '{',
-                  [
-                    '"name": "' + columnData.name + '"',
-                    '"type": "' + columnData.type + '"',
-                    columnData.properties ? '"properties": ' + JSON.stringify(columnData.properties) : ''
-                  ].filter(function(v) { return !!v; }).join(', '),
-                '}'
-              ].join('');
-            }).join(',\n'),
-            '      ]',
-            '',
-            '    }'
-          ].join('\n');
-        }).join(',\n\n'),
-        '',
-        '  }'
-      ]);
-
-    } else {
-
-      fileData = fileData.concat([
-        '',
-        '  "tables": {}',
-        ''
-      ]);
-
-    }
-
-    return fileData.concat([
-      '',
-      '}',
-      ''
-    ]).join('\n');
 
   }
 

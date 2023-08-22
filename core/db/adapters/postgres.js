@@ -242,10 +242,10 @@ class PostgresAdapter extends SQLAdapter {
         "t"."table_type" = 'BASE TABLE' AND
         "t"."table_schema" NOT IN ('pg_catalog', 'information_schema') AND
         "t"."table_schema" = 'public' AND
-        "t"."table_name" <> '${migrationsTable}'
+        "t"."table_name" <> $1
       ORDER BY
         "t"."table_name" ASC
-    `, []);
+    `, [migrationsTable]);
     let indexResult = await this.query(`
       SELECT
         "pgi"."indexname" AS "name",
@@ -283,11 +283,12 @@ class PostgresAdapter extends SQLAdapter {
       WHERE
         "pgi"."schemaname" NOT IN ('pg_catalog', 'information_schema') AND
         "pgi"."schemaname" = 'public' AND
-        "pgi"."tablename" <> '${migrationsTable}'
-    `, []);
+        "pgi"."tablename" <> $1
+    `, [migrationsTable]);
 
     let tables = structureResult.rows;
     let indices = indexResult.rows;
+    let foreignKeys = [];
     let schema = {
       migration_id: null,
       foreign_keys: [],
@@ -327,9 +328,14 @@ class PostgresAdapter extends SQLAdapter {
           column.properties.primary_key = true;
         } else if (constraint.type === 'u') {
           column.properties.unique = true;
+        } else if (constraint.type === 'f') {
+          foreignKeys.push({
+            table: table.name,
+            column: constraint.column_name,
+            parentTable: constraint.reference_table,
+            parentColumn: constraint.reference_column
+          });
         }
-        // TODO:
-        // type = 'f' for foreign_key not yet supported
       });
       // Now clean up and format columns
       model.columns = model.columns.map(column => {
@@ -361,7 +367,19 @@ class PostgresAdapter extends SQLAdapter {
           column: index.columns[0],
           type: index.type
         }
+      })
+      .sort((a, b) => {
+        let aid = [a.table, a.column, a.type].join('|');
+        let bid = [b.table, b.column, b.type].join('|');
+        return aid > bid ? 1 : -1;
       });
+
+    // Now prepare foreign keys...
+    schema.foreign_keys = foreignKeys.sort((a, b) => {
+      let aid = [a.table, a.column, a.parentTable, a.parentColumn].join('|');
+      let bid = [b.table, b.column, b.parentTable, b.parentColumn].join('|');
+      return aid > bid ? 1 : -1;
+    });
 
     return schema;
   }

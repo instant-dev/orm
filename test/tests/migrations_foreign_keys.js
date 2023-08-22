@@ -281,23 +281,23 @@ module.exports = (Instantiator, Databases) => {
         let blogPostB = await BlogPost.create({title: 'Goodbye Moon!', user_id: userB.get('id')});
 
         let user1 = await User.query()
-          .join('blogPost')
+          .join('blogPosts')
           .first();
 
         expect(user1).to.exist;
         expect(user1.get('username')).to.equal('Arnold');
-        expect(user1.joined('blogPost')).to.exist;
-        expect(user1.joined('blogPost').get('title')).to.equal('Hello World!');
+        expect(user1.joined('blogPosts')).to.exist;
+        expect(user1.joined('blogPosts')[0].get('title')).to.equal('Hello World!');
 
         let user2 = await User.query()
-          .join('blogPost')
-          .where({blogPost__title__icontains: 'moon'})
+          .join('blogPosts')
+          .where({blogPosts__title__icontains: 'moon'})
           .first();
 
         expect(user2).to.exist;
         expect(user2.get('username')).to.equal('Bernard');
-        expect(user2.joined('blogPost')).to.exist;
-        expect(user2.joined('blogPost').get('title')).to.equal('Goodbye Moon!');
+        expect(user2.joined('blogPosts')).to.exist;
+        expect(user2.joined('blogPosts')[0].get('title')).to.equal('Goodbye Moon!');
 
       });
 
@@ -305,7 +305,7 @@ module.exports = (Instantiator, Databases) => {
 
         let User = Instant.Model('User');
         let user = await User.query()
-          .join('blogPost')
+          .join('blogPosts')
           .first();
 
         let error;
@@ -325,7 +325,7 @@ module.exports = (Instantiator, Databases) => {
 
         let User = Instant.Model('User');
         let user = await User.query()
-          .join('blogPost')
+          .join('blogPosts')
           .first();
 
         let userDeleted = await user.destroyCascade();
@@ -407,7 +407,7 @@ module.exports = (Instantiator, Databases) => {
           'users',
           [
             {name: 'username', type: 'string'},
-            {name: 'account_id', type: 'int'}
+            {name: 'account_id', type: 'int', properties: {unique: true}}
           ]
         );
         migrationA.createTable(
@@ -432,9 +432,9 @@ module.exports = (Instantiator, Databases) => {
           ]
         );
         migrationA.createForeignKey('users', 'account_id', 'accounts', 'id');
-        migrationA.createForeignKey('blog_posts', 'user_id', 'users', 'id', {multiple: true});
-        migrationA.createForeignKey('images', 'blog_post_id', 'blog_posts', 'id', {multiple: true});
-        migrationA.createForeignKey('images', 'image_domain_url', 'image_domains', 'url',  {multiple: true});
+        migrationA.createForeignKey('blog_posts', 'user_id', 'users', 'id');
+        migrationA.createForeignKey('images', 'blog_post_id', 'blog_posts', 'id');
+        migrationA.createForeignKey('images', 'image_domain_url', 'image_domains', 'url');
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         await Instant.Migrator.Dangerous.migrate();
@@ -640,6 +640,25 @@ module.exports = (Instantiator, Databases) => {
         expect(blogPosts.length).to.equal(2);
         expect(imageDomains.length).to.equal(3);
         expect(images.length).to.equal(6);
+
+      });
+
+      it('should drop migrations and introspect from schema', async () => {
+
+        let originalSchema = Instant.Schema.toJSON();
+
+        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.prepare();
+        await Instant.Migrator.Dangerous.initialize();
+
+        let newSchema = Instant.Schema.toJSON();
+
+        // Set migration ids equal: migration id will get wiped
+        // Delete behavior: cannot discern from introspected
+        originalSchema.migration_id = newSchema.migration_id;
+        originalSchema.foreign_keys.forEach(fk => delete fk.behavior);
+
+        expect(newSchema).to.deep.equal(originalSchema);
 
       });
 

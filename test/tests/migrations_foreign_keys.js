@@ -679,9 +679,7 @@ module.exports = (Instantiator, Databases) => {
         let newSchema = Instant.Schema.toJSON();
 
         // Set migration ids equal: migration id will get wiped
-        // Delete behavior: cannot discern from introspected
         originalSchema.migration_id = newSchema.migration_id;
-        originalSchema.foreign_keys.forEach(fk => delete fk.behavior);
 
         expect(newSchema).to.deep.equal(originalSchema);
 

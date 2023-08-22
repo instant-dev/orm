@@ -706,6 +706,11 @@ SQLAdapter.prototype.typePropertyDefaults = {
   array: false
 };
 
+SQLAdapter.prototype.foreignKeyBehaviorDefaults = {
+  mock: false,
+  cascade: false
+};
+
 SQLAdapter.prototype.indexTypes = [];
 
 SQLAdapter.prototype.comparators = {

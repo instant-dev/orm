@@ -27,11 +27,36 @@ module.exports = (Instantiator, Databases) => {
 
     describe('Foreign Key management', async () => {
 
-      it('should successfully create a foreign key', async () => {
+      it('should fail to create a foreign key with invalid behavior', async () => {
 
         Instant.Migrator.enableDangerous();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
+
+        const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
+        migrationA.createTable('users',[{name: 'username', type: 'string'}]);
+        migrationA.createTable(
+          'blog_posts',
+          [
+            {name: 'title', type: 'string'},
+            {name: 'user_id', type: 'int'}
+          ]
+        );
+
+        let error;
+
+        try {
+          migrationA.createForeignKey('blog_posts', 'user_id', 'users', 'id', {invalid_prop: true});
+        } catch (e) {
+          error = e;
+        }
+
+        expect(error).to.exist;
+        expect(error.message).to.contain('argument[4]: behavior');
+
+      });
+
+      it('should successfully create a foreign key', async () => {
 
         const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
         migrationA.createTable('users',[{name: 'username', type: 'string'}]);

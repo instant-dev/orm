@@ -252,7 +252,7 @@ class Migration extends Logger {
     renameColumn: ['table:string', 'column:string', 'newColumn:string'],
     createIndex: ['table:string', 'column:string', 'type:?indexType'],
     dropIndex: ['table:string', 'column:string'],
-    createForeignKey: ['table:string', 'column:string', 'parentTable:string', 'parentColumn:string', 'behavior:?object'],
+    createForeignKey: ['table:string', 'column:string', 'parentTable:string', 'parentColumn:string', 'behavior:?foreignKeyBehavior'],
     dropForeignKey: ['table:string', 'column:string']
   };
 
@@ -345,6 +345,28 @@ class Migration extends Logger {
         }
       }
       return column;
+    },
+    'foreignKeyBehavior': function (v, db) {
+      let behavior = JSON.parse(JSON.stringify(v));
+      if (
+        typeof behavior !== 'object' ||
+        behavior.constructor !== Object
+      ) {
+        throw new Error(`Invalid behavior: must be an object`);
+      }
+      Object.keys(behavior).forEach(key => {
+        if (!(key in db.adapter.foreignKeyBehaviorDefaults)) {
+         throw new Error(`Invalid behavior: does not support key "${key}"`);
+        }
+        if (behavior[key] === db.adapter.foreignKeyBehaviorDefaults[key]) {
+          delete behavior[key];
+        }
+      });
+      if (Object.keys(behavior).length === 0) {
+        return null;
+      } else {
+        return behavior;
+      }
     }
   }
 

@@ -88,15 +88,22 @@ class MigrationManagerDangerous {
   /**
    * Saves current schema state into an empty migration table
    */
-  async initialize () {
+  async initialize (schemaJSON) {
     let queryResult = await this.parent._Schema.db.query(`SELECT COUNT(id) AS count_id FROM "${this.parent._Schema.constructor.migrationsTable}"`, []);
     let row = queryResult.rows[0];
     if (row.count_id) {
       throw new Error(`Could not initialize: non-empty migration table "${this.parent._Schema.constructor.migrationsTable}" (${row.count_id} entries)`);
     }
-    let json = await this.parent.getIntrospectSchema();
+    let json = schemaJSON;
+    let applyMigration = true;
+    // if we don't provide a schema, initialize from introspected schema
+    if (!json) {
+      json = await this.parent.getIntrospectSchema();
+      applyMigration = false;
+    }
+    json = this.parent._Schema.constructor.validate(json);
     let migration = this.filesystem.initialize(json);
-    let result = await this.commit(migration, false);
+    let result = await this.commit(migration, applyMigration);
     this.parent.log(`Table "${this.parent._Schema.constructor.migrationsTable}" initialized from migration(id=${json.migration_id})`);
     return migration;
   }
@@ -168,8 +175,7 @@ class MigrationManagerDangerous {
   async bootstrap (seed) {
     await this.annihilate();
     await this.prepare();
-    await this.initialize();
-    // await this.reconstitute();
+    await this.migrate();
     if (seed) {
       await this.seed(seed);
     }
@@ -372,6 +378,7 @@ class MigrationManagerDangerous {
     if (mismatchDiff) {
       prevDiffs = prevDiffs.slice(0, mismatchIndex);
     }
+
     let unstoredDiffIndex = prevDiffs
       .findIndex(migrationDiff => migrationDiff.filesystem && !migrationDiff.database);
     let storedDiff = prevDiffs.length
@@ -413,7 +420,9 @@ class MigrationManagerDangerous {
           };
         }
       }
-    } else if (lastMigrationId > -1) {
+    } else if (
+      lastMigrationId !== filesystemMigrations[filesystemMigrations.length - 1].id
+    ) {
       let pendingMigrations = filesystemMigrations.slice(
         filesystemMigrations.findIndex(migration => migration.id > lastMigrationId)
       );

@@ -149,8 +149,7 @@ module.exports = (Instantiator, Databases) => {
 
       it('should successfully save the current schema with migration_id set', async () => {
 
-        Instant.Schema.setMigrationId(migrationId);
-        Instant.Migrator.Dangerous.filesystem.clear();
+        Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
@@ -160,7 +159,7 @@ module.exports = (Instantiator, Databases) => {
 
         let row = result.rows[0];
 
-        expect(row.id).to.equal(migrationId + 1);
+        expect(row.id).to.equal(1);
         expect(row.schema).to.deep.equal(Instant.Schema.schema);
 
       });
@@ -199,7 +198,7 @@ module.exports = (Instantiator, Databases) => {
 
       it('should prepare the database for migrations again', async () => {
 
-        Instant.Migrator.Dangerous.filesystem.clear();
+        Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.constructor.migrationsTable}"`, []);
@@ -209,7 +208,10 @@ module.exports = (Instantiator, Databases) => {
 
       it('should fail to find models before db initialized', async () => {
 
+        Instant.Schema.setSchema(schema);
         const modelNames = Instant.Schema.listTableNames();
+
+        expect(modelNames.length).to.be.greaterThan(0);
 
         let error;
 
@@ -230,15 +232,14 @@ module.exports = (Instantiator, Databases) => {
 
       it('should successfully initialize again', async () => {
 
-        Instant.Schema.setMigrationId(migrationId);
-        await Instant.Migrator.Dangerous.initialize();
+        await Instant.Migrator.Dangerous.initialize(Instant.Schema.toJSON());
         let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.constructor.migrationsTable}"`, []);
 
         expect(result.rows.length).to.equal(1);
 
         let row = result.rows[0];
 
-        expect(row.id).to.equal(migrationId + 1);
+        expect(row.id).to.equal(1);
         expect(row.schema).to.deep.equal(Instant.Schema.schema);
 
       });
@@ -262,6 +263,8 @@ module.exports = (Instantiator, Databases) => {
 
         const modelNames = Instant.Schema.listTableNames();
 
+        expect(modelNames.length).to.be.greaterThan(0);
+
         for (let i = 0; i < modelNames.length; i++) {
           let name = modelNames[i];
           let model = Instant.Model(name);
@@ -271,27 +274,12 @@ module.exports = (Instantiator, Databases) => {
 
       });
 
-      // it('should fail to reconstitute database if schema mismatch', async () => {
-      //
-      //   const originalTable = Instant.Schema.schema.tables['Child'].name;
-      //   Instant.Schema.schema.tables['Child'].name = 'fake_table';
-      //
-      //   try {
-      //     let results = await Instant.Migrator.Dangerous.reconstitute();
-      //   } catch (e) {
-      //     expect(e).to.exist;
-      //     expect(e.message).to.contain('schema mismatch');
-      //   }
-      //
-      //   Instant.Schema.schema.models['Child'].name = originalTable;
-      //
-      // });
-
       it('should bootstrap database from schema', async () => {
 
-        Instant.Migrator.Dangerous.filesystem.clear();
         let results = await Instant.Migrator.Dangerous.bootstrap();
         const modelNames = Instant.Schema.listTableNames();
+
+        expect(modelNames.length).to.be.greaterThan(0);
 
         for (let i = 0; i < modelNames.length; i++) {
           let name = modelNames[i];
@@ -322,7 +310,6 @@ module.exports = (Instantiator, Databases) => {
 
       it('should bootstrap again and create a model', async () => {
 
-        Instant.Migrator.Dangerous.filesystem.clear();
         await Instant.Migrator.Dangerous.bootstrap();
         const Parent = Instant.Model('Parent');
         const parent = await Parent.create({name: 'Keith'});
@@ -353,7 +340,6 @@ module.exports = (Instantiator, Databases) => {
           ]
         };
 
-        Instant.Migrator.Dangerous.filesystem.clear();
         await Instant.Migrator.Dangerous.bootstrap(seed);
         const Parent = Instant.Model('Parent');
         const Child = Instant.Model('Child');
@@ -399,9 +385,11 @@ module.exports = (Instantiator, Databases) => {
       it('should introspect the current database correctly', async () => {
 
         let schema = await Instant.Migrator.getIntrospectSchema();
-        schema.migration_id = 5;  // originalSchema has id = 5, db = null
 
-        expect(schema).to.deep.equal(Instant.Schema.schema);
+        // introspected schema always returns null
+        schema.migration_id = 1;
+
+        expect(schema).to.deep.equal(Instant.Schema.toJSON());
 
       });
 
@@ -427,7 +415,6 @@ module.exports = (Instantiator, Databases) => {
         Instant.disconnect();
         await Instant.connect(Databases['main']);
         let schema = await Instant.Schema.schema;
-        schema.migration_id = 5; // originalSchema has id = 5, db = null
 
         expect(schema).to.deep.equal(originalSchema);
 
@@ -435,15 +422,15 @@ module.exports = (Instantiator, Databases) => {
 
       it('should drop migrations and load from introspected schema', async () => {
 
-        let originalSchema = await Instant.Schema.schema;
+        let originalSchema = await Instant.Schema.toJSON();
 
         Instant.Migrator.enableDangerous();
         await Instant.Migrator.Dangerous.drop();
 
         Instant.disconnect();
         await Instant.connect(Databases['main']);
-        let schema = await Instant.Schema.schema;
-        schema.migration_id = 5; // originalSchema has id = 5, db = null
+        let schema = await Instant.Schema.toJSON();
+        schema.migration_id = 1;
 
         expect(schema).to.deep.equal(originalSchema);
 

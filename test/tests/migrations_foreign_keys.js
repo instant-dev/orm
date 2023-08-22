@@ -532,7 +532,7 @@ module.exports = (Instantiator, Databases) => {
         expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')).to.have.length(3);
         expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')[0].joined('imageDomain')).to.exist;
         expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')[0].joined('imageDomain').get('url')).to.equal(
-          accounts[0].joined('user').joined('blogPosts')[0].joined('images')[0].get('image_domain_url')
+          accounts[1].joined('user').joined('blogPosts')[0].joined('images')[0].get('image_domain_url')
         );
 
       });
@@ -555,7 +555,7 @@ module.exports = (Instantiator, Databases) => {
         expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')).to.have.length(3);
         expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')[0].joined('imageDomain')).to.exist;
         expect(accounts[1].joined('user').joined('blogPosts')[0].joined('images')[0].joined('imageDomain').get('url')).to.equal(
-          accounts[0].joined('user').joined('blogPosts')[0].joined('images')[0].get('image_domain_url')
+          accounts[1].joined('user').joined('blogPosts')[0].joined('images')[0].get('image_domain_url')
         );
 
       });

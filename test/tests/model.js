@@ -22,7 +22,7 @@ module.exports = (Instantiator, Databases) => {
     };
     class Parent extends Instantiator.InstantORM.Core.Model {}
     Parent.hides('secret');
-    Parent.setSchema(schemaParent);
+    Parent.setTableSchema(schemaParent);
 
     Parent.validates('name', 'should be at least four characters long', v => v && v.length >= 4);
 
@@ -46,7 +46,7 @@ module.exports = (Instantiator, Databases) => {
       ]
     };
     class House extends Instantiator.InstantORM.Core.Model {}
-    House.setSchema(schemaHouse);
+    House.setTableSchema(schemaHouse);
 
     House.joinsTo(Parent);
 
@@ -58,10 +58,10 @@ module.exports = (Instantiator, Databases) => {
       ]
     };
     class SpecialItem extends Instantiator.InstantORM.Core.Model {}
-    SpecialItem.setSchema(schemaSpecialItem);
+    SpecialItem.setTableSchema(schemaSpecialItem);
 
     class User extends Instantiator.InstantORM.Core.Model {}
-    User.setSchema({
+    User.setTableSchema({
       name: 'users',
       columns: [
         {name: 'id', type: 'serial'},
@@ -70,7 +70,7 @@ module.exports = (Instantiator, Databases) => {
     });
 
     class Post extends Instantiator.InstantORM.Core.Model {}
-    Post.setSchema({
+    Post.setTableSchema({
       name: 'posts',
       columns: [
         {name: 'id', type: 'serial'},
@@ -82,7 +82,7 @@ module.exports = (Instantiator, Databases) => {
     Post.joinsTo(User, {multiple: true});
 
     class Comment extends Instantiator.InstantORM.Core.Model {}
-    Comment.setSchema({
+    Comment.setTableSchema({
       name: 'comments',
       columns: [
         {name: 'id', type: 'serial'},

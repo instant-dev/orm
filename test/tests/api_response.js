@@ -18,7 +18,7 @@ module.exports = (Instantiator, Databases) => {
     };
 
     class Post extends Instantiator.InstantORM.Core.Model {}
-    Post.setSchema(schemaPost);
+    Post.setTableSchema(schemaPost);
 
     it('should output one post properly', () => {
 

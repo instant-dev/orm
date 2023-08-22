@@ -248,7 +248,7 @@ class SchemaManager {
         ? {[className]: class extends Models[name] {}}[className]
         : {[className]: class extends Model {}}[className];
       _Model.setDatabase(this.db);
-      _Model.setSchema(this.schema.tables[name]);
+      _Model.setTableSchema(this.schema.tables[name]);
       this.Models[name] = _Model;
     });
     this.schema.foreign_keys.forEach(foreignKey => {

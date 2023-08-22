@@ -57,25 +57,25 @@ module.exports = (Instantiator, Databases) => {
     class User extends Instantiator.InstantORM.Core.Model {}
 
     User.setDatabase(db);
-    User.setSchema(schemaUser);
+    User.setTableSchema(schemaUser);
 
     class Thread extends Instantiator.InstantORM.Core.Model {}
 
     Thread.setDatabase(db);
-    Thread.setSchema(schemaThread);
+    Thread.setTableSchema(schemaThread);
     Thread.joinsTo(User, {multiple: true});
 
     class Post extends Instantiator.InstantORM.Core.Model {}
 
     Post.setDatabase(db);
-    Post.setSchema(schemaPost);
+    Post.setTableSchema(schemaPost);
     Post.joinsTo(User, {multiple: true});
     Post.joinsTo(Thread, {multiple: true});
 
     class Vote extends Instantiator.InstantORM.Core.Model {};
 
     Vote.setDatabase(db);
-    Vote.setSchema(schemaVote);
+    Vote.setTableSchema(schemaVote);
     Vote.joinsTo(User, {multiple: true});
     Vote.joinsTo(Thread, {multiple: true});
 

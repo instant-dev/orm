@@ -103,38 +103,38 @@ module.exports = (Instantiator, Databases) => {
     class Parent extends Instantiator.InstantORM.Core.Model {}
 
     Parent.setDatabase(mainDb);
-    Parent.setSchema(schemaParent);
+    Parent.setTableSchema(schemaParent);
     Parent.hides('hidden');
 
     class Career extends Instantiator.InstantORM.Core.Model {};
 
     Career.setDatabase(mainDb);
-    Career.setSchema(schemaCareer);
+    Career.setTableSchema(schemaCareer);
     Career.joinsTo(Parent, {multiple: true});
 
     class Friendship extends Instantiator.InstantORM.Core.Model {}
 
     Friendship.setDatabase(mainDb);
-    Friendship.setSchema(schemaFriendship);
+    Friendship.setTableSchema(schemaFriendship);
     Friendship.joinsTo(Parent, {name: 'fromParent', as: 'outgoingFriendships', multiple: true});
     Friendship.joinsTo(Parent, {name: 'toParent', as: 'incomingFriendships', multiple: true});
 
     class Child extends Instantiator.InstantORM.Core.Model {}
 
     Child.setDatabase(mainDb);
-    Child.setSchema(schemaChild);
+    Child.setTableSchema(schemaChild);
     Child.joinsTo(Parent, {multiple: true});
 
     class Partner extends Instantiator.InstantORM.Core.Model {}
 
     Partner.setDatabase(mainDb);
-    Partner.setSchema(schemaPartner);
+    Partner.setTableSchema(schemaPartner);
     Partner.joinsTo(Parent);
 
     class Pet extends Instantiator.InstantORM.Core.Model {}
 
     Pet.setDatabase(mainDb);
-    Pet.setSchema(schemaPet);
+    Pet.setTableSchema(schemaPet);
     Pet.joinsTo(Parent, {multiple: true});
 
     before(async () => {

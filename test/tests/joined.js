@@ -45,19 +45,19 @@ module.exports = (Instantiator, Databases) => {
     class User extends Instantiator.InstantORM.Core.Model {}
 
     User.setDatabase(db);
-    User.setSchema(schemaUser);
+    User.setTableSchema(schemaUser);
 
     class Membership extends Instantiator.InstantORM.Core.Model {}
 
     Membership.setDatabase(db);
-    Membership.setSchema(schemaMembership);
+    Membership.setTableSchema(schemaMembership);
     Membership.joinsTo(User, {multiple: true, as: 'memberships'});
     Membership.joinsTo(User, {multiple: true, via: 'organization_id', name: 'organization', as: 'members'});
 
     class OrganizationLocations extends Instantiator.InstantORM.Core.Model {}
 
     OrganizationLocations.setDatabase(db);
-    OrganizationLocations.setSchema(schemaOrganizationLocations);
+    OrganizationLocations.setTableSchema(schemaOrganizationLocations);
     OrganizationLocations.joinsTo(User, {multiple: true, via: 'organization_id', name: 'organization', as: 'organizationLocations'});
 
     User.joinsTo(OrganizationLocations, {multiple: true, via: 'organization_location_id', name: 'organizationLocation', as: 'engineeringStaffMembers'});

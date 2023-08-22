@@ -293,7 +293,7 @@ class Model {
   * Set the schema to be used for this model
   * @param {Object} schema
   */
-  static setSchema (schema) {
+  static setTableSchema (schema) {
 
     if (!schema) {
       throw new Error([

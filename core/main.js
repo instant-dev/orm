@@ -11,7 +11,8 @@ class InstantORM extends Logger {
       Database: require('./db/database.js'),
       SchemaManager: require('./db/schema_manager.js'),
       MigrationManager: require('./db/migrator/migration_manager.js'),
-      Migration: require('./db/migrator/migration.js')
+      Migration: require('./db/migrator/migration.js'),
+      ConfigManager: require('./db/config_manager.js')
     },
     APIResponse: require('./lib/api_response.js'),
     GraphQuery: require('./lib/graph_query.js'),
@@ -33,10 +34,19 @@ class InstantORM extends Logger {
       'main': null,
       'readonly': null
     };
+    this.Config = new this.constructor.Core.DB.ConfigManager();
     this._Schema = null;
     this._Migrator = null;
     this._Generator = null;
     this._Models = {};
+  }
+
+  filesystemRoot () {
+    return this.constructor.Core.DB.SchemaManager.rootDirectory;
+  }
+
+  isFilesystemInitialized () {
+    return !!fs.existsSync(this.filesystemRoot());
   }
 
   /**
@@ -87,6 +97,7 @@ class InstantORM extends Logger {
         this._databases[name].enableLogs(logLevel);
       });
     this._Migrator && this._Migrator.enableLogs(logLevel);
+    this.Config && this.Config.enableLogs(logLevel);
   }
 
   addDatabase (name, cfg) {
@@ -95,6 +106,9 @@ class InstantORM extends Logger {
     }
     if (this._databases[name]) {
       throw new Error(`You are already connected to a database "${name}", please close that database first.`);
+    }
+    if (!cfg && this.Config.exists()) {
+      cfg = this.Config.load(process.env.NODE_ENV || 'development', name);
     }
     const db = new this.constructor.Core.DB.Database(name);
     db.enableLogs(this._logLevel); // Pass through logging

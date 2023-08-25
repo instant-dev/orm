@@ -16,7 +16,7 @@ class MigrationManagerDangerousFilesystem {
   clear () {
     [
       this.self.parent._Schema.constructor.getDirectory('migrations'),
-      this.self.parent._Schema.constructor.getDirectory('cache')
+      this.self.parent._Schema.constructor.getDirectory('cache'),
     ].forEach(pathname => {
       if (fs.existsSync(pathname)) {
         let fileList = fs.readdirSync(pathname);

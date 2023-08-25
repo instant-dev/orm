@@ -15,8 +15,8 @@ class MigrationManagerDangerousFilesystem {
    */
   clear () {
     [
-      this.self.parent._Schema.constructor.migrationsDirectory,
-      this.self.parent._Schema.constructor.cacheDirectory
+      this.self.parent._Schema.constructor.getDirectory('migrations'),
+      this.self.parent._Schema.constructor.getDirectory('cache')
     ].forEach(pathname => {
       if (fs.existsSync(pathname)) {
         let fileList = fs.readdirSync(pathname);
@@ -37,7 +37,7 @@ class MigrationManagerDangerousFilesystem {
    * Initializes filesystem filesystem migrations
    */
   initialize (json) {
-    let pathname = this.self.parent._Schema.constructor.migrationsDirectory;
+    let pathname = this.self.parent._Schema.constructor.getDirectory('migrations');
     if (fs.existsSync(pathname)) {
       throw new Error(
         `Could not initialize: "${pathname}" already exists.\n` +
@@ -59,7 +59,7 @@ class MigrationManagerDangerousFilesystem {
    * Get migrations stored locally
    */
   getMigrations () {
-    let pathname = this.self.parent._Schema.constructor.migrationsDirectory;
+    let pathname = this.self.parent._Schema.constructor.getDirectory('migrations');
     if (!fs.existsSync(pathname)) {
       throw new Error(`Could not get filesystem migrations: filesystem migrations not initialized.`);
     }
@@ -101,18 +101,18 @@ class MigrationManagerDangerousFilesystem {
       // do nothing
     }
     if (filesystemMigrations.find(json => json.id === migrationJSON.id)) {
-      throw new Error(`Can not write migration to "${this.self.parent._Schema.constructor.migrationsDirectory}": migration with (id=${migrationJSON.id}) already exists`);
+      throw new Error(`Can not write migration to "${this.self.parent._Schema.constructor.getDirectory('migrations')}": migration with (id=${migrationJSON.id}) already exists`);
     }
     const filename = Migration.generateFilename(migrationJSON.id, migrationJSON.name);
-    const fullpath = path.join(this.self.parent._Schema.constructor.migrationsDirectory, filename);
+    const fullpath = path.join(this.self.parent._Schema.constructor.getDirectory('migrations'), filename);
     const buffer = Buffer.from(JSON.stringify(migrationJSON, null, 2));
-    if (!fs.existsSync(this.self.parent._Schema.constructor.migrationsDirectory)) {
-      fs.mkdirSync(this.self.parent._Schema.constructor.migrationsDirectory);
+    if (!fs.existsSync(this.self.parent._Schema.constructor.getDirectory('migrations'))) {
+      fs.mkdirSync(this.self.parent._Schema.constructor.getDirectory('migrations'));
     }
     if (fs.existsSync(fullpath)) {
-      throw new Error(`Can not write migration to "${this.self.parent._Schema.constructor.migrationsDirectory}": file already exists`);
-    } else if (!fs.statSync(this.self.parent._Schema.constructor.migrationsDirectory).isDirectory()) {
-      throw new Error(`Can not write migration to "${this.self.parent._Schema.constructor.migrationsDirectory}": not a directory`);
+      throw new Error(`Can not write migration to "${this.self.parent._Schema.constructor.getDirectory('migrations')}": file already exists`);
+    } else if (!fs.statSync(this.self.parent._Schema.constructor.getDirectory('migrations')).isDirectory()) {
+      throw new Error(`Can not write migration to "${this.self.parent._Schema.constructor.getDirectory('migrations')}": not a directory`);
     }
     fs.writeFileSync(fullpath, buffer);
     this.self.parent.log(`Wrote migration to disk at "${filename}" (${migrationJSON.up.map(cmd => cmd[0]).join(', ')})`);
@@ -129,7 +129,7 @@ class MigrationManagerDangerousFilesystem {
     } else {
       json = SchemaManager.validate(schema);
     }
-    let pathname = this.self.parent._Schema.constructor.cacheDirectory;
+    let pathname = this.self.parent._Schema.constructor.getDirectory('cache');
     SchemaManager.checkdir(pathname);
     let filename = this.self.parent._Schema.constructor.cacheSchemaFile;
     let fullpath = path.join(pathname, filename);
@@ -208,7 +208,7 @@ class MigrationManagerDangerousFilesystem {
         let migration = migrations.pop();
         let filename = Migration.generateFilename(migration.id, migration.name);
         try {
-          fs.unlinkSync(path.join(this.self.parent._Schema.constructor.migrationsDirectory, filename));
+          fs.unlinkSync(path.join(this.self.parent._Schema.constructor.getDirectory('migrations'), filename));
           this.self.parent.log(`Rewound and removed migration(id=${migration.id}, name=${migration.name}) from filesystem successfully!`);
         } catch (e) {
           this.self.parent.error(`Error during rewind: ${e.message}`, e);

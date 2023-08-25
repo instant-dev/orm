@@ -163,17 +163,17 @@ module.exports = (Instantiator, Databases) => {
       migration.alterColumn('blog_posts', 'title', 'varchar');
       Instant.Migrator.Dangerous.filesystem.write(migration);
 
-      let stat = fs.statSync(migration._Schema.constructor.migrationsDirectory);
-      let filenames = fs.readdirSync(migration._Schema.constructor.migrationsDirectory);
+      let stat = fs.statSync(migration._Schema.constructor.getDirectory('migrations'));
+      let filenames = fs.readdirSync(migration._Schema.constructor.getDirectory('migrations'));
 
       expect(stat.isDirectory()).to.equal(true);
       expect(filenames.length).to.equal(2);
       expect(filenames[0]).to.equal(`${Instantiator.InstantORM.Core.DB.Migration.padMigrationId(initialMigration.id)}__${initialMigration.name}.json`);
       expect(filenames[1]).to.equal(`${Instantiator.InstantORM.Core.DB.Migration.padMigrationId(migration.id)}__${migration.name}.json`);
 
-      let initialFile = fs.readFileSync(path.join(migration._Schema.constructor.migrationsDirectory, filenames[0]));
+      let initialFile = fs.readFileSync(path.join(migration._Schema.constructor.getDirectory('migrations'), filenames[0]));
       let initialJSON = JSON.parse(initialFile.toString());
-      let file = fs.readFileSync(path.join(migration._Schema.constructor.migrationsDirectory, filenames[1]));
+      let file = fs.readFileSync(path.join(migration._Schema.constructor.getDirectory('migrations'), filenames[1]));
       let json = JSON.parse(file.toString());
 
       expect(initialJSON).to.deep.equal(initialMigration.toJSON());

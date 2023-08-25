@@ -52,7 +52,7 @@ class __templateClass__ extends Model {
 class ModelGenerator extends Logger {
 
   clearModels () {
-    let pathname = SchemaManager.modelsDirectory;
+    let pathname = SchemaManager.getDirectory('models');
     if (fs.existsSync(pathname)) {
       fs.readdirSync(pathname).forEach(filename => {
         let fullpath = path.join(pathname, filename);
@@ -108,9 +108,9 @@ class ModelGenerator extends Logger {
       `module.exports = ${className};`
     ].join('\n');
 
-    SchemaManager.checkdir(SchemaManager.modelsDirectory);
+    SchemaManager.checkdir(SchemaManager.getDirectory('models'));
 
-    let pathname = path.join(SchemaManager.modelsDirectory, `${filename}.js`);
+    let pathname = path.join(SchemaManager.getDirectory('models'), `${filename}.js`);
 
     if (fs.existsSync(pathname)) {
       throw new Error(

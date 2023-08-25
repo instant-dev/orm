@@ -7,11 +7,12 @@ const inflect = require('i')();
 
 class SchemaManager {
 
+  static rootDirectory = './instant';
   static migrationsTable = '_instant_migrations';
-  static migrationsDirectory = './instant/migrations';
-  static cacheDirectory = './instant/cache';
+  static migrationsDirectory = 'migrations';
+  static cacheDirectory = 'cache';
   static cacheSchemaFile = 'schema.json';
-  static modelsDirectory = './instant/models';
+  static modelsDirectory = 'models';
 
   /**
    * Makes sure a directory we want to use exists
@@ -31,6 +32,18 @@ class SchemaManager {
           }
         }
       }
+    }
+  }
+
+  static getDirectory (type) {
+    if (type === 'migrations') {
+      return path.join(this.rootDirectory, this.migrationsDirectory);
+    } else if (type === 'cache') {
+      return path.join(this.rootDirectory, this.cacheDirectory);
+    } else if (type === 'models') {
+      return path.join(this.rootDirectory, this.modelsDirectory);
+    } else {
+      throw new Error(`Directory "${type}" not supported`);
     }
   }
 
@@ -198,7 +211,7 @@ class SchemaManager {
 
   getCacheFilename () {
     return path.join(
-      this.constructor.cacheDirectory,
+      this.constructor.getDirectory('cache'),
       this.constructor.cacheSchemaFile
     );
   }
@@ -213,12 +226,12 @@ class SchemaManager {
 
   readModels (schema) {
     let Models = {};
-    if (fs.existsSync(this.constructor.modelsDirectory)) {
-      let filenames = fs.readdirSync(this.constructor.modelsDirectory);
+    if (fs.existsSync(this.constructor.getDirectory('models'))) {
+      let filenames = fs.readdirSync(this.constructor.getDirectory('models'));
       let cwd = process.cwd();
       filenames.forEach(filename => {
         let _Model;
-        let pathname = path.join(cwd, this.constructor.modelsDirectory, filename);
+        let pathname = path.join(cwd, this.constructor.getDirectory('models'), filename);
         try {
           _Model = require(pathname);
         } catch (e) {

@@ -58,7 +58,7 @@ class Migration extends Logger {
   }
 
   getFilepath () {
-    return path.join(this._Schema.constructor.migrationsDirectory, this.getFilename());
+    return path.join(this._Schema.constructor.getDirectory('migrations'), this.getFilename());
   }
 
   addCommand (list) {

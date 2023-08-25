@@ -1,6 +1,6 @@
 {
-  "name": "orm",
-  "version": "0.0.0",
+  "name": "@instant.dev/orm",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {

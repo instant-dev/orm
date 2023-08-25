@@ -1,4 +1,4 @@
-# Instant.dev (Alpha release)
+# Instant.dev (Beta release)
 
 ## JavaScript ORM and Migrations for Postgres
 
@@ -52,7 +52,7 @@ Instant.dev is built for nimble development teams that;
 
 ## Table of Contents
 
-// Fill out
+Stay tuned!
 
 # Getting Started
 

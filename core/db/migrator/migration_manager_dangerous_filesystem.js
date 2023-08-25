@@ -115,7 +115,7 @@ class MigrationManagerDangerousFilesystem {
       throw new Error(`Can not write migration to "${this.self.parent._Schema.constructor.getDirectory('migrations')}": not a directory`);
     }
     fs.writeFileSync(fullpath, buffer);
-    this.self.parent.log(`Wrote migration to disk at "${filename}" (${migrationJSON.up.map(cmd => cmd[0]).join(', ')})`);
+    this.self.parent.log(`Wrote migration to disk at "${path.join(this.self.parent._Schema.constructor.getDirectory('migrations'), filename)}" (${migrationJSON.up.map(cmd => cmd[0]).join(', ')})`);
     return fullpath;
   }
 

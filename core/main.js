@@ -248,8 +248,8 @@ class InstantORM extends Logger {
 
 };
 
-const output = function (cfg, schema) {
-  return new InstantORM(cfg, schema);
+const output = function () {
+  return new InstantORM();
 };
 output.InstantORM = InstantORM;
 module.exports = output;

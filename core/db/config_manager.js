@@ -32,6 +32,7 @@ class ConfigManager extends Logger {
     if (!fs.existsSync(gitignorePathname)) {
       let gitignore = Buffer.from(pathname + '\n');
       fs.writeFileSync(gitignorePathname, gitignore);
+      this.log(`Created ".gitignore" containing "${pathname}"`);
     } else {
       let gitignore = fs.readFileSync(gitignorePathname);
       let lines = gitignore.toString()
@@ -41,6 +42,7 @@ class ConfigManager extends Logger {
       if (lines.indexOf(pathname) === -1) {
         lines.push(pathname);
         fs.writeFileSync(gitignorePathname, Buffer.from(lines.join('\n')) + '\n');
+        this.log(`Appended "${pathname}" to ".gitignore"`);
       }
     }
     return true;

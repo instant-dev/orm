@@ -107,8 +107,12 @@ class InstantORM extends Logger {
     if (this._databases[name]) {
       throw new Error(`You are already connected to a database "${name}", please close that database first.`);
     }
-    if (!cfg && this.Config.exists()) {
-      cfg = this.Config.load(process.env.NODE_ENV || 'development', name);
+    if (!cfg) {
+      if (this.Config.exists()) {
+        cfg = this.Config.load(process.env.NODE_ENV || 'development', name);
+      } else {
+        throw new Error(`Missing database configuration in "${this.Config.pathname()}".`);
+      }
     }
     const db = new this.constructor.Core.DB.Database(name);
     db.enableLogs(this._logLevel); // Pass through logging

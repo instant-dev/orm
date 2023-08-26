@@ -69,16 +69,15 @@ class ConfigManager extends Logger {
       throw new Error(`Could not write config for ["${env}"]["${name}"]:\n${e.message}`);
     }
     this.__create__();
-    let cfg = this.read();
+    let cfg = this.load();
     cfg[env] = cfg[env] || {};
-    cfg[env][name] = cfg[env][name] || dbCfg;
+    cfg[env][name] = dbCfg;
     let pathname = this.pathname();
     fs.writeFileSync(pathname, JSON.stringify(cfg, null, 2));
     this.log(`Wrote database credentials to "${pathname}"["${env}"]["${name}"]!`);
   }
 
-  read (env, name) {
-    this.__check__();
+  load () {
     let pathname = this.pathname();
     if (!this.exists()) {
       throw new Error(`No database config file found at "${pathname}"`);
@@ -90,26 +89,28 @@ class ConfigManager extends Logger {
     } catch (e) {
       throw new Error(`Database config invalid at "${pathname}":\n${e.message}`);
     }
-    let cfg = {};
     Object.keys(json).forEach(env => {
-      cfg[env] = cfg[env] || {};
       Object.keys(json[env]).forEach(name => {
         try {
-          cfg[env][name] = this.constructor.validate(json[env][name]);
+          this.constructor.validate(json[env][name]);
         } catch (e) {
           throw new Error(`Database config invalid at "${pathname}" for ["${env}"]["${name}"]:\n${e.message}`);
         }
       });
     });
-    if (!env) {
-      return cfg;
+    return json;
+  }
+
+  read (env, name) {
+    this.__check__();
+    let cfg = this.load();
+    if (!env || !name) {
+      throw new Error(`Must provide env and name`)
     } else if (!cfg[env]) {
       throw new Error(`Environment "${env}" not found in Database config at "${pathname}"`);
-    } else if (!name) {
-      return cfg[env];
     } else if (!cfg[env][name]) {
       throw new Error(`Environment "${env}" database "${name}" not found in Database config at "${pathname}"`);
-      return cfg[env][name];
+      return this.constructor.validate(cfg[env][name]);
     }
   }
 

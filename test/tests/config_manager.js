@@ -413,7 +413,7 @@ module.exports = (Instantiator, Databases) => {
         };
 
         Instant.Config.write('development', 'main', cfg);
-        let written = Instant.Config.read();
+        let written = Instant.Config.load();
 
         expect(Instant.Config.exists()).to.equal(true);
         expect(written['development']['main']).to.deep.equal(cfg);

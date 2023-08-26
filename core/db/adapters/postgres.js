@@ -27,6 +27,7 @@ class PostgresAdapter extends SQLAdapter {
     cfg = cfg.connectionString
       ? this.parseConnectionString(cfg.connectionString)
       : cfg;
+    cfg = this.parseConfig(cfg);
     this.db = db;
     this._config = cfg;
     this._pool = new pg.Pool(this._config);
@@ -409,10 +410,11 @@ class PostgresAdapter extends SQLAdapter {
       database: '',
       user: '',
       password: '',
-      port: 5432
+      port: 5432,
+      ssl: false
     };
 
-    let match = str.match(/^postgres:\/\/([A-Za-z0-9_]+)(?:\:([A-Za-z0-9_\-]+))?@([A-Za-z0-9_\.\-]+):(\d+)\/([A-Za-z0-9_]+)(\?ssl=true)?$/);
+    let match = str.match(/^postgres:\/\/([A-Za-z0-9_]+)(?:\:([A-Za-z0-9_\-]+))?@([A-Za-z0-9_\.\-]+):(\d+)\/([A-Za-z0-9_]+)(\?ssl=(?:true|false|unauthorized))?$/);
 
     if (match) {
       cfg.user = match[1];
@@ -423,14 +425,23 @@ class PostgresAdapter extends SQLAdapter {
       if (match[6] === '?ssl=true') {
         cfg.ssl = true;
       } else if (match[6] === '?ssl=unauthorized') {
-        cfg.ssl = {
-          rejectUnauthorized: false
-        };
+        cfg.ssl = 'unauthorized'
+      } else {
+        cfg.ssl = false;
       }
     }
 
     return cfg;
 
+  }
+
+  parseConfig (cfg) {
+    let pcfg = JSON.parse(JSON.stringify(cfg));
+    Object.keys(cfg).forEach(key => pcfg[key] = cfg[key]);
+    if (pcfg.ssl === 'unauthorized') {
+      pcfg.ssl = {rejectUnauthorized: false};
+    }
+    return pcfg;
   }
 
   generateClearDatabaseQuery () {

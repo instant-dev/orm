@@ -28,7 +28,30 @@ class ConfigManager extends Logger {
     if (!this.exists()) {
       fs.writeFileSync(pathname, JSON.stringify({}, null, 2));
     }
+    let gitignorePathname = '.gitignore';
+    if (!fs.existsSync(gitignorePathname)) {
+      let gitignore = Buffer.from(pathname + '\n');
+      fs.writeFileSync(gitignorePathname, gitignore);
+    } else {
+      let gitignore = fs.readFileSync(gitignorePathname);
+      let lines = gitignore.toString()
+        .split(/\r?\n/gi)
+        .map(line => line.trim())
+        .filter(line => !!line);
+      if (lines.indexOf(pathname) === -1) {
+        lines.push(pathname);
+        fs.writeFileSync(gitignorePathname, Buffer.from(lines.join('\n')) + '\n');
+      }
+    }
     return true;
+  }
+
+  destroy () {
+    let pathname = this.pathname();
+    if (this.exists()) {
+      fs.unlinkSync(pathname);
+    }
+    this.log(`Destroyed database credentials at "${pathname}"!`);
   }
 
   exists () {
@@ -37,18 +60,21 @@ class ConfigManager extends Logger {
   }
 
   write (env, name, dbCfg) {
-    this.__create__();
+    if (!env || !name || typeof env !== 'string' || typeof name !== 'string') {
+      throw new Error(`env and name must be valid strings`);
+    }
     try {
       this.constructor.validate(dbCfg);
     } catch (e) {
       throw new Error(`Could not write config for ["${env}"]["${name}"]:\n${e.message}`);
     }
+    this.__create__();
     let cfg = this.read();
     cfg[env] = cfg[env] || {};
     cfg[env][name] = cfg[env][name] || dbCfg;
     let pathname = this.pathname();
     fs.writeFileSync(pathname, JSON.stringify(cfg, null, 2));
-    this.log(`Wrote database credentials to "${pathname}"!`);
+    this.log(`Wrote database credentials to "${pathname}"["${env}"]["${name}"]!`);
   }
 
   read (env, name) {
@@ -91,7 +117,13 @@ class ConfigManager extends Logger {
     let vcfg = {};
     if (!cfg || typeof cfg !== 'object') {
       throw new Error(`Invalid config: empty`);
-    } else if (typeof cfg.connectionString === 'string') {
+    } else if ('connectionString' in cfg) {
+      if (typeof cfg.connectionString !== 'string' || !cfg.connectionString) {
+        throw new Error(
+          `Could not validate database config:\n` +
+          `If "connectionString" is provided, must be a non-empty string.`
+        );
+      }
       vcfg.connectionString = cfg.connectionString;
       if (Object.keys(cfg).length > 1) {
         throw new Error(
@@ -101,33 +133,39 @@ class ConfigManager extends Logger {
       }
     } else {
       let keys = ['host', 'port', 'user', 'password', 'database', 'ssl'];
+      let unusedKey = Object.keys(cfg).find(key => keys.indexOf(key) === -1);
+      if (unusedKey) {
+        throw new Error(
+          `Could not validate database config:\n` +
+          `Invalid key "${unusedKey}"`
+        );
+      }
       keys.forEach(key => {
         let value = cfg[key];
         if (key === 'password') {
           value = (value === void 0 || value === null || value === false)
             ? ''
-            : (value + '');
+            : value;
           if (typeof value !== 'string') {
             throw new Error(
               `Could not validate database config:\n` +
-              `"password", if provided, must be string`
+              `"password", if provided, must be a string`
             );
           }
           vcfg[key] = value;
         } else if (key === 'ssl') {
           value = (value === void 0 || value === null)
             ? false
-            : value === 'unauthorized'
-              ? {rejectUnauthorized: false}
-              : value;
+            : value;
           if (
             value !== false &&
             value !== true &&
+            value !== 'unauthorized' &&
             !deepEqual(value, {rejectUnauthorized: false})
           ) {
             throw new Error(
               `Could not validate database config:\n` +
-              `"ssl", if provided, must be true or "unauthorized"`
+              `"ssl", if provided, must be true, false or "unauthorized"`
             );
           }
           vcfg[key] = value;

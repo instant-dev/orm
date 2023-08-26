@@ -411,19 +411,13 @@ class SchemaManager {
     return true;
   }
 
-  renameTable (table, newTableName, renameModel, newModelName) {
+  renameTable (table, newTable) {
 
     this.findTable(table, true);
-    this.schema.tables[table].table = newTableName;
-
-    if (renameModel) {
-      let newClass = newModelName || inflect.classify(newTableName);
-      this.schema.tables[newClass] = this.schema.tables[tableClass];
-      delete this.schema.tables[tableClass];
-      tableClass = newClass;
-    }
-
-    return this.schema.tables[tableClass];
+    this.schema.tables[table].table = newTable;
+    this.schema.tables[newTable] = this.schema.tables[table];
+    delete this.schema.tables[table];
+    return this.schema.tables[newTable];
 
   }
 

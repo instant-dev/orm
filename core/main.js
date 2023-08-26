@@ -243,9 +243,9 @@ class InstantORM extends Logger {
       let nameSingular = inflect.singularize(name);
       let lowerName = name.toLowerCase();
       let lowerNameSingular = nameSingular.toLowerCase();
-      let lowerTableName = inflect.tableize(name);
+      let lowerTableName = inflect.underscore(inflect.pluralize(name));
       let lowerTableSingular = inflect.singularize(lowerTableName);
-      let lowerTableNameSingular = inflect.tableize(nameSingular);
+      let lowerTableNameSingular = inflect.underscore(inflect.pluralize(nameSingular));
       let check = {};
       check[lowerName] = true;
       check[lowerNameSingular] = true;

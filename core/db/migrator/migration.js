@@ -113,15 +113,15 @@ class Migration extends Logger {
     }
   }
 
-  renameTable (table, newTableName) {
+  renameTable (table, newTable) {
     if (!this.parent) {
       if (!this.name) {
-        this.name = `rename_${table}_to_${newTableName}`;
+        this.name = `rename_${table}_to_${newTable}`;
       }
-      this.up.renameTable(table, newTableName);
-      this.down.renameTable(newTableName, table);
+      this.up.renameTable(table, newTable);
+      this.down.renameTable(newTable, table);
     } else {
-      this.addCommand(['renameTable', table, newTableName]);
+      this.addCommand(['renameTable', table, newTable]);
     }
   }
 
@@ -243,7 +243,7 @@ class Migration extends Logger {
     setSchema: ['schema:schema'],
     createTable: ['table:string', 'arrFieldData:column[]'],
     dropTable: ['table:string'],
-    renameTable: ['table:string', 'newTableName:string'],
+    renameTable: ['table:string', 'newTable:string'],
     alterColumn: ['table:string', 'column:string', 'type:columnType', 'properties:?columnProperties'],
     addColumn: ['table:string', 'column:string', 'type:columnType', 'properties:?columnProperties'],
     dropColumn: ['table:string', 'column:string'],

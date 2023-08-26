@@ -109,7 +109,9 @@ class InstantORM extends Logger {
     }
     if (!cfg) {
       if (this.Config.exists()) {
-        cfg = this.Config.load(process.env.NODE_ENV || 'development', name);
+        let env = process.env.NODE_ENV || 'development';
+        this.log(`Loading database configuration from: "${this.Config.pathname()}"["${env}"]["${name}"]`);
+        cfg = this.Config.read(env, name);
       } else {
         throw new Error(`Missing database configuration in "${this.Config.pathname()}".`);
       }
@@ -169,27 +171,27 @@ class InstantORM extends Logger {
       // the schema from the database
       let tmpSchema = new this.constructor.Core.DB.SchemaManager(db, this.constructor.Core.DB.SchemaManager.emptySchema());
       let tmpMigrator = new this.constructor.Core.DB.MigrationManager(tmpSchema);
-      this.log(`#loadSchema(): Checking to see if schema is cached...`);
+      this.log(`Checking to see if schema is cached...`);
       if (tmpSchema.isCacheAvailable()) {
-        this.log(`#loadSchema(): Schema retrieved from cache!`);
+        this.log(`Schema retrieved from cache at "${tmpSchema.getCacheFilename()}"!`);
         json = this.constructor.Core.DB.SchemaManager.readSchemaFile(tmpSchema.getCacheFilename());
       } else {
-        this.log(`#loadSchema(): No cached schema, checking to see if migrations enabled...`);
+        this.log(`No cached schema, checking to see if migrations enabled...`);
         let hasMigrationsEnabled = await tmpMigrator.isEnabled();
         if (hasMigrationsEnabled) {
-          this.log(`#loadSchema(): Migrations enabled! Fetching schema...`);
+          this.log(`Migrations enabled! Fetching schema...`);
           json = await tmpMigrator.getLatestSchema();
           if (!json) {
-            this.log(`#loadSchema(): No valid migration, introspecting schema...`);
+            this.log(`No valid migration, introspecting schema...`);
             json = await tmpMigrator.getIntrospectSchema();
-            this.log(`#loadSchema(): Schema retrieved from introspection!`);
+            this.log(`Schema retrieved from introspection!`);
           } else {
-            this.log(`#loadSchema(): Schema retrieved from migrations!`);
+            this.log(`Schema retrieved from migrations!`);
           }
         } else {
-          this.log(`#loadSchema(): Migrations not enabled, introspecting schema...`);
+          this.log(`Migrations not enabled, introspecting schema...`);
           json = await tmpMigrator.getIntrospectSchema();
-          this.log(`#loadSchema(): Schema retrieved from introspection!`);
+          this.log(`Schema retrieved from introspection!`);
         }
       }
     } else if (!src) {

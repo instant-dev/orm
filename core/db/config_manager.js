@@ -124,8 +124,8 @@ class ConfigManager extends Logger {
       throw new Error(`Environment "${env}" not found in Database config at "${pathname}"`);
     } else if (!cfg[env][name]) {
       throw new Error(`Environment "${env}" database "${name}" not found in Database config at "${pathname}"`);
-      return this.constructor.validate(cfg[env][name]);
     }
+    return this.constructor.validate(cfg[env][name]);
   }
 
   static validate (cfg) {

@@ -89,15 +89,15 @@ class Migration extends Logger {
     }
   }
 
-  createTable (table, arrFieldData, modelName) {
+  createTable (table, arrFieldData) {
     if (!this.parent) {
       if (!this.name) {
         this.name = `create_${table}`;
       }
-      this.up.createTable(table, arrFieldData, modelName);
+      this.up.createTable(table, arrFieldData);
       this.down.dropTable(table);
     } else {
-      this.addCommand(['createTable', table, arrFieldData, modelName]);
+      this.addCommand(['createTable', table, arrFieldData]);
     }
   }
 
@@ -106,24 +106,22 @@ class Migration extends Logger {
       if (!this.name) {
         this.name = `drop_${table}`;
       }
-      let modelName = this._Schema.findModelName(table, true);
       this.up.dropTable(table);
-      this.down.createTable(table, arrFieldData, modelName);
+      this.down.createTable(table, arrFieldData);
     } else {
       this.addCommand(['dropTable', table]);
     }
   }
 
-  renameTable (table, newTableName, renameModel, newModelName) {
+  renameTable (table, newTableName) {
     if (!this.parent) {
       if (!this.name) {
         this.name = `rename_${table}_to_${newTableName}`;
       }
-      let oldModelName = this._Schema.findModelName(table, true);
-      this.up.renameTable(table, newTableName, renameModel, newModelName);
-      this.down.renameTable(newTableName, table, renameModel, oldModelName);
+      this.up.renameTable(table, newTableName);
+      this.down.renameTable(newTableName, table);
     } else {
-      this.addCommand(['renameTable', table, newTableName, renameModel, newModelName]);
+      this.addCommand(['renameTable', table, newTableName]);
     }
   }
 
@@ -243,9 +241,9 @@ class Migration extends Logger {
   // Commands we can run to migrate, map directly to functions in this class
   static allowedCommands = {
     setSchema: ['schema:schema'],
-    createTable: ['table:string', 'arrFieldData:column[]', 'modelName:?string'],
+    createTable: ['table:string', 'arrFieldData:column[]'],
     dropTable: ['table:string'],
-    renameTable: ['table:string', 'newTableName:string', 'renameModel:boolean', 'newModelName:?string'],
+    renameTable: ['table:string', 'newTableName:string'],
     alterColumn: ['table:string', 'column:string', 'type:columnType', 'properties:?columnProperties'],
     addColumn: ['table:string', 'column:string', 'type:columnType', 'properties:?columnProperties'],
     dropColumn: ['table:string', 'column:string'],

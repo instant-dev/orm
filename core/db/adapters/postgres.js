@@ -31,7 +31,7 @@ class PostgresAdapter extends SQLAdapter {
     this.db = db;
     this._config = cfg;
     this._pool = new pg.Pool(this._config);
-    this.db.log(`Connected to "${this._config.database}" as "${this._config.user}" on ${this._config.host}:${this._config.port}`);
+    this.db.log(`Connected to database "${this._config.database}" as role "${this._config.user}" on ${this._config.host}:${this._config.port}`);
   }
 
   close () {

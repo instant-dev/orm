@@ -25,7 +25,7 @@ class InstantORM extends Logger {
   };
 
   constructor () {
-    super('Instant');
+    super('Instant', 'blue');
     this.__initialize__();
   }
 
@@ -171,6 +171,7 @@ class InstantORM extends Logger {
       let tmpMigrator = new this.constructor.Core.DB.MigrationManager(tmpSchema);
       this.log(`#loadSchema(): Checking to see if schema is cached...`);
       if (tmpSchema.isCacheAvailable()) {
+        this.log(`#loadSchema(): Schema retrieved from cache!`);
         json = this.constructor.Core.DB.SchemaManager.readSchemaFile(tmpSchema.getCacheFilename());
       } else {
         this.log(`#loadSchema(): No cached schema, checking to see if migrations enabled...`);

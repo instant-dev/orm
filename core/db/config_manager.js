@@ -12,6 +12,10 @@ class ConfigManager extends Logger {
     super('ConfigManager', 'cyan');
   }
 
+  cachePathname () {
+    return path.join(SchemaManager.rootDirectory, SchemaManager.cacheDirectory, SchemaManager.cacheSchemaFile);
+  }
+
   pathname () {
     return path.join(SchemaManager.rootDirectory, SchemaManager.rootDatabaseConfigFile);
   }
@@ -46,6 +50,14 @@ class ConfigManager extends Logger {
       }
     }
     return true;
+  }
+
+  destroyCache () {
+    let pathname = this.cachePathname();
+    if (fs.existsSync(pathname)) {
+      fs.unlinkSync(pathname);
+    }
+    this.log(`Destroyed cached schema at "${pathname}"!`);
   }
 
   destroy () {

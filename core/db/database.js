@@ -20,6 +20,15 @@ class Database extends Logger {
     }
   }
 
+  listTypes () {
+    let simpleTypes = Object.keys(this.adapter.simpleTypes);
+    let allTypes = this.adapter.allTypes.filter(type => simpleTypes.indexOf(type) === -1);
+    return [].concat(
+      simpleTypes.map(name => ({name, source: `alias`})),
+      allTypes.map(name => ({name, source: `${this.adapter.name} built-in`}))
+    );
+  }
+
   connect (cfg) {
     if (typeof cfg === 'string') {
       cfg = {connectionString: cfg};

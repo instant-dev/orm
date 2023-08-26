@@ -2,9 +2,7 @@ class SQLAdapter {
 
   name = 'GenericSQL';
 
-  constructor () {
-    this.typeProperties = Object.keys(this.typePropertyDefaults);
-  }
+  constructor () {}
   close () {}
 
   readErrorCode () {}
@@ -74,23 +72,20 @@ class SQLAdapter {
   }
 
   getTypeProperties (typeName, optionalValues) {
-
     let type = this.simpleTypes[typeName];
     let typeProperties = type ? (type.properties || {}) : {};
-
     optionalValues = optionalValues || {};
-
-    let outputType = Object.create(this.typePropertyDefaults);
-    this.typeProperties.forEach(function(v) {
-      if (optionalValues.hasOwnProperty(v)) {
-        outputType[v] = optionalValues[v];
-      } else if(typeProperties.hasOwnProperty(v)) {
-        outputType[v] = typeProperties[v];
+    let outputType = {};
+    Object.keys(this.typePropertyDefaults).forEach(key => {
+      if (optionalValues.hasOwnProperty(key)) {
+        outputType[key] = optionalValues[key];
+      } else if (typeProperties.hasOwnProperty(key)) {
+        outputType[key] = typeProperties[key];
+      } else {
+        outputType[key] = this.typePropertyDefaults[key];
       }
     });
-
     return outputType;
-
   }
 
   getTypeDbName (typeName) {

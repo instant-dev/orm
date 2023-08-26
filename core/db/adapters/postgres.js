@@ -20,7 +20,7 @@ const POSTGRES_ERROR_CODES = {
 
 class PostgresAdapter extends SQLAdapter {
 
-  name = 'Postgres';
+  name = 'postgres';
 
   constructor (db, cfg) {
     super();

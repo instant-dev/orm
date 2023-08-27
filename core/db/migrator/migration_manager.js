@@ -83,6 +83,9 @@ class MigrationManager extends Logger {
    * =====================
    */
 
+  /**
+   * Creates a migration with safety checks to make sure we're up to date
+   */
   async create (id, name = '') {
     if (!id) {
       id = Migration.generateMigrationId();
@@ -126,6 +129,21 @@ class MigrationManager extends Logger {
         `or one for a different Database.`
       );
     }
+    let migration = new Migration(id, name, tmpSchema, this);
+    migration.enableLogs(this._logLevel);
+    return migration;
+  }
+
+  /**
+   * Creates a migration based on current schema
+   */
+  async createUnsafe (id, name = '') {
+    if (!id) {
+      id = Migration.generateMigrationId();
+    }
+    id = Migration.validateMigrationId(id);
+    let initJSON = this._Schema.schema;
+    const tmpSchema = new SchemaManager(this._Schema.db, initJSON);
     let migration = new Migration(id, name, tmpSchema, this);
     migration.enableLogs(this._logLevel);
     return migration;

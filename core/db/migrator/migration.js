@@ -128,7 +128,7 @@ class Migration extends Logger {
   alterColumn (table, column, type, properties) {
     if (!this.parent) {
       if (!this.name) {
-        this.name = `alter_${table}_${column}`;
+        this.name = `alter_${table}_column_${column}`;
       }
       let model = this._Schema.findTable(table, true);
       let oldColumn = model.columns.find(c => c.name === column);

@@ -184,7 +184,7 @@ class MigrationManagerDangerous {
   /**
    * Commits a migration to the database
    */
-  async commit (migration, applyMigration = true) {
+  async commit (migration, applyMigration = true, writeSchema = true) {
     let migrationJSON;
     if (migration instanceof Migration) {
       migrationJSON = migration.toJSON();
@@ -238,8 +238,10 @@ class MigrationManagerDangerous {
       throw e;
     }
     this.parent._Schema.update(migrationJSON.id);
-    this.filesystem.writeSchema(this.parent._Schema);
     this.parent.log(`Ran migration(id=${migrationJSON.id}, name=${migrationJSON.name}) successfully! (${migrationJSON.up.map(cmd => cmd[0]).join(', ')})`);
+    if (writeSchema) {
+      this.filesystem.writeSchema(this.parent._Schema);
+    }
     return true;
   }
 
@@ -343,15 +345,15 @@ class MigrationManagerDangerous {
   /**
    * Get migration state
    * Valid states are ["mismatch", "database_ahead", "unsynced", "filesystem_ahead", "synced"]
-   * mismatch:      Migration the DB has is not the same as a migration filesystem has
-   *                = restoreFromDatabase to copy from database, or rollbackSync + migrate
-   * database_ahead:  DB ahead of filesystem storage, can fast-forward
-   *                = restoreFromDatabase to copy from database or rollbackSync + migrate (noop)
-   * unsynced:      DB and filesystem have various mismatches
-   *                = restoreFromDatabase to copy from database or rollbackSync + migrate
-   * filesystem_ahead:   Filesystem is ahead of DB, usually means you pulled from git
-   *                = migrate
-   * synced:        All good!
+   * mismatch:          Migration the DB has is not the same as a migration filesystem has
+   *                    = restoreFromDatabase to copy from database, or rollbackSync + migrate
+   * database_ahead:    DB ahead of filesystem storage, can fast-forward
+   *                    = restoreFromDatabase to copy from database or rollbackSync + migrate (noop)
+   * unsynced:          DB and filesystem have various mismatches
+   *                    = restoreFromDatabase to copy from database or rollbackSync + migrate
+   * filesystem_ahead:  Filesystem is ahead of DB, usually means you pulled from git
+   *                    = migrate
+   * synced:            All good!
    */
   async getMigrationState () {
 
@@ -489,8 +491,9 @@ class MigrationManagerDangerous {
         let len = steps !== null ? steps : commitMigrations.length;
         for (let i = 0; i < len; i++) {
           let migration = commitMigrations[i];
-          await this.commit(migration);
+          await this.commit(migration, true, false);
         }
+        this.filesystem.writeSchema(this.parent._Schema);
         this.parent.log('Migration complete!');
         return commitMigrations;
         break;
@@ -561,10 +564,10 @@ class MigrationManagerDangerous {
     let migrations = await this.getMigrations();
     let foundIndex = migrations.findIndex(migration => migration.id === migrationId);
     if (foundIndex === -1) {
-      throw new Error(`Could not rollback to migration(id=${JSON.stringify(migrationId)}), not found in database.`);
+      throw new Error(`Could not rollback to migration(id=${JSON.stringify(migrationId)}): not found in database.`);
     }
     if (foundIndex === migrations.length - 1) {
-      this.parent.log(`Could not rollback: already at migration(id=${JSON.stringify(migrationId)})`);
+      this.parent.log(`Could not rollback to migration(id=${JSON.stringify(migrationId)}): already there.`);
       return false;
     } else {
       let steps = migrations.length - 1 - foundIndex;

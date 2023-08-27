@@ -149,7 +149,7 @@ class Migration extends Logger {
       this.up.addColumn(table, column, type, properties);
       this.down.dropColumn(table, column);
     } else {
-      this.addCommand(['addColumn', column, type, properties]);
+      this.addCommand(['addColumn', table, column, type, properties]);
     }
   }
 

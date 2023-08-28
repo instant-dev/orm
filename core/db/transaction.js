@@ -35,7 +35,7 @@ class Transaction {
       }
     }
     if (this._status === TXN_STATUS.READY) {
-      this._client = await this.adapter._pool.connect();
+      this._client = await this.adapter.createClient();
       try {
         if (!this._serializable) {
           await this.adapter.beginClient(this._client, this.toString());

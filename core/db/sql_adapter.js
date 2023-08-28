@@ -4,7 +4,6 @@ class SQLAdapter {
 
   constructor () {}
   async connect () {}
-  async exists () {}
   close () {}
 
   readErrorCode () {}

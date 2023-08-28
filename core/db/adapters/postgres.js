@@ -45,21 +45,6 @@ class PostgresAdapter extends SQLAdapter {
     return true;
   }
 
-  async exists () {
-    try {
-      await this.query(`SELECT 1`, []);
-    } catch (err) {
-      let code = err.code;
-      if (POSTGRES_ERROR_CODES[code] === 'database_does_not_exist') {
-        return false;
-      } else {
-        throw err;
-      }
-    }
-    return true;
-  }
-
-
   /**
   * Error translation
   */

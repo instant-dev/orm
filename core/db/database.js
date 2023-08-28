@@ -56,10 +56,6 @@ class Database extends Logger {
     return this.adapter.transact.apply(this.adapter, arguments);
   }
 
-  async exists () {
-    return this.adapter.exists.apply(this.adapter, arguments);
-  }
-
   async drop (databaseName) {
     return this.adapter.drop.apply(this.adapter,  [databaseName]);
   }

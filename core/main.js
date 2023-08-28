@@ -58,7 +58,7 @@ class InstantORM extends Logger {
    * @param {Object|String} schema Schema details, see #loadSchema()
    */
   async connect (cfg, schema) {
-    let db = this.addDatabase('main', cfg);
+    let db = await this.addDatabase('main', cfg);
     if (schema !== null) {
       await this.loadSchema(schema);
     } else {
@@ -100,7 +100,7 @@ class InstantORM extends Logger {
     this.Config && this.Config.enableLogs(logLevel);
   }
 
-  addDatabase (name, cfg) {
+  async addDatabase (name, cfg) {
     if (name !== 'main') {
       this.__checkConnection__();
     }
@@ -118,7 +118,7 @@ class InstantORM extends Logger {
     }
     const db = new this.constructor.Core.DB.Database(name);
     db.enableLogs(this._logLevel); // Pass through logging
-    db.connect(cfg);
+    await db.connect(cfg);
     this._databases[name] = db;
     return this._databases[name];
   }

@@ -16,6 +16,7 @@ const POSTGRES_ERROR_CODES = {
   '23505': 'unique_violation',
   '23514': 'check_violation',
   '23P01': 'exclusion_violation',
+  '3D000': 'database_does_not_exist'
 };
 
 class PostgresAdapter extends SQLAdapter {
@@ -31,13 +32,33 @@ class PostgresAdapter extends SQLAdapter {
     this.db = db;
     this._config = cfg;
     this._pool = new pg.Pool(this._config);
-    this.db.log(`Connected to database "${this._config.database}" as role "${this._config.user}" on ${this._config.host}:${this._config.port}`);
   }
 
   close () {
     this._pool.end();
     this.db.log('Closed');
   }
+
+  async connect () {
+    await this.query(`SELECT 1`, []);
+    this.db.log(`Connected to ${this.name}${this._config.database ? ` database "${this._config.database}"` : ``} as role "${this._config.user}" on ${this._config.host}:${this._config.port}`);
+    return true;
+  }
+
+  async exists () {
+    try {
+      await this.query(`SELECT 1`, []);
+    } catch (err) {
+      let code = err.code;
+      if (POSTGRES_ERROR_CODES[code] === 'database_does_not_exist') {
+        return false;
+      } else {
+        throw err;
+      }
+    }
+    return true;
+  }
+
 
   /**
   * Error translation
@@ -66,7 +87,16 @@ class PostgresAdapter extends SQLAdapter {
     } catch (err) {
       t = new Date().valueOf() - start;
       this.db.queryError(`<${identifier}> failed (${t}ms): ${err.message}`, err);
-      throw new Error(err.message);
+      let code = err.code;
+      let thrownError;
+      if (code === 'ECONNREFUSED') {
+        thrownError = new Error(`Could not connect: Connection refused to ${this.name}, your credentials may be invalid or the database may be down.`);
+      } else if (POSTGRES_ERROR_CODES[code] === 'database_does_not_exist') {
+        thrownError = new Error(`Could not connect: Database "${this._config.database}" does not exist.`);
+      } else {
+        thrownError = new Error(err.message);
+      }
+      throw thrownError;
     }
     return result;
   }
@@ -126,11 +156,11 @@ class PostgresAdapter extends SQLAdapter {
       try {
         const result = await txn.query(request.query, request.params);
         results.push(result);
-      } catch (e) {
+      } catch (err) {
         if (newTransaction) {
           await txn.rollback();
         }
-        let error = new Error(e.message);
+        let error = new Error(err.message);
         throw error;
       }
     }
@@ -157,9 +187,11 @@ class PostgresAdapter extends SQLAdapter {
       client = await this._pool.connect();
       result = await this.queryClient(client, query, params, identifier);
       client.release();
-    } catch (e) {
-      client.release();
-      throw e;
+    } catch (err) {
+      if (client) {
+        client.release();
+      }
+      throw err;
     }
     return result;
   }

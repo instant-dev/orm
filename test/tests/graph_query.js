@@ -81,7 +81,7 @@ module.exports = (Instantiator, Databases) => {
 
     before(async () => {
 
-      db.connect(Databases['main']);
+      await db.connect(Databases['main']);
 
       await db.transact(
         [schemaUser, schemaThread, schemaPost, schemaVote].map(schema => {

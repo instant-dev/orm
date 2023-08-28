@@ -29,12 +29,13 @@ class Database extends Logger {
     );
   }
 
-  connect (cfg) {
+  async connect (cfg) {
     if (typeof cfg === 'string') {
       cfg = {connectionString: cfg};
     }
     const Adapter = require(ADAPTERS[cfg.adapter] || ADAPTERS[DEFAULT_ADAPTER]);
     this.adapter = new Adapter(this, cfg);
+    await this.adapter.connect();
     return true;
   }
 
@@ -55,12 +56,16 @@ class Database extends Logger {
     return this.adapter.transact.apply(this.adapter, arguments);
   }
 
-  async drop () {
-    return this.adapter.drop.apply(this.adapter, arguments);
+  async exists () {
+    return this.adapter.exists.apply(this.adapter, arguments);
   }
 
-  async create () {
-    return this.adapter.create.apply(this.adapter, arguments);
+  async drop (databaseName) {
+    return this.adapter.drop.apply(this.adapter,  [databaseName]);
+  }
+
+  async create (databaseName) {
+    return this.adapter.create.apply(this.adapter,  [databaseName]);
   }
 
 }

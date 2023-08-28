@@ -140,7 +140,7 @@ module.exports = (Instantiator, Databases) => {
     before(async () => {
 
       mainDb = await Instant.connect(Databases['main'], null);
-      readonlyDb = Instant.addDatabase('readonly', Databases['readonly']);
+      readonlyDb = await Instant.addDatabase('readonly', Databases['readonly']);
 
       let dbs = [
         Instant.database(),

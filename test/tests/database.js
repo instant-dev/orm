@@ -62,7 +62,7 @@ module.exports = (Instantiator, Databases) => {
 
       it('should connect to my.Config database "main"', async () => {
 
-        expect(db.connect(Databases['main'])).to.equal(true);
+        expect(await db.connect(Databases['main'])).to.equal(true);
 
       });
 

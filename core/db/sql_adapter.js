@@ -3,6 +3,8 @@ class SQLAdapter {
   name = 'GenericSQL';
 
   constructor () {}
+  async connect () {}
+  async exists () {}
   close () {}
 
   readErrorCode () {}

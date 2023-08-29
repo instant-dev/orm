@@ -53,19 +53,6 @@ class MigrationManagerDangerous {
   }
 
   /**
-   * Truncates (clears) all existing migrations but leaves table intact
-   */
-  async truncate () {
-    let result = await this.parent._Schema.db.transact(
-      [
-        this.parent._Schema.db.adapter.generateTruncateTableQuery(this.parent._Schema.constructor.migrationsTable),
-      ].join(';')
-    );
-    this.parent.log(`Table "${this.parent._Schema.constructor.migrationsTable}" cleared migrations`);
-    return result;
-  }
-
-  /**
    * Prepares database for migrations
    */
   async prepare () {
@@ -170,7 +157,7 @@ class MigrationManagerDangerous {
   }
 
   /**
-   * Destroys the existing database,
+   * Destroys the existing database, prepares it for migrations, migrates and seeds
    */
   async bootstrap (seed) {
     await this.annihilate();

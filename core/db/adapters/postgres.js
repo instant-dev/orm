@@ -69,9 +69,9 @@ class PostgresAdapter extends SQLAdapter {
       let code = err.code;
       let thrownError;
       if (code === 'ECONNREFUSED') {
-        thrownError = new Error(`Could not connect: Connection refused to ${this.name}, your credentials may be invalid or the database may be down.`);
+        thrownError = new Error(`Database connection refused, your credentials may be invalid or the host may be down.`);
       } else if (POSTGRES_ERROR_CODES[code] === 'database_does_not_exist') {
-        thrownError = new Error(`Could not connect: Database "${this._config.database}" does not exist.`);
+        thrownError = new Error(`Database "${this._config.database}" does not exist.`);
       } else {
         thrownError = err;
       }

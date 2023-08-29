@@ -16,28 +16,30 @@ class __templateClass__ extends Model {
   //   this is executed as part of a transaction (txn)
   beforeSave (txn) {
 
-    // Any errors in a single .create() or .save() flow
-    //   will trigger an automatic rollback
+    /**
+     * Any errors in a single .create() or .save() flow
+     * will trigger an automatic rollback
 
-    // You should pass txn into any db calls that happen here to keep
-    //   queries scoped to the current transaction:
+     * You should pass txn into any db calls that happen here to keep
+     * queries scoped to the current transaction:
 
-    // Instance examples:
-    // model.save(txn);
-    // model.destroy(txn);
+     * Instance examples:
+     * model.save(txn);
+     * model.destroy(txn);
 
-    // Class examples:
-    // let model = Model.create(data, txn);
-    // let model = Model.update(id, data, txn);
-    // let model = Model.updateOrCreateBy(field, data, txn);
-    // let model = Model.destroy(id, txn);
+     * Class examples:
+     * let model = Model.create(data, txn);
+     * let model = Model.update(id, data, txn);
+     * let model = Model.updateOrCreateBy(field, data, txn);
+     * let model = Model.destroy(id, txn);
 
-    // Composer example:
-    // let models = Model.query().transact(txn).[...].end();
-    // let models = Model.query().transact(txn).[...].update();
+     * Composer example:
+     * let models = Model.query().transact(txn).[...].end();
+     * let models = Model.query().transact(txn).[...].update();
 
-    // Typically you should avoid commits and rollbacks here,
-    //   the process that created the txn should handle that
+     * Typically you should avoid commits and rollbacks here,
+     *   the process that created the txn should handle that
+     */
 
   }
 
@@ -51,7 +53,7 @@ class __templateClass__ extends Model {
 
 class ModelGenerator extends Logger {
 
-  clearModels () {
+  destroyModels () {
     let pathname = SchemaManager.getDirectory('models');
     if (fs.existsSync(pathname)) {
       fs.readdirSync(pathname).forEach(filename => {

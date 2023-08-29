@@ -11,7 +11,7 @@ module.exports = (Instantiator, Databases) => {
 
     before(async () => {
       await Instant.connect(Databases['main']);
-      Instant.Generator.clearModels();
+      Instant.Generator.destroyModels();
       Instant.Migrator.enableDangerous();
       Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();

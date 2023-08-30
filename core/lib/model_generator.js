@@ -53,6 +53,10 @@ class __templateClass__ extends Model {
 
 class ModelGenerator extends Logger {
 
+  constructor () {
+    super(`ModelGenerator`, `brightBlue`);
+  }
+
   destroyModels () {
     let pathname = SchemaManager.getDirectory('models');
     if (fs.existsSync(pathname)) {
@@ -121,9 +125,13 @@ class ModelGenerator extends Logger {
     }
 
     fs.writeFileSync(pathname, output);
-    this.log(`Generated "${pathname}" to extend "${tableName}"`);
+    this.log(`Generated model "${className}" at "${pathname}" to extend table "${tableName}"`);
 
-    return true;
+    return {
+      table: tableName,
+      className: className,
+      pathname: pathname
+    };
 
   }
 

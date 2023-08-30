@@ -945,7 +945,7 @@ PostgresAdapter.prototype.comparators = {
 // Simple types for legibility, translated in DB
 PostgresAdapter.prototype.simpleTypes = {
   serial: {
-    dbName: 'BIGINT',
+    dbName: 'bigint',
     properties: {
       primary_key: true,
       nullable: false,
@@ -953,25 +953,25 @@ PostgresAdapter.prototype.simpleTypes = {
     }
   },
   int: {
-    dbName: 'BIGINT'
+    dbName: 'bigint'
   },
   float: {
-    dbName: 'FLOAT'
+    dbName: 'float'
   },
   string: {
-    dbName: 'VARCHAR'
+    dbName: 'varchar'
   },
   text: {
-    dbName: 'TEXT'
+    dbName: 'text'
   },
   datetime: {
-    dbName: 'TIMESTAMP'
+    dbName: 'timestamp'
   },
   boolean: {
-    dbName: 'BOOLEAN'
+    dbName: 'boolean'
   },
   json: {
-    dbName: 'JSONB'
+    dbName: 'jsonb'
   }
 };
 

@@ -97,6 +97,7 @@ class InstantORM extends Logger {
         this._databases[name].enableLogs(logLevel);
       });
     this._Migrator && this._Migrator.enableLogs(logLevel);
+    this._Generator && this._Generator.enableLogs(logLevel);
     this.Config && this.Config.enableLogs(logLevel);
   }
 
@@ -214,6 +215,7 @@ class InstantORM extends Logger {
     this._Migrator = new this.constructor.Core.DB.MigrationManager(this._Schema);
     this._Migrator.enableLogs(this._logLevel); // Pass through logging
     this._Generator = new this.constructor.Core.ModelGenerator();
+    this._Generator.enableLogs(this._logLevel); // Pass through logging
     return this._Schema;
   }
 

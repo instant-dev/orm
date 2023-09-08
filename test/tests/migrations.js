@@ -310,6 +310,13 @@ module.exports = (Instantiator, Databases) => {
 
       });
 
+      it('should be able to reference other models', async () => {
+
+        expect(Instant.Model('BlogPost').getModel('User')).to.equal(Instant.Model('User'));
+        expect(Instant.Model('BlogPost').prototype.getModel('User')).to.equal(Instant.Model('User'));
+
+      });
+
       it('should fail to migrate when "mismatch"', async () => {
 
         Instant.Migrator.enableDangerous();

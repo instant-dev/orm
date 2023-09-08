@@ -323,6 +323,15 @@ class Model {
 
   }
 
+  /**
+  * Sets the static and normal .getModel method
+  * @param {function} referenceFn
+  */
+  static setModelReference (referenceFn) {
+    this.prototype.getModel = referenceFn;
+    this.getModel = referenceFn;
+  }
+
   static getColumnProperties (field) {
     let column = this.column(field);
     if (!column) {

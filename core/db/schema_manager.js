@@ -225,7 +225,7 @@ class SchemaManager {
     return JSON.parse(JSON.stringify(this.schema));
   }
 
-  readModels (schema) {
+  readModels (schema, modelsFn) {
     let Models = {};
     if (fs.existsSync(this.constructor.getDirectory('models'))) {
       let filenames = fs.readdirSync(this.constructor.getDirectory('models'));
@@ -263,6 +263,7 @@ class SchemaManager {
         : {[className]: class extends Model {}}[className];
       _Model.setDatabase(this.db);
       _Model.setTableSchema(this.schema.tables[name]);
+      _Model.setModelReference(this.getModel.bind(this));
       this.Models[name] = _Model;
     });
     this.schema.foreign_keys.forEach(foreignKey => {
@@ -289,7 +290,33 @@ class SchemaManager {
   }
 
   getModel (name) {
-    return this.Models[name];
+    let model = this.Models[name];
+    if (!model) {
+      let nameSingular = inflect.singularize(name);
+      let lowerName = name.toLowerCase();
+      let lowerNameSingular = nameSingular.toLowerCase();
+      let lowerTableName = inflect.underscore(inflect.pluralize(name));
+      let lowerTableSingular = inflect.singularize(lowerTableName);
+      let lowerTableNameSingular = inflect.underscore(inflect.pluralize(nameSingular));
+      let check = {};
+      check[lowerName] = true;
+      check[lowerNameSingular] = true;
+      check[lowerTableName] = true;
+      check[lowerTableSingular] = true;
+      check[lowerTableNameSingular] = true;
+      let models = Object.keys(this.schema.tables).filter(name => {
+        return check[name.toLowerCase()];
+      });
+      if (models.length > 1) {
+        throw new Error(`Model "${name}" is ambiguous, please specify: "${models.join('", "')}"`);
+      } else {
+        model = this.Models[models[0]];
+      }
+    }
+    if (!model) {
+      throw new Error(`Could not find model "${name}"`);
+    }
+    return model;
   }
 
   clear () {

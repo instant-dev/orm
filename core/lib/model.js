@@ -148,7 +148,7 @@ class Model {
   * @return {string}
   */
   static table () {
-    return this.prototype.schema.name;
+    return this.schema.name;
   }
 
   /**
@@ -156,7 +156,7 @@ class Model {
   * @return {Array}
   */
   static columns () {
-    return this.prototype.schema.columns;
+    return this.schema.columns;
   };
 
   /**
@@ -173,8 +173,8 @@ class Model {
   */
   static columnQueryInfo (columnList) {
     let columns = columnList
-      ? this.prototype.schema.columns.filter(c => columnList.indexOf(c.name) > -1)
-      : this.prototype.schema.columns.slice();
+      ? this.schema.columns.filter(c => columnList.indexOf(c.name) > -1)
+      : this.schema.columns.slice();
     return columns.map(c => {
       let nc = Object.keys(c).reduce((nc, key) => {
         nc[key] = c[key];
@@ -212,7 +212,7 @@ class Model {
   * @param {string} columnName
   */
   static column (columnName) {
-    return this.prototype._columnLookup[columnName];
+    return this.columnLookup()[columnName];
   }
 
   /**
@@ -302,24 +302,7 @@ class Model {
       ].join('\n'));
     }
 
-    this.prototype.schema = schema;
-
-    this.prototype._table = this.table();
-    this.prototype._columns = this.columns();
-    this.prototype._columnNames = this.columnNames();
-    this.prototype._columnLookup = this.columnLookup();
-
-    this.prototype._data = this.columnNames()
-      .reduce((p, c) => {
-        p[c] = null;
-        return p;
-      }, {});
-
-    this.prototype._changed = this.columnNames()
-      .reduce((p, c) => {
-        p[c] = false;
-        return p;
-      }, {});
+    this.schema = schema;
 
   }
 
@@ -586,8 +569,17 @@ class Model {
     this._joinsCache = {};
     this._joinsList = [];
 
-    this._data = Object.create(this._data); // Inherit from prototype
-    this._changed = Object.create(this._changed); // Inherit from prototype
+    this._data = this.constructor.columnNames()
+      .reduce((p, c) => {
+        p[c] = null;
+        return p;
+      }, {});
+    this._changed = this.constructor.columnNames()
+      .reduce((p, c) => {
+        p[c] = false;
+        return p;
+      }, {});
+
     this._errors = {};
     this._errorDetails = {};
 
@@ -1064,7 +1056,7 @@ class Model {
   * @return {string}
   */
   tableName () {
-    return this._table;
+    return this.constructor.table();
   }
 
   /**
@@ -1073,7 +1065,7 @@ class Model {
   * @return {boolean}
   */
   hasField (field) {
-    return !!this._columnLookup[field];
+    return !!this.constructor.columnLookup()[field];
   }
 
   /**
@@ -1082,7 +1074,7 @@ class Model {
   * @return {Object}
   */
   getFieldData (field) {
-    return this._columnLookup[field];
+    return this.constructor.columnLookup()[field];
   }
 
   /**
@@ -1091,7 +1083,7 @@ class Model {
   * @return {string}
   */
   getDataTypeOf (field) {
-    return DataTypes[this._columnLookup[field].type];
+    return DataTypes[this.constructor.columnLookup()[field].type];
   }
 
   /**
@@ -1129,7 +1121,7 @@ class Model {
   * @return {Array}
   */
   fieldList () {
-    return this._columnNames.slice();
+    return this.constructor.columnNames().slice();
   }
 
   /**
@@ -1137,7 +1129,7 @@ class Model {
   * @return {Array}
   */
   fieldDefinitions () {
-    return this._columns.slice();
+    return this.constructor.columns().slice();
   }
 
   /**
@@ -1174,12 +1166,12 @@ class Model {
     if (!this.inStorage()) {
 
       columns = this.fieldList().filter(v => !this.isFieldPrimaryKey(v) && this.get(v) !== undefined);
-      query = db.adapter.generateInsertQuery(this.schema.name, columns);
+      query = db.adapter.generateInsertQuery(this.constructor.schema.name, columns);
 
     } else {
 
       columns = ['id'].concat(this.changedFields().filter(v => !this.isFieldPrimaryKey(v)));
-      query = db.adapter.generateUpdateQuery(this.schema.name, columns);
+      query = db.adapter.generateUpdateQuery(this.constructor.schema.name, columns);
 
     }
 
@@ -1353,7 +1345,7 @@ class Model {
       throw new Error(`Model has not been saved`);
     }
     let columns = this.fieldList().filter(v => this.isFieldPrimaryKey(v));
-    let query = db.adapter.generateDeleteQuery(this.schema.name, columns);
+    let query = db.adapter.generateDeleteQuery(this.constructor.schema.name, columns);
     try {
       await db.query(
         query,
@@ -1374,7 +1366,7 @@ class Model {
 
 }
 
-Model.prototype.schema = {
+Model.schema = {
   table: '',
   columns: []
 };

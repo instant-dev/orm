@@ -88,7 +88,7 @@ class APIResponse {
         null,
         useResource && this.resourceFromModelArray(itemArray, arrInterface)
       ),
-      data: itemArray.toObject(arrInterface)
+      data: itemArray.toJSON(arrInterface)
     }
 
   }

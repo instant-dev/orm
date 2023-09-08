@@ -534,7 +534,7 @@ class Model {
   }
 
   /**
-  * Hides fields from being output in .toObject() (i.e. API responses), even if asked for
+  * Hides fields from being output in .toJSON() (i.e. API responses), even if asked for
   * @param {String} field
   */
   static hides (field) {
@@ -1015,7 +1015,7 @@ class Model {
   * Creates a plain object from the Model, with properties matching an optional interface
   * @param {Array} arrInterface Interface to use for object creation
   */
-  toObject (arrInterface) {
+  toJSON (arrInterface) {
 
     let obj = {};
 
@@ -1036,13 +1036,13 @@ class Model {
         let subInterface = key;
         key = Object.keys(key)[0];
         joinObject = this._joinsCache[key];
-        joinObject && (obj[key] = joinObject.toObject(subInterface[key]));
+        joinObject && (obj[key] = joinObject.toJSON(subInterface[key]));
       } else if (this._data[key] !== undefined) {
         obj[key] = this._data[key];
       } else if (this._calculations[key] !== undefined) {
         obj[key] = this.calculate(key);
       } else if (joinObject = this._joinsCache[key]) {
-        obj[key] = joinObject.toObject();
+        obj[key] = joinObject.toJSON();
       }
 
     });

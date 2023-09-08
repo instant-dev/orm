@@ -175,7 +175,7 @@ module.exports = (Instantiator, Databases) => {
     it('should toObject with interface', () => {
 
       let parent = new Parent();
-      let obj = parent.toObject();
+      let obj = parent.toJSON();
 
       expect(obj).to.have.ownProperty('id');
       expect(obj).to.have.ownProperty('name');
@@ -185,7 +185,7 @@ module.exports = (Instantiator, Databases) => {
       expect(obj).to.have.ownProperty('updated_at');
       expect(obj).to.not.have.ownProperty('secret'); // hidden
 
-      obj = parent.toObject(['id', 'name', 'secret']);
+      obj = parent.toJSON(['id', 'name', 'secret']);
 
       expect(obj).to.have.ownProperty('id');
       expect(obj).to.have.ownProperty('name');
@@ -204,7 +204,7 @@ module.exports = (Instantiator, Databases) => {
       parent.setJoined('house', house);
       house.setJoined('parent', parent);
 
-      let obj = parent.toObject();
+      let obj = parent.toJSON();
 
       expect(obj).to.have.ownProperty('id');
       expect(obj).to.have.ownProperty('name');
@@ -214,7 +214,7 @@ module.exports = (Instantiator, Databases) => {
       expect(obj).to.have.ownProperty('updated_at');
       expect(obj).to.not.have.ownProperty('house');
 
-      obj = parent.toObject(['house']);
+      obj = parent.toJSON(['house']);
 
       expect(obj).to.have.ownProperty('house');
       expect(obj.house).to.have.ownProperty('id');
@@ -224,7 +224,7 @@ module.exports = (Instantiator, Databases) => {
       expect(obj.house).to.have.ownProperty('created_at');
       expect(obj.house).to.have.ownProperty('updated_at');
 
-      obj = parent.toObject(['id', 'name']);
+      obj = parent.toJSON(['id', 'name']);
 
       expect(obj).to.have.ownProperty('id');
       expect(obj).to.have.ownProperty('name');
@@ -234,7 +234,7 @@ module.exports = (Instantiator, Databases) => {
       expect(obj).to.not.have.ownProperty('updated_at');
       expect(obj).to.not.have.ownProperty('house');
 
-      obj = parent.toObject(['id', 'name', 'house']);
+      obj = parent.toJSON(['id', 'name', 'house']);
 
       expect(obj).to.have.ownProperty('id');
       expect(obj).to.have.ownProperty('name');
@@ -250,7 +250,7 @@ module.exports = (Instantiator, Databases) => {
       expect(obj.house).to.have.ownProperty('created_at');
       expect(obj.house).to.have.ownProperty('updated_at');
 
-      obj = parent.toObject(['id', 'name', {house: ['id', 'material']}]);
+      obj = parent.toJSON(['id', 'name', {house: ['id', 'material']}]);
 
       expect(obj).to.have.ownProperty('id');
       expect(obj).to.have.ownProperty('name');
@@ -274,7 +274,7 @@ module.exports = (Instantiator, Databases) => {
 
       parents.push(new Parent({name: 'Parent'}));
 
-      let obj = parents.toObject(['id', 'name'])
+      let obj = parents.toJSON(['id', 'name'])
       expect(obj[0]).to.have.ownProperty('id');
       expect(obj[0]).to.have.ownProperty('name');
       expect(obj[0]).to.not.have.ownProperty('age');
@@ -293,11 +293,11 @@ module.exports = (Instantiator, Databases) => {
       posts[0].setJoined('comments', comments);
       users[0].setJoined('posts', posts);
 
-      let obj = users.toObject();
+      let obj = users.toJSON();
 
       expect(obj[0].posts).to.not.exist;
 
-      obj = users.toObject(['id', {posts: ['comments']}]);
+      obj = users.toJSON(['id', {posts: ['comments']}]);
       expect(obj[0].posts).to.exist;
       expect(obj[0].posts[0].comments).to.exist;
 

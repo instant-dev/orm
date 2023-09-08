@@ -38,10 +38,8 @@ class ModelArray extends ItemArray {
   * Creates an Array of plain objects from the ModelArray, with properties matching an optional interface
   * @param {Array} arrInterface Interface to use for object creation for each model
   */
-  toObject (arrInterface) {
-
-    return Array.from(this).map(m => m.toObject(arrInterface));
-
+  toJSON (arrInterface) {
+    return Array.from(this).map(m => m.toJSON(arrInterface));
   }
 
   /**

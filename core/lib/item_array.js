@@ -45,7 +45,7 @@ class ItemArray extends Array {
   * Creates an Array of plain objects from the ModelArray, with properties matching an optional interface
   * @param {Array} arrInterface Interface to use for object creation for each model
   */
-  toObject (arrInterface) {
+  toJSON (arrInterface) {
 
     let keys = [];
 

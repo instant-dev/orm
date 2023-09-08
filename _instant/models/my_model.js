@@ -66,7 +66,7 @@ MyModel.calculates(
   (my_field, my_other_field) => my_field + my_other_field
 );
 
-// hides a field: prevent output via .toObject()
+// hides a field: prevent output via .toJSON()
 MyModel.hides('hidden_field');
 
 module.exports = MyModel;

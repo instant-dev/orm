@@ -7,7 +7,7 @@ const inflect = require('i')();
 
 class SchemaManager {
 
-  static rootDirectory = './instant';
+  static rootDirectory = './_instant';
   static rootDatabaseConfigFile = 'db.json';
   static migrationsTable = '_instant_migrations';
   static migrationsDirectory = 'migrations';

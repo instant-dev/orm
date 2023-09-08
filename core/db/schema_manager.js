@@ -245,8 +245,9 @@ class SchemaManager {
             `Are you sure it's being exported correctly?`
           );
         } else if (!_Model.tableName) {
-          throw new Error(`Model in "${pathname}" invalid: missing static tableName`);
+          throw new Error(`Model in "${pathname}" invalid: missing static "tableName"`);
         }
+        Models[_Model.tableName] = _Model;
       });
     }
     return Models;

@@ -14,7 +14,7 @@ class __templateClass__ extends Model {
 
   // Logic to execute BEFORE the model has been saved in the DB
   //   this is executed as part of a transaction (txn)
-  beforeSave (txn) {
+  async beforeSave (txn) {
 
     /**
      * Any errors in a single .create() or .save() flow
@@ -45,7 +45,7 @@ class __templateClass__ extends Model {
 
   // Logic to execute AFTER the model has been saved in the DB
   //   same functionality as beforeSave()
-  afterSave (txn) {
+  async afterSave (txn) {
 
   }
 

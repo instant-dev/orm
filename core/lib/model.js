@@ -885,6 +885,8 @@ class Model {
 
     if (Array.isArray(value) && !value.length) {
       value = new ModelArray(relationship.getModel());
+    } else if (Array.isArray(value) && !(value instanceof ModelArray)) {
+      value = ModelArray.from(value);
     }
 
     if (!relationship.multiple()) {
@@ -1083,7 +1085,12 @@ class Model {
   * @return {string}
   */
   getDataTypeOf (field) {
-    return DataTypes[this.constructor.columnLookup()[field].type];
+    let type = this.constructor.columnLookup()[field].type;
+    let dataType = DataTypes[type];
+    if (!dataType) {
+      throw new Error(`Data type "${type}" for field "${field}" not supported (reading "${this.tableName()}")`);
+    }
+    return dataType;
   }
 
   /**

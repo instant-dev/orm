@@ -43,7 +43,7 @@ class Model {
     let models = await query
       .transact(txn)
       .where({id: id})
-      .end();
+      .select();
     if (!models.length) {
       let e = new Error(`Could not find ${this.name} with id "${id}".`);
       e.notFound = true;
@@ -65,7 +65,7 @@ class Model {
     let models = await query
       .transact(txn)
       .where(params)
-      .end();
+      .select();
     if (!models.length) {
       let e = new Error(`Could not find ${this.name} with ${field} "${value}".`);
       e.notFound = true;
@@ -997,7 +997,7 @@ class Model {
       .transact(txn)
       .where({id: this.get('id')});
     joinNames.forEach(joinName => query = query.join(joinName));
-    let models = await query.end();
+    let models = await query.select();
 
     if (!models || !models.length) {
       throw new Error('Could not fetch parent');

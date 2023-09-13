@@ -271,7 +271,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('Should query all parents (10)', async () => {
 
-      let parents = await Parent.query().end();
+      let parents = await Parent.query().select();
 
       expect(parents).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(parents.length).to.equal(10);
@@ -280,7 +280,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('Should query all partners (10)', async () => {
 
-      let partners = await Partner.query().end();
+      let partners = await Partner.query().select();
 
       expect(partners).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(partners.length).to.equal(10);
@@ -289,7 +289,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('Should query all Children (100)', async () => {
 
-      let children = await Child.query().end();
+      let children = await Child.query().select();
 
       expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(children.length).to.equal(100);
@@ -298,7 +298,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('Should have parent lazy load models after fetching', async () => {
 
-      let parents = await Parent.query().limit(1).end();
+      let parents = await Parent.query().limit(1).select();
       let parent = parents[0];
 
       expect(parent.joined('children')).to.be.undefined;
@@ -317,7 +317,7 @@ module.exports = (Instantiator, Databases) => {
 
       let children = await Child.query()
         .limit(1)
-        .end();
+        .select();
 
       expect(children.length).to.equal(1);
 
@@ -336,7 +336,7 @@ module.exports = (Instantiator, Databases) => {
 
       let children = await Child.query()
         .orderBy('id', 'DESC')
-        .end();
+        .select();
 
       expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(children.length).to.equal(100);
@@ -348,7 +348,7 @@ module.exports = (Instantiator, Databases) => {
       let children = await Child.query()
         .join('parent')
         .orderBy('parent__name', 'DESC')
-        .end();
+        .select();
 
       expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(children.length).to.equal(100);
@@ -361,7 +361,7 @@ module.exports = (Instantiator, Databases) => {
 
       let children = await Child.query()
         .limit(5, 10)
-        .end();
+        .select();
 
       expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(children.length).to.equal(10);
@@ -374,7 +374,7 @@ module.exports = (Instantiator, Databases) => {
 
       let children = await Child.query()
         .limit(void 0, 10)
-        .end();
+        .select();
 
       expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(children.length).to.equal(10);
@@ -387,7 +387,7 @@ module.exports = (Instantiator, Databases) => {
 
       let children = await Child.query()
         .where({__offset: 5})
-        .end();
+        .select();
 
       expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(children.length).to.equal(95);
@@ -400,7 +400,7 @@ module.exports = (Instantiator, Databases) => {
 
       let children = await Child.query()
         .where({__count: 10})
-        .end();
+        .select();
 
       expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(children.length).to.equal(10);
@@ -413,7 +413,7 @@ module.exports = (Instantiator, Databases) => {
 
       let children = await Child.query()
         .where({__offset: 5, __count: 10})
-        .end();
+        .select();
 
       expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(children.length).to.equal(10);
@@ -427,7 +427,7 @@ module.exports = (Instantiator, Databases) => {
       let children = await Child.query()
         .limit(10, 10)
         .orderBy('id', 'ASC')
-        .end();
+        .select();
 
       expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(children.length).to.equal(10);
@@ -462,7 +462,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name: 'Zoolander'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(1);
       expect(parents[0].get('name')).to.equal('Zoolander');
@@ -473,7 +473,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__not: 'Zoolander'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(9);
 
@@ -483,7 +483,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__lt: 'Zoolander'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(9);
 
@@ -493,7 +493,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__lte: 'Zoolander'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(10);
 
@@ -503,7 +503,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__gt: 'Albert'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(9);
 
@@ -513,7 +513,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__gte: 'Albert'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(10);
 
@@ -523,7 +523,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__contains: 'am'}) // James, Samantha, Samuel
-        .end();
+        .select();
 
       expect(parents.length).to.equal(3);
 
@@ -533,7 +533,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__icontains: 'z'}) // Suzy, Zoolander
-        .end();
+        .select();
 
       expect(parents.length).to.equal(2);
 
@@ -543,7 +543,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__startswith: 'Sam'}) // Samantha, Samuel
-        .end();
+        .select();
 
       expect(parents.length).to.equal(2);
 
@@ -553,7 +553,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__endswith: 'y'}) // Dingleberry, Sally, Suzy
-        .end();
+        .select();
 
       expect(parents.length).to.equal(3);
 
@@ -563,7 +563,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__iendswith: 'Y'}) // Dingleberry, Sally, Suzy
-        .end();
+        .select();
 
       expect(parents.length).to.equal(3);
 
@@ -573,7 +573,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name: 'Zoolander'}, {name: 'Albert'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(2);
 
@@ -583,7 +583,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({hidden: 'a'})
-        .end();
+        .select();
 
       expect(parents.length).to.be.lessThan(10);
 
@@ -593,7 +593,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .safeWhere({hidden: 'a'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(10);
 
@@ -603,7 +603,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .safeWhere({hidden__not: 'a'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(10);
 
@@ -613,7 +613,7 @@ module.exports = (Instantiator, Databases) => {
 
       let children = await Child.query()
         .where({parent_id: 1})
-        .end();
+        .select();
 
       expect(children.length).to.equal(10);
 
@@ -624,7 +624,7 @@ module.exports = (Instantiator, Databases) => {
       let children = await Child.query()
         .join('parent')
         .where({parent__id: 1})
-        .end();
+        .select();
 
       expect(children.length).to.equal(10);
 
@@ -635,7 +635,7 @@ module.exports = (Instantiator, Databases) => {
       let children = await Child.query()
         .join('parent')
         .where({parent__name: 'Zoolander'})
-        .end();
+        .select();
 
       expect(children.length).to.equal(10);
 
@@ -646,7 +646,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .join('children')
         .where({children__id__lte: 15})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(2);
       expect(parents[0].joined('children').length).to.equal(10);
@@ -659,7 +659,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .join('children', {id__lte: 15})
         .where({children__id__lte: 15})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(2);
       expect(parents[0].joined('children').length).to.equal(10);
@@ -672,7 +672,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .join('children', {id__lte: 15, id__gte: 11})
         .where({children__id__lte: 15})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(2);
       expect(parents[0].joined('children').length).to.equal(0);
@@ -685,7 +685,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .join('children', {parent__id: 1})
         .where({children__id__lte: 15})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(2);
       expect(parents[0].joined('children').length).to.equal(10);
@@ -698,7 +698,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .join('children', {parent__children__id__in: [1, 2, 3]})
         .where({children__id__lte: 15})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(2);
       expect(parents[0].joined('children').length).to.equal(10);
@@ -711,7 +711,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .join('children')
         .join('partner')
-        .end();
+        .select();
 
       expect(parents.length).to.equal(10);
 
@@ -724,7 +724,7 @@ module.exports = (Instantiator, Databases) => {
         .where({children__id__lte: 25})
         .join('partner')
         .where({partner__name: 'Partner0'}, {partner__name: 'Partner1'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(2);
 
@@ -737,7 +737,7 @@ module.exports = (Instantiator, Databases) => {
         .where({children__id__lte: 25})
         .join('partner')
         .where({partner__name: 'Partner0'}, {partner__name: 'Partner1'})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(2);
       expect(parents[0].joined('children').length).to.equal(10);
@@ -753,7 +753,7 @@ module.exports = (Instantiator, Databases) => {
         .join('partner')
         .where({partner__name: 'Partner0'}, {partner__name: 'Partner1'})
         .where({children__id__gte: 15})
-        .end();
+        .select();
 
       expect(parents.length).to.equal(1);
 
@@ -765,7 +765,7 @@ module.exports = (Instantiator, Databases) => {
         .join('children')
         .where({children__id__lte: 70})
         .limit(5)
-        .end();
+        .select();
 
       expect(parents.length).to.equal(5);
 
@@ -776,7 +776,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .where({children__id__lte: 70})
         .limit(5)
-        .end();
+        .select();
 
       expect(parents.length).to.equal(5);
 
@@ -788,7 +788,7 @@ module.exports = (Instantiator, Databases) => {
         .join('children')
         .join('pets')
         .limit(3)
-        .end();
+        .select();
 
       expect(parents.length).to.equal(3);
 
@@ -806,7 +806,7 @@ module.exports = (Instantiator, Databases) => {
         .join('incomingFriendships')
         .join('outgoingFriendships')
         .orderBy('id', 'ASC')
-        .end();
+        .select();
 
       parents.forEach((parent, i) => {
         expect(parent.joined('incomingFriendships').length).to.equal(9 - i);
@@ -820,7 +820,7 @@ module.exports = (Instantiator, Databases) => {
       let friendships = await Friendship.query()
         .join('fromParent')
         .join('toParent')
-        .end();
+        .select();
 
       expect(friendships.length).to.equal(45);
 
@@ -837,7 +837,7 @@ module.exports = (Instantiator, Databases) => {
         .join('fromParent')
         .join('toParent')
         .where({fromParent__id: 5}, {toParent__id: 5})
-        .end();
+        .select();
 
       expect(friendships.length).to.equal(9);
 
@@ -865,7 +865,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .where({name__icontains: ['a', 'e']})
-        .end();
+        .select();
 
       expect(parents).to.exist;
       expect(parents.length).to.equal(4);
@@ -881,7 +881,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .join('partner', {job: 'Plumber', full_time: true}, {job: 'Nurse', full_time: true})
         .join('pets', {name: 'Ruby'})
-        .end();
+        .select();
 
       expect(parents).to.exist;
       expect(parents.length).to.equal(10);
@@ -901,7 +901,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query()
         .join('pets', {name: 'Ruby'}, {name: 'Oliver'})
-        .end();
+        .select();
 
       expect(parents).to.exist;
       expect(parents.length).to.equal(10);
@@ -919,7 +919,7 @@ module.exports = (Instantiator, Databases) => {
         .where({pets__name: 'Ruby'}, {pets__name: 'Oliver'})
         .orderBy('created_at', 'DESC')
         .limit(0, 5)
-        .end();
+        .select();
 
       expect(parents).to.exist;
       expect(parents.length).to.equal(5);
@@ -932,7 +932,7 @@ module.exports = (Instantiator, Databases) => {
         .join('pets')
         .where({pets__name: 'Ruby', __offset: 0, __count: 5}, {pets__name: 'Oliver', __offset: 0, __count: 5})
         .orderBy('created_at', 'DESC')
-        .end();
+        .select();
 
       expect(parents).to.exist;
       expect(parents.length).to.equal(5);
@@ -946,7 +946,7 @@ module.exports = (Instantiator, Databases) => {
         .join('parent__pets')
         .join('parent__partner')
         .where({id__in: [1, 11, 22]})
-        .end();
+        .select();
 
           let parentCount = 0;
 
@@ -995,7 +995,7 @@ module.exports = (Instantiator, Databases) => {
           },
         ])
         .limit(20)
-        .end();
+        .select();
 
       expect(parents.length).to.equal(1);
       expect(parents[0].get('name')).to.equal('Zoolander');
@@ -1024,7 +1024,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('Should update all childrens ages', async () => {
 
-      let children = await Child.query().orderBy('id').end();
+      let children = await Child.query().orderBy('id').select();
 
       let ages = children.map(c => c.get('age'));
 
@@ -1040,7 +1040,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('Should update all childrens ages and license', async () => {
 
-      let children = await Child.query().orderBy('id').end();
+      let children = await Child.query().orderBy('id').select();
       let ages = children.map(c => c.get('age'));
 
       children = await Child.query()
@@ -1060,7 +1060,7 @@ module.exports = (Instantiator, Databases) => {
 
       let pets = await Pet.query()
         .where({added_at__gt: compareDate})
-        .end();
+        .select();
 
       expect(pets.length).to.equal(20);
       pets.forEach(pet => {
@@ -1105,7 +1105,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query(readonlyDb)
         .orderBy('name', 'ASC')
-        .end();
+        .select();
 
       expect(parents.length).to.equal(10);
 
@@ -1180,7 +1180,7 @@ module.exports = (Instantiator, Databases) => {
 
       let pets = await Pet.query()
         .where({parent__children__id__lte: 50})
-        .end();
+        .select();
 
       expect(pets).to.exist;
       expect(pets.length).to.equal(15);
@@ -1191,7 +1191,7 @@ module.exports = (Instantiator, Databases) => {
 
       let pets = await Pet.query()
         .where({parent__id__gt: 1, created_at__lte: new Date()})
-        .end();
+        .select();
 
       expect(pets).to.exist;
       expect(pets.length).to.equal(27);
@@ -1202,7 +1202,7 @@ module.exports = (Instantiator, Databases) => {
 
       let pets = await Pet.query()
         .where({details__jsoncontains: 'language'})
-        .end();
+        .select();
 
       expect(pets.length).to.equal(30);
 
@@ -1212,7 +1212,7 @@ module.exports = (Instantiator, Databases) => {
 
       let pets = await Pet.query()
         .where({details__json: {language: true}})
-        .end();
+        .select();
 
       expect(pets.length).to.equal(10);
 
@@ -1222,7 +1222,7 @@ module.exports = (Instantiator, Databases) => {
 
       let pets = await Pet.query()
         .where({details__json: {}})
-        .end();
+        .select();
 
       expect(pets.length).to.equal(30);
 
@@ -1247,7 +1247,7 @@ module.exports = (Instantiator, Databases) => {
 
       let groups = await Parent.query()
         .groupBy('shirt')
-        .end();
+        .select();
 
       expect(groups.length).to.equal(3);
 
@@ -1258,7 +1258,7 @@ module.exports = (Instantiator, Databases) => {
       let groups = await Parent.query()
         .groupBy('shirt')
         .orderBy('shirt', 'ASC')
-        .end();
+        .select();
 
       expect(groups.length).to.equal(3);
       expect(groups[0].shirt).to.equal('blue');
@@ -1272,7 +1272,7 @@ module.exports = (Instantiator, Databases) => {
         .aggregate('count', id => `COUNT(${id})`)
         .aggregate('red_or_blue', shirt => `CASE WHEN ${shirt} IN ('red', 'blue') THEN TRUE ELSE FALSE END`)
         .orderBy('shirt', 'ASC')
-        .end();
+        .select();
 
       expect(groups.length).to.equal(3);
       expect(groups[0].shirt).to.equal('blue');
@@ -1287,7 +1287,7 @@ module.exports = (Instantiator, Databases) => {
         .groupBy('shirt')
         .aggregate('count', id => `COUNT(${id})`)
         .orderBy(id => `COUNT(${id})`, 'DESC')
-        .end();
+        .select();
 
       expect(groups.length).to.equal(3);
       expect(groups[0].count).to.equal(4);
@@ -1301,7 +1301,7 @@ module.exports = (Instantiator, Databases) => {
         .groupBy('shirt')
         .aggregate('count', id => `COUNT(${id})`)
         .orderBy(id => `COUNT(${id})`, 'DESC')
-        .end();
+        .select();
 
       expect(groups.length).to.equal(3);
       expect(groups[0].count).to.equal(3);
@@ -1315,7 +1315,7 @@ module.exports = (Instantiator, Databases) => {
         .groupBy('pantaloons')
         .aggregate('count', id => `COUNT(${id})`)
         .orderBy(id => `COUNT(${id})`, 'DESC')
-        .end();
+        .select();
 
       expect(groups.length).to.equal(6);
       expect(groups[0]).to.haveOwnProperty('shirt');
@@ -1340,7 +1340,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .join('pets')
         .where({pets__name: 'Ruby', pets__animal: 'Cat'})
-        .end();
+        .select();
 
       expect(parents).to.exist;
       expect(parents.length).to.equal(0);
@@ -1352,7 +1352,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .join('partner')
         .where({shirt: 'red', partner__job: 'Plumber'})
-        .end();
+        .select();
 
       expect(parents).to.exist;
       expect(parents.length).to.equal(1);
@@ -1365,7 +1365,7 @@ module.exports = (Instantiator, Databases) => {
       let parents = await Parent.query()
         .join('pets')
         .where({pets__name: 'Ruby', pets__animal: 'Cat'})
-        .end();
+        .select();
 
       expect(parents).to.exist;
       expect(parents.length).to.equal(0);
@@ -1378,7 +1378,7 @@ module.exports = (Instantiator, Databases) => {
         .join('children')
         .join('partner')
         .join('pets')
-        .end();
+        .select();
 
       expect(parents).to.exist;
       expect(parents.length).to.equal(10);
@@ -1397,14 +1397,14 @@ module.exports = (Instantiator, Databases) => {
       let childrenA = await Child.query()
         .where({id: createdChild.get('id')})
         .limit(1)
-        .end();
+        .select();
 
       await txn.commit();
 
       let childrenB = await Child.query()
         .where({id: createdChild.get('id')})
         .limit(1)
-        .end();
+        .select();
 
       expect(child).to.exist;
       expect(child.get('name')).to.equal('Alec');
@@ -1419,7 +1419,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('Should do a destroy cascade', async () => {
 
-      let parents = await Parent.query().end();
+      let parents = await Parent.query().select();
       await parents.destroyCascade();
 
     });

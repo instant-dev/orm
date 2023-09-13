@@ -389,7 +389,7 @@ class GraphQuery {
       }
       query = query.safeJoin(joinNames.join('__'), this.joins[joinName]);
     });
-    let models = await query.end();
+    let models = await query.select();
     return models.toJSON(this.structure[this.identifier]);
   }
 

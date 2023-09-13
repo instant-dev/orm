@@ -226,7 +226,7 @@ let user = await User.create({username: 'Billy'});
 console.log(user.toJSON());
 
 let user2 = await User.create({username: 'Sharon'});
-let users = await User.query().end(); // queries all users
+let users = await User.query().select(); // queries all users
 
 // [{username: 'Billy', ...}, {username: 'Sharon', ...}]
 console.log(users.toJSON());

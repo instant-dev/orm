@@ -299,7 +299,7 @@ module.exports = (Instantiator, Databases) => {
         expect(parent.get('name')).to.equal('Keith');
         expect(parent.get('id')).to.equal(1);
 
-        const parents = await Parent.query().end();
+        const parents = await Parent.query().select();
 
         expect(parents).to.exist;
         expect(parents.length).to.equal(1);
@@ -318,7 +318,7 @@ module.exports = (Instantiator, Databases) => {
         expect(parent.get('name')).to.equal('Keith');
         expect(parent.get('id')).to.equal(1);
 
-        const parents = await Parent.query().end();
+        const parents = await Parent.query().select();
 
         expect(parents).to.exist;
         expect(parents.length).to.equal(1);
@@ -344,8 +344,8 @@ module.exports = (Instantiator, Databases) => {
         const Parent = Instant.Model('Parent');
         const Child = Instant.Model('Child');
 
-        const parents = await Parent.query().end();
-        const children = await Child.query().end();
+        const parents = await Parent.query().select();
+        const children = await Child.query().select();
 
         expect(parents).to.exist;
         expect(parents.length).to.equal(2);

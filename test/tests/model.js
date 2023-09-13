@@ -476,14 +476,14 @@ module.exports = (Instantiator, Databases) => {
       it('should delete multiple parents', async () => {
 
         let query = await Parent.query();
-        let parents = await query.end();
+        let parents = await query.select();
 
         await parents.destroyAll();
         parents.forEach(parent => {
           expect(parent.inStorage()).to.equal(false);
         });
 
-        let p2 = await query.end();
+        let p2 = await query.select();
         expect(p2.length).to.equal(0);
 
       });

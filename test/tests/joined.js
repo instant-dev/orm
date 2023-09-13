@@ -117,7 +117,7 @@ module.exports = (Instantiator, Databases) => {
     it('Should query all users (8)', async () => {
 
       let users = await User.query()
-        .end();
+        .select();
 
       expect(users).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(users.length).to.equal(8);
@@ -133,7 +133,7 @@ module.exports = (Instantiator, Databases) => {
           user__username: 'georgia',
           organization__username: 'google'
         })
-        .end();
+        .select();
 
       expect(memberships).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(memberships.length).to.equal(1);
@@ -153,7 +153,7 @@ module.exports = (Instantiator, Databases) => {
           username: 'georgia',
           memberships__organization__username: 'google'
         })
-        .end();
+        .select();
 
       expect(users).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(users.length).to.equal(1);
@@ -174,7 +174,7 @@ module.exports = (Instantiator, Databases) => {
         .join('members')
         .join('members__user', {username: 'georgia'}, {username: 'gregory'})
         .where({username: 'google'})
-        .end();
+        .select();
 
       expect(organizations).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(organizations.length).to.equal(1);
@@ -197,7 +197,7 @@ module.exports = (Instantiator, Databases) => {
         .join('members', {user__username: 'georgia'}, {user__username: 'gilliam'})
         .join('members__user')
         .where({username: 'google'})
-        .end();
+        .select();
 
       expect(organizations).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
       expect(organizations.length).to.equal(1);

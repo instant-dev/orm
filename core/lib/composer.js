@@ -1054,9 +1054,9 @@ class Composer {
   }
 
   /**
-  * Execute the query you've been composing.
+  * Run a SELECT query you've been composing
   */
-  async end () {
+  async select () {
     let query = this.__generateQuery__();
     let countQuery = this.__generateCountQuery__();
     let source = this._transaction ? this._transaction : this.db;
@@ -1066,10 +1066,10 @@ class Composer {
   }
 
   /**
-  * Shortcut for .limit(1).end(callback) that only returns a model object or error if not found
+  * Shortcut for .limit(1).select() that only returns a model object or error if not found
   */
   async first () {
-    let models = await this.limit(1).end();
+    let models = await this.limit(1).select();
     if (!models.length) {
       throw new Error(`No records for ${this.Model.name} found in your query`);
     }

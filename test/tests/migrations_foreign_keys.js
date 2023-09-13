@@ -471,11 +471,11 @@ module.exports = (Instantiator, Databases) => {
         let ImageDomain = Instant.Model('ImageDomain');
         let Image = Instant.Model('Image');
 
-        let accounts = await Account.query().end();
-        let users = await User.query().end();
-        let blogPosts = await BlogPost.query().end();
-        let imageDomains = await ImageDomain.query().end();
-        let images = await Image.query().end();
+        let accounts = await Account.query().select();
+        let users = await User.query().select();
+        let blogPosts = await BlogPost.query().select();
+        let imageDomains = await ImageDomain.query().select();
+        let images = await Image.query().select();
 
         expect(accounts.length).to.equal(2);
         expect(users.length).to.equal(2);
@@ -491,7 +491,7 @@ module.exports = (Instantiator, Databases) => {
         let accounts = await Account.query()
           .join('user')
           .where({user__username: 'fireball'})
-          .end();
+          .select();
 
         expect(accounts.length).to.equal(1);
         expect(accounts[0].get('email')).to.equal('kevin@test.com');
@@ -507,7 +507,7 @@ module.exports = (Instantiator, Databases) => {
           .join('user')
           .join('user__blogPosts')
           .where({user__blogPosts__title__contains: 'photography'})
-          .end();
+          .select();
 
         expect(accounts.length).to.equal(1);
         expect(accounts[0].get('email')).to.equal('kevin@test.com');
@@ -525,7 +525,7 @@ module.exports = (Instantiator, Databases) => {
           .join('user')
           .join('user__blogPosts', {title__contains: 'dance'})
           .where({user__blogPosts__title__contains: 'robot dance'})
-          .end();
+          .select();
 
         expect(accounts.length).to.equal(1);
         expect(accounts[0].get('email')).to.equal('bernard@test.com');
@@ -545,7 +545,7 @@ module.exports = (Instantiator, Databases) => {
           .join('user__blogPosts__images')
           .join('user__blogPosts__images__imageDomain')
           .orderBy('email', 'DESC')
-          .end();
+          .select();
 
         expect(accounts.length).to.equal(2);
         expect(accounts[1].get('email')).to.equal('bernard@test.com');
@@ -568,7 +568,7 @@ module.exports = (Instantiator, Databases) => {
         let accounts = await Account.query()
           .join('user__blogPosts__images__imageDomain')
           .orderBy('email', 'DESC')
-          .end();
+          .select();
 
         expect(accounts.length).to.equal(2);
         expect(accounts[1].get('email')).to.equal('bernard@test.com');
@@ -654,11 +654,11 @@ module.exports = (Instantiator, Databases) => {
         let ImageDomain = Instant.Model('ImageDomain');
         let Image = Instant.Model('Image');
 
-        let accounts = await Account.query().end();
-        let users = await User.query().end();
-        let blogPosts = await BlogPost.query().end();
-        let imageDomains = await ImageDomain.query().end();
-        let images = await Image.query().end();
+        let accounts = await Account.query().select();
+        let users = await User.query().select();
+        let blogPosts = await BlogPost.query().select();
+        let imageDomains = await ImageDomain.query().select();
+        let images = await Image.query().select();
 
         expect(accounts.length).to.equal(1);
         expect(users.length).to.equal(1);

@@ -83,7 +83,7 @@ class ModelGenerator extends Logger {
     }
     this.log(`Wrote model to "${pathname}"`);
     fs.writeFileSync(pathname, output);
-    return true;
+    return pathname;
   }
 
   extend (tableName, className) {
@@ -133,7 +133,7 @@ class ModelGenerator extends Logger {
       `module.exports = ${className};`
     ].join('\n');
 
-    this.write(`${filename}.js`, output);
+    let pathname = this.write(`${filename}.js`, output);
     this.log(`Generated model "${className}" at "${pathname}" to extend table "${tableName}"`);
 
     return {

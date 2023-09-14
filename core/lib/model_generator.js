@@ -67,6 +67,25 @@ class ModelGenerator extends Logger {
     }
   }
 
+  write (filename, output) {
+    if (Buffer.isBuffer(output)) {
+      output = output.toString();
+    }
+    if (typeof output !== 'string') {
+      throw new Error(`ModelGenerator#write expects string`);
+    }
+    SchemaManager.checkdir(SchemaManager.getDirectory('models'));
+    let pathname = path.join(SchemaManager.getDirectory('models'), filename);
+    if (fs.existsSync(pathname)) {
+      throw new Error(
+        `Could not write generated model to disk: "${pathname}" already exists.`
+      );
+    }
+    this.log(`Wrote model to "${pathname}"`);
+    fs.writeFileSync(pathname, output);
+    return true;
+  }
+
   extend (tableName, className) {
 
     if (!tableName) {
@@ -114,17 +133,7 @@ class ModelGenerator extends Logger {
       `module.exports = ${className};`
     ].join('\n');
 
-    SchemaManager.checkdir(SchemaManager.getDirectory('models'));
-
-    let pathname = path.join(SchemaManager.getDirectory('models'), `${filename}.js`);
-
-    if (fs.existsSync(pathname)) {
-      throw new Error(
-        `Could not generate model for table "${tableName}": "${pathname}" already exists.`
-      );
-    }
-
-    fs.writeFileSync(pathname, output);
+    this.write(`${filename}.js`, output);
     this.log(`Generated model "${className}" at "${pathname}" to extend table "${tableName}"`);
 
     return {

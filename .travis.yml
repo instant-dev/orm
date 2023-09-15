@@ -6,6 +6,6 @@ addons:
   postgresql:
     - "15.4"
 before_script:
-  - psql -c 'create database travis_ci_test;' -U postgres
-  - psql -c 'create database travis_ci_test_readonly;' -U postgres
+  - psql -c 'create database travis_ci_test;' -U postgres -p 5433
+  - psql -c 'create database travis_ci_test_readonly;' -U postgres -p 5433
 env: NODE_ENV=test

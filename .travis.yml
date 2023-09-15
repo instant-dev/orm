@@ -1,12 +1,8 @@
 language: node_js
 node_js:
-  - "16.18.0"
-  - "18.17.1"
   - "20.6.1"
 addons:
   postgresql:
-    - "13.12"
-    - "14.9"
     - "15.4"
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres

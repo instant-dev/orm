@@ -5,7 +5,7 @@ node_js:
 services:
   - postgresql
 addons:
-  postgresql: "15"
+  postgresql: "14"
   apt:
     packages:
       - postgresql-client

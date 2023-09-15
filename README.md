@@ -1,4 +1,4 @@
-# Instant.dev (Beta release)
+# Instant.dev ![Build Status](https://app.travis-ci.com/instant-dev/orm.svg?branch=main)
 
 ## JavaScript ORM and Migrations for Postgres
 

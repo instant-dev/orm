@@ -5,9 +5,11 @@ node_js:
 services:
   - postgresql
 addons:
-  postgresql:
-    - "15.4"
+  postgresql: "15"
+  apt:
+    packages:
+      - postgresql-15
 before_script:
-  - psql -c 'create database travis_ci_test;' -U travis
-  - psql -c 'create database travis_ci_test_readonly;' -U travis
+  - psql -c 'create database travis_ci_test;' -U postgres
+  - psql -c 'create database travis_ci_test_readonly;' -U postgres
 env: NODE_ENV=test

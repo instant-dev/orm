@@ -244,6 +244,8 @@ class PostgresAdapter extends SQLAdapter {
             "information_schema"."columns" AS "c"
           WHERE
             "c"."table_name" = "t"."table_name"
+          ORDER BY
+            "c"."ordinal_position" ASC
         ) AS "columns",
         ARRAY(
           SELECT

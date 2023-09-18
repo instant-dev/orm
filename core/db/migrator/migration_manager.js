@@ -135,6 +135,35 @@ class MigrationManager extends Logger {
   }
 
   /**
+   * Creates a migration from a template
+   */
+  async createFromTemplate (migrationJSON) {
+    if (!Array.isArray(migrationJSON.up)) {
+      throw new Error(`Migration template requires "up" array`);
+    }
+    let migration = await this.create(migrationJSON.id, migrationJSON.name);
+    if (migrationJSON.down) {
+      migrationJSON.up.forEach(command => {
+        let name = command[0];
+        let args = command.slice(1);
+        migration.up[name].apply(migration.up, args);
+      });
+      migrationJSON.down.forEach(command => {
+        let name = command[0];
+        let args = command.slice(1);
+        migration.down[name].apply(migration.down, args);
+      });
+    } else {
+      migrationJSON.up.forEach(command => {
+        let name = command[0];
+        let args = command.slice(1);
+        migration[name].apply(migration, args);
+      });
+    }
+    return migration;
+  }
+
+  /**
    * Creates a migration based on current schema
    */
   async createUnsafe (id, name = '') {

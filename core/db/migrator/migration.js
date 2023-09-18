@@ -97,6 +97,11 @@ class Migration extends Logger {
       this.up.createTable(table, arrFieldData);
       this.down.dropTable(table);
     } else {
+      if (this.direction === 1) {
+        if (this._Schema.findTable(table)) {
+          throw new Error(`Table "${table}" already exists in your schema`);
+        }
+      }
       this.addCommand(['createTable', table, arrFieldData]);
     }
   }
@@ -109,6 +114,11 @@ class Migration extends Logger {
       this.up.dropTable(table);
       this.down.createTable(table, arrFieldData);
     } else {
+      if (this.direction === 1) {
+        if (!this._Schema.findTable(table)) {
+          throw new Error(`Table "${table}" does not exist in your schema`);
+        }
+      }
       this.addCommand(['dropTable', table]);
     }
   }
@@ -121,6 +131,11 @@ class Migration extends Logger {
       this.up.renameTable(table, newTable);
       this.down.renameTable(newTable, table);
     } else {
+      if (this.direction === 1) {
+        if (!this._Schema.findTable(table)) {
+          throw new Error(`Table "${table}" does not exist in your schema`);
+        }
+      }
       this.addCommand(['renameTable', table, newTable]);
     }
   }
@@ -137,6 +152,11 @@ class Migration extends Logger {
       this.up.alterColumn(table, column, type, properties);
       this.down.alterColumn(table, column, oldType, oldProperties);
     } else {
+      if (this.direction === 1) {
+        if (!this._Schema.findTableColumn(table, column)) {
+          throw new Error(`Column "${table}"."${column}" does not exist in your schema`);
+        }
+      }
       this.addCommand(['alterColumn', table, column, type, properties]);
     }
   }
@@ -149,6 +169,11 @@ class Migration extends Logger {
       this.up.addColumn(table, column, type, properties);
       this.down.dropColumn(table, column);
     } else {
+      if (this.direction === 1) {
+        if (this._Schema.findTableColumn(table, column)) {
+          throw new Error(`Column "${table}"."${column}" already exists in your schema`);
+        }
+      }
       this.addCommand(['addColumn', table, column, type, properties]);
     }
   }
@@ -165,6 +190,11 @@ class Migration extends Logger {
       this.up.dropColumn(table, column);
       this.down.addColumn(table, column, oldType, oldProperties);
     } else {
+      if (this.direction === 1) {
+        if (!this._Schema.findTableColumn(table, column)) {
+          throw new Error(`Column "${table}"."${column}" does not exist in your schema`);
+        }
+      }
       this.addCommand(['dropColumn', table, column]);
     }
   }
@@ -177,6 +207,11 @@ class Migration extends Logger {
       this.up.renameColumn(table, column, newColumn);
       this.down.renameColumn(table, newColumn, column);
     } else {
+      if (this.direction === 1) {
+        if (!this._Schema.findTableColumn(table, column)) {
+          throw new Error(`Column "${table}"."${column}" does not exist in your schema`);
+        }
+      }
       this.addCommand(['renameColumn', table, column, newColumn]);
     }
   }
@@ -189,6 +224,9 @@ class Migration extends Logger {
       this.up.createIndex(table, column, type);
       this.down.dropIndex(table, column);
     } else {
+      if (!this._Schema.findTableColumn(table, column)) {
+        throw new Error(`Column "${table}"."${column}" does not exist in your schema`);
+      }
       this.addCommand(['createIndex', table, column, type]);
     }
   }
@@ -215,6 +253,14 @@ class Migration extends Logger {
       this.up.createForeignKey(table, column, parentTable, parentColumn, behavior);
       this.down.dropForeignKey(table, column);
     } else {
+      if (this.direction === 1) {
+        if (!this._Schema.findTableColumn(table, column)) {
+          throw new Error(`Column "${table}"."${column}" does not exist in your schema`);
+        }
+        if (!this._Schema.findTableColumn(parentTable, parentColumn)) {
+          throw new Error(`Column "${parentTable}"."${parentColumn}" does not exist in your schema`);
+        }
+      }
       this.addCommand(['createForeignKey', table, column, parentTable, parentColumn, behavior]);
     }
   }

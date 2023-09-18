@@ -92,9 +92,6 @@ class MigrationManagerDangerousFilesystem {
     if (migration instanceof Migration) {
       migrationJSON = migration.toJSON();
     } else {
-      if (migration.id === null || migration.id === void 0) {
-        migration.id = Migration.generateMigrationId();
-      }
       migrationJSON = Migration.validateMigration(migration, this.self.parent._Schema.db);
     }
     let filesystemMigrations = [];

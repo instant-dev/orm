@@ -110,7 +110,7 @@ class InstantORM extends Logger {
     }
     if (!cfg) {
       if (this.Config.exists()) {
-        let env = process.env.NODE_ENV || 'development';
+        let env = process.env.VERCEL_ENV || process.env.NODE_ENV || 'development';
         this.log(`Loading database configuration from: "${this.Config.pathname()}"["${env}"]["${name}"]`);
         cfg = this.Config.read(env, name);
       } else {

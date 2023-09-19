@@ -1,6 +1,7 @@
 const ItemArray = require('./item_array.js');
 const ModelArray = require('./model_array.js');
 const Transaction = require('../db/transaction.js');
+const Database = require('../db/database.js');
 
 const utilities = require('./utilities.js');
 
@@ -19,6 +20,9 @@ class Composer {
   constructor (Model, parent, readonlyDb) {
 
     this.db = readonlyDb || (parent && parent.db) || Model.prototype.db;
+    if (!(this.db instanceof Database)) {
+      throw new Error(`Composer must have a valid Database`);
+    }
     this.Model = Model;
 
     this._parent = parent || null;

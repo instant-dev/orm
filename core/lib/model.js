@@ -788,8 +788,8 @@ class Model {
 
     this.fieldList()
       .concat(this._joinsList)
-      .filter((key) => data.hasOwnProperty(key))
-      .forEach((key) => this.set(key, data[key]));
+      .filter(key => key in data)
+      .forEach(key => this.set(key, data[key]));
 
     return this;
 

@@ -325,7 +325,7 @@ class SchemaManager {
   }
 
   update (id) {
-    this.setMigrationId(id);
+    this.setMigrationId(id || this.schema.migration_id);
     this.setSchema(this.schema);
   }
 

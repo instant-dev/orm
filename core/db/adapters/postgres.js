@@ -1,6 +1,7 @@
 const inflect = require('i')();
 const uuid = require('uuid');
 const pg = require('pg');
+const fs = require('fs');
 pg.types.setTypeParser(20, v => v === null ? null : parseInt(v)); // 64-bit int
 pg.types.setTypeParser(1700, v => v === null ? null : parseFloat(v)); // NUMERIC
 
@@ -25,21 +26,45 @@ class PostgresAdapter extends SQLAdapter {
 
   constructor (db, cfg) {
     super();
-    cfg = cfg.connectionString
-      ? this.parseConnectionString(cfg.connectionString)
-      : cfg;
     cfg = this.parseConfig(cfg);
     this.db = db;
     this._config = cfg;
-    this._pool = new pg.Pool(this._config);
+    this._tunnel = null;
+    this._pool = null;
   }
 
   close () {
     this._pool.end();
+    this._tunnel && this._tunnel.close();
     this.db.log('Closed');
   }
 
   async connect () {
+    const cfg = JSON.parse(JSON.stringify(this._config));
+    if (cfg.tunnel) {
+      let tnl;
+      try {
+        tnl = await this.db.createTunnel(
+          cfg.host,
+          cfg.port,
+          cfg.tunnel.private_key,
+          cfg.tunnel.user,
+          cfg.tunnel.host,
+          cfg.tunnel.port
+        );
+      } catch (e) {
+        console.error(e);
+        throw new Error(
+          `Could not connect to "${cfg.host}:${cfg.port}" via SSH tunnel "${cfg.tunnel.user}@${cfg.tunnel.host}:${cfg.tunnel.port || 22}":\n` +
+          (e.message || e.code)
+        );
+      }
+      this._tunnel = tnl.tunnel;
+      cfg.host = 'localhost';
+      cfg.port = tnl.port;
+      cfg.ssl = null;
+    }
+    this._pool = new pg.Pool(cfg);
     let client = await this.createClient();
     client.release();
     this.db.log(`Connected to ${this.name}${this._config.database ? ` database "${this._config.database}"` : ``} as role "${this._config.user}" on ${this._config.host}:${this._config.port}`);
@@ -433,45 +458,59 @@ class PostgresAdapter extends SQLAdapter {
 
   }
 
-  parseConnectionString (str) {
+  parseConfig (oldCfg = {}) {
 
-    let cfg = {
+    const cfg = {
       host: '',
       database: '',
       user: '',
       password: '',
       port: 5432,
-      ssl: false
+      ssl: false,
+      tunnel: null
     };
 
-    let match = str.match(/^postgres:\/\/([A-Za-z0-9_]+)(?:\:([A-Za-z0-9_\-]+))?@([A-Za-z0-9_\.\-]+):(\d+)\/([A-Za-z0-9_]+)(\?ssl=(?:true|false|unauthorized))?$/);
+    Object.keys(cfg).forEach(key => {
+      cfg[key] = JSON.parse(JSON.stringify(oldCfg[key] || null));
+    });
 
-    if (match) {
-      cfg.user = match[1];
-      cfg.password = match[2];
-      cfg.host = match[3];
-      cfg.port = match[4];
-      cfg.database = match[5];
-      if (match[6] === '?ssl=true') {
-        cfg.ssl = true;
-      } else if (match[6] === '?ssl=unauthorized') {
-        cfg.ssl = 'unauthorized'
-      } else {
-        cfg.ssl = false;
+    if (cfg.tunnel) {
+      if (cfg.tunnel.private_key) {
+        cfg.tunnel.private_key = fs.readFileSync(cfg.tunnel.private_key).toString();
       }
+      if (!cfg.tunnel.user) {
+        throw new Error(`Missing SSH tunnel "user" in database configuration`);
+      }
+      if (!cfg.tunnel.host) {
+        throw new Error(`Missing SSH tunnel "host" in database configuration`);
+      }
+    }
+
+    const connectionString = oldCfg.connectionString;
+    if (connectionString) {
+      let match = connectionString.match(/^postgres:\/\/([A-Za-z0-9_]+)(?:\:([A-Za-z0-9_\-]+))?@([A-Za-z0-9_\.\-]+):(\d+)\/([A-Za-z0-9_]+)(\?ssl=(?:true|false|unauthorized))?$/);
+      if (match) {
+        cfg.user = match[1];
+        cfg.password = match[2];
+        cfg.host = match[3];
+        cfg.port = match[4];
+        cfg.database = match[5];
+        if (match[6] === '?ssl=true') {
+          cfg.ssl = true;
+        } else if (match[6] === '?ssl=unauthorized') {
+          cfg.ssl = 'unauthorized'
+        } else {
+          cfg.ssl = false;
+        }
+      }
+    }
+
+    if (cfg.ssl === 'unauthorized') {
+      cfg.ssl = {rejectUnauthorized: false};
     }
 
     return cfg;
 
-  }
-
-  parseConfig (cfg) {
-    let pcfg = JSON.parse(JSON.stringify(cfg));
-    Object.keys(cfg).forEach(key => pcfg[key] = cfg[key]);
-    if (pcfg.ssl === 'unauthorized') {
-      pcfg.ssl = {rejectUnauthorized: false};
-    }
-    return pcfg;
   }
 
   generateClearDatabaseQuery () {

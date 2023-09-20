@@ -1,6 +1,7 @@
 const Logger = require('../logger.js');
 
 const colors = require('colors/safe');
+const { createTunnel } = require('tunnel-ssh');
 
 const DEFAULT_ADAPTER = 'postgres';
 const ADAPTERS = {
@@ -37,6 +38,54 @@ class Database extends Logger {
     this.adapter = new Adapter(this, cfg);
     await this.adapter.connect();
     return true;
+  }
+
+  async createTunnel (host, port, privateKey, sshUser, sshHost, sshPort) {
+    sshPort = sshPort || 22
+    let tnl;
+    let localPort = 2345;
+    let retries = 100;
+    this.log(`Attempting to create SSH tunnel to "${sshUser}@${sshHost}:${sshPort}" via "localhost:${localPort}"...`);
+    while (!tnl) {
+      try {
+        let [server, conn] = await createTunnel(
+          {
+            autoClose: true
+          },
+          {
+            port: localPort
+          },
+          {
+            host: sshHost,
+            username: sshUser,
+            port: sshPort,
+            privateKey: Buffer.from(privateKey)
+          },
+          {
+            srcAddr: 'localhost',
+	          srcPort: localPort,
+            dstAddr: host,
+            dstPort: port,
+          }
+        );
+        tnl = server;
+      } catch (err) {
+        if (retries > 0 && err.message.startsWith('listen EADDRINUSE:')) {
+          localPort++;
+          retries--;
+          if (retries <= 0) {
+            throw new Error(`Could not create SSH tunnel: Maximum retries reached`);
+          }
+        } else {
+          throw err;
+        }
+      }
+    }
+    this.log(`Created SSH tunnel to "${sshUser}@${sshHost}:${sshPort}" via "localhost:${localPort}"!`);
+    return {
+      tunnel: tnl,
+      port: localPort
+    };
   }
 
   close () {

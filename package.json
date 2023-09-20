@@ -13,6 +13,7 @@
     "deep-equal": "^2.2.2",
     "i": "^0.3.7",
     "pg": "^8.11.2",
+    "tunnel-ssh": "^5.1.1",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

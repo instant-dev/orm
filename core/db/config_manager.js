@@ -147,7 +147,7 @@ class ConfigManager extends Logger {
         );
       }
     } else {
-      let keys = ['host', 'port', 'user', 'password', 'database', 'ssl'];
+      let keys = ['host', 'port', 'user', 'password', 'database', 'ssl', 'tunnel'];
       let unusedKey = Object.keys(cfg).find(key => keys.indexOf(key) === -1);
       if (unusedKey) {
         throw new Error(
@@ -197,6 +197,21 @@ class ConfigManager extends Logger {
             );
           }
           vcfg[key] = parseInt(value);
+        } else if (key === 'tunnel') {
+          if (value) {
+            if (!value.user || typeof value.user !== 'string') {
+              throw new Error(`Missing or invalid SSH tunnel "user" in database configuration`);
+            }
+            if (!value.host || typeof value.host !== 'string') {
+              throw new Error(`Missing or invalid SSH tunnel "host" in database configuration`);
+            }
+            if (value.private_key && typeof value.private_key !== 'string') {
+              throw new Error(`Invalid SSH tunnel "private_key" in database configuration`);
+            }
+            vcfg[key] = value;
+          } else {
+            vcfg[key] = null;
+          }
         } else if (!value || typeof value !== 'string') {
           throw new Error(
             `Could not validate database config:\n` +

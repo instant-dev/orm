@@ -40,35 +40,33 @@ class PostgresAdapter extends SQLAdapter {
   }
 
   async connect () {
-    const cfg = JSON.parse(JSON.stringify(this._config));
+    let cfg = this._config;
     if (cfg.tunnel) {
-      let tnl;
-      try {
-        tnl = await this.db.createTunnel(
-          cfg.host,
-          cfg.port,
-          cfg.tunnel.private_key,
-          cfg.tunnel.user,
-          cfg.tunnel.host,
-          cfg.tunnel.port
-        );
-      } catch (e) {
-        console.error(e);
-        throw new Error(
-          `Could not connect to "${cfg.host}:${cfg.port}" via SSH tunnel "${cfg.tunnel.user}@${cfg.tunnel.host}:${cfg.tunnel.port || 22}":\n` +
-          (e.message || e.code)
-        );
-      }
-      this._tunnel = tnl.tunnel;
-      cfg.host = 'localhost';
-      cfg.port = tnl.port;
-      cfg.ssl = null;
+      let result = await this.connectToTunnel(cfg);
+      cfg = result.config;
+      this._tunnel = result.tunnel;
     }
     this._pool = new pg.Pool(cfg);
     let client = await this.createClient();
     client.release();
     this.db.log(`Connected to ${this.name}${this._config.database ? ` database "${this._config.database}"` : ``} as role "${this._config.user}" on ${this._config.host}:${this._config.port}`);
     return true;
+  }
+
+  async connectToTunnel () {
+    let config = JSON.parse(JSON.stringify(this._config));
+    let tunnel = null;
+    if (config.tunnel) {
+      let tnl = await this.db.createTunnelFromConfig(config);
+      tunnel = tnl.tunnel;
+      delete config.tunnel;
+      config.host = 'localhost';
+      config.port = tnl.port;
+      config.ssl = false;
+    } else {
+      throw new Error(`Could not connect to tunnel: no valid tunnel provided in config`);
+    }
+    return {config, tunnel};
   }
 
   /**
@@ -475,7 +473,10 @@ class PostgresAdapter extends SQLAdapter {
     });
 
     if (cfg.tunnel) {
-      if (cfg.tunnel.private_key) {
+      if (
+        typeof cfg.tunnel.private_key === 'string' &&
+        !cfg.tunnel.private_key.startsWith('-----BEGIN RSA PRIVATE KEY-----')
+      ) {
         cfg.tunnel.private_key = fs.readFileSync(cfg.tunnel.private_key).toString();
       }
       if (!cfg.tunnel.user) {

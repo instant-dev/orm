@@ -40,12 +40,45 @@ class Database extends Logger {
     return true;
   }
 
+  async tunnel (cfg) {
+    if (typeof cfg === 'string') {
+      cfg = {connectionString: cfg};
+    }
+    const Adapter = require(ADAPTERS[cfg.adapter] || ADAPTERS[DEFAULT_ADAPTER]);
+    const adapter = new Adapter(this, cfg);
+    return adapter.connectToTunnel();
+  }
+
+  async createTunnelFromConfig (cfg) {
+    let tnl;
+    try {
+      tnl = await this.createTunnel(
+        cfg.host,
+        cfg.port,
+        cfg.tunnel.private_key,
+        cfg.tunnel.user,
+        cfg.tunnel.host,
+        cfg.tunnel.port
+      );
+    } catch (e) {
+      console.error(e);
+      throw new Error(
+        `Could not connect to "${cfg.host}:${cfg.port}" via SSH tunnel "${cfg.tunnel.user}@${cfg.tunnel.host}:${cfg.tunnel.port || 22}":\n` +
+        (e.message || e.code)
+      );
+    }
+    return tnl;
+  }
+
   async createTunnel (host, port, privateKey, sshUser, sshHost, sshPort) {
     sshPort = sshPort || 22
     let tnl;
     let localPort = 2345;
     let retries = 100;
-    this.log(`Attempting to create SSH tunnel to "${sshUser}@${sshHost}:${sshPort}" via "localhost:${localPort}"...`);
+    this.log(`Attempting to create SSH tunnel ...`);
+    this.log(`From: "localhost"`);
+    this.log(`Via:  "${sshUser}@${sshHost}:${sshPort}"`);
+    this.log(`To:   "${host}:${port}"`);
     while (!tnl) {
       try {
         let [server, conn] = await createTunnel(
@@ -81,7 +114,7 @@ class Database extends Logger {
         }
       }
     }
-    this.log(`Created SSH tunnel to "${sshUser}@${sshHost}:${sshPort}" via "localhost:${localPort}"!`);
+    this.log(`Created SSH tunnel from "localhost:${localPort}" to "${host}:${port}"!`);
     return {
       tunnel: tnl,
       port: localPort

@@ -67,6 +67,16 @@ class InstantORM extends Logger {
     return db;
   }
 
+  /**
+   * Creates a standalone SSH tunnel to a database, if applicable
+   * @param {Object|String} cfg Connection configuration for the main db
+   */
+  async tunnel (cfg) {
+    const db = new this.constructor.Core.DB.Database('tunnel');
+    db.enableLogs(this._logLevel); // Pass through logging
+    return db.tunnel(cfg);
+  }
+
   __checkConnection__ () {
     if (!this._databases['main']) {
       throw new Error(`You are not connected to a main database: use .connect()`);

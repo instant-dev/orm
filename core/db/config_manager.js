@@ -159,7 +159,7 @@ class ConfigManager extends Logger {
         );
       }
     } else {
-      let keys = ['host', 'port', 'user', 'password', 'database', 'ssl', 'tunnel'];
+      let keys = ['host', 'port', 'user', 'password', 'database', 'ssl', 'in_vpc', 'tunnel'];
       let unusedKey = Object.keys(cfg).find(key => keys.indexOf(key) === -1);
       if (unusedKey) {
         throw new Error(

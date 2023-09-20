@@ -465,6 +465,7 @@ class PostgresAdapter extends SQLAdapter {
       password: '',
       port: 5432,
       ssl: false,
+      in_vpc: false,
       tunnel: null
     };
 

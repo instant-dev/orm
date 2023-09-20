@@ -12,6 +12,11 @@ class ConfigManager extends Logger {
     super('ConfigManager', 'cyan');
   }
 
+  getProcessEnv () {
+    let env = process.env.VERCEL_ENV || process.env.NODE_ENV || 'development';
+    return env;
+  }
+
   cachePathname () {
     return path.join(SchemaManager.rootDirectory, SchemaManager.cacheDirectory, SchemaManager.cacheSchemaFile);
   }
@@ -125,7 +130,14 @@ class ConfigManager extends Logger {
     } else if (!cfg[env][name]) {
       throw new Error(`Environment "${env}" database "${name}" not found in Database config at "${pathname}"`);
     }
-    return this.constructor.validate(cfg[env][name]);
+    const config = this.constructor.validate(cfg[env][name]);
+    // if tunnel.in_vpc is true it means that when deployed,
+    // the database environment should be in a vpc and not need a tunnel
+    const isLiveEnvironment = this.getProcessEnv() === env;
+    if (isLiveEnvironment && config.in_vpc) {
+      delete config.tunnel;
+    }
+    return config;
   }
 
   static validate (cfg) {
@@ -197,6 +209,11 @@ class ConfigManager extends Logger {
             );
           }
           vcfg[key] = parseInt(value);
+        } else if (key === 'in_vpc') {
+          if (value !== void 0 && typeof value !== 'boolean') {
+            throw new Error(`"in_vpc" must be true or false`);
+          }
+          vcfg[key] = value;
         } else if (key === 'tunnel') {
           if (value) {
             if (!value.user || typeof value.user !== 'string') {

@@ -58,14 +58,18 @@ class InstantORM extends Logger {
    * @param {Object|String} schema Schema details, see #loadSchema()
    */
   async connect (cfg, schema) {
-    if (!cfg && !schema && this._databases['main']) {
+    if (cfg === void 0 && schema === void 0 && this._databases['main']) {
       return this._databases['main'];
     } else {
       let db = await this.addDatabase('main', cfg);
-      if (schema !== null) {
-        await this.loadSchema(schema);
-      } else {
+      if (schema === null) {
+        // Load an empty schema if it's null
         await this.loadSchema(this.constructor.Core.DB.SchemaManager.emptySchema());
+      } else {
+        // Otherwise load a schema automatically
+        // Do not fall back to the cache if a config is manually provided
+        const useCache = cfg === void 0;
+        await this.loadSchema(schema, useCache);
       }
       return db;
     }
@@ -173,8 +177,9 @@ class InstantORM extends Logger {
    * to download the schema from the URL provided
    * If src is an object, it will load the schema directly from the object
    * @param {Object|String|undefined} schema Schema to load
+   * @param {Boolean} useCache Should we use the cached filesystem value
    */
-  async loadSchema (src) {
+  async loadSchema (src, useCache = true) {
     this.__checkConnection__();
     const db = this._databases['main'];
     let json;
@@ -186,8 +191,8 @@ class InstantORM extends Logger {
       // the schema from the database
       let tmpSchema = new this.constructor.Core.DB.SchemaManager(db, this.constructor.Core.DB.SchemaManager.emptySchema());
       let tmpMigrator = new this.constructor.Core.DB.MigrationManager(tmpSchema);
-      this.log(`Checking to see if schema is cached...`);
-      if (tmpSchema.isCacheAvailable()) {
+      useCache && this.log(`Checking to see if schema is cached...`);
+      if (useCache && tmpSchema.isCacheAvailable()) {
         this.log(`Schema retrieved from cache at "${tmpSchema.getCacheFilename()}"!`);
         json = this.constructor.Core.DB.SchemaManager.readSchemaFile(tmpSchema.getCacheFilename());
       } else {

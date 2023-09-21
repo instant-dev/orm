@@ -101,10 +101,9 @@ class ConfigManager extends Logger {
     if (!this.exists()) {
       throw new Error(`No database config file found at "${pathname}"`);
     }
-    let buffer = fs.readFileSync(pathname);
     let json;
     try {
-      json = JSON.parse(buffer.toString());
+      json = require(path.join(process.cwd(), pathname));
     } catch (e) {
       throw new Error(`Database config invalid at "${pathname}":\n${e.message}`);
     }

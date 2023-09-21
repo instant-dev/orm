@@ -457,23 +457,45 @@ class PostgresAdapter extends SQLAdapter {
 
   }
 
-  parseConfig (oldCfg = {}) {
-
-    const cfg = {
-      host: '',
-      database: '',
-      user: '',
+  createDefaultConfig () {
+    return {
+      host: 'localhost',
+      database: 'postgres',
+      user: 'postgres',
       password: '',
       port: 5432,
       ssl: false,
       in_vpc: false,
       tunnel: null
     };
+  }
 
+  parseConnectionString (connectionString, cfg = null) {
+    cfg = cfg || this.createDefaultConfig();
+    const match = connectionString.match(/^postgres:\/\/([A-Za-z0-9_]+)(?:\:([A-Za-z0-9_\-]+))?@([A-Za-z0-9_\.\-]+):(\d+)\/([A-Za-z0-9_]+)(\?ssl(?:mode)?=(?:true|false|unauthorized))?$/);
+    if (match) {
+      cfg.user = match[1];
+      cfg.password = match[2];
+      cfg.host = match[3];
+      cfg.port = match[4];
+      cfg.database = match[5];
+      if (match[6] === '?ssl=true' || match[6] === '?sslmode=true') {
+        cfg.ssl = true;
+      } else if (match[6] === '?ssl=unauthorized' || match[6] === '?sslmode=unauthorized') {
+        cfg.ssl = 'unauthorized'
+      } else {
+        cfg.ssl = false;
+      }
+    }
+    return cfg;
+  }
+
+  parseConfig (oldCfg = {}) {
+    let cfg = this.createDefaultConfig();
+    const readCfg = JSON.parse(JSON.stringify(oldCfg));
     Object.keys(cfg).forEach(key => {
-      cfg[key] = JSON.parse(JSON.stringify(oldCfg[key] || null));
+      cfg[key] = key in readCfg ? readCfg[key] : null;
     });
-
     if (cfg.tunnel) {
       if (
         typeof cfg.tunnel.private_key === 'string' &&
@@ -488,32 +510,13 @@ class PostgresAdapter extends SQLAdapter {
         throw new Error(`Missing SSH tunnel "host" in database configuration`);
       }
     }
-
-    const connectionString = oldCfg.connectionString;
-    if (connectionString) {
-      let match = connectionString.match(/^postgres:\/\/([A-Za-z0-9_]+)(?:\:([A-Za-z0-9_\-]+))?@([A-Za-z0-9_\.\-]+):(\d+)\/([A-Za-z0-9_]+)(\?ssl=(?:true|false|unauthorized))?$/);
-      if (match) {
-        cfg.user = match[1];
-        cfg.password = match[2];
-        cfg.host = match[3];
-        cfg.port = match[4];
-        cfg.database = match[5];
-        if (match[6] === '?ssl=true') {
-          cfg.ssl = true;
-        } else if (match[6] === '?ssl=unauthorized') {
-          cfg.ssl = 'unauthorized'
-        } else {
-          cfg.ssl = false;
-        }
-      }
+    if (readCfg.connectionString) {
+      cfg = this.parseConnectionString(readCfg.connectionString, cfg);
     }
-
     if (cfg.ssl === 'unauthorized') {
       cfg.ssl = {rejectUnauthorized: false};
     }
-
     return cfg;
-
   }
 
   generateClearDatabaseQuery () {

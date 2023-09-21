@@ -58,7 +58,7 @@ class InstantORM extends Logger {
    * @param {Object|String} schema Schema details, see #loadSchema()
    */
   async connect (cfg, schema) {
-    if (!cfg && this._databases['main']) {
+    if (!cfg && !schema && this._databases['main']) {
       return this._databases['main'];
     } else {
       let db = await this.addDatabase('main', cfg);

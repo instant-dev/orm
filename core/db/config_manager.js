@@ -101,21 +101,22 @@ class ConfigManager extends Logger {
     if (!this.exists()) {
       throw new Error(`No database config file found at "${pathname}"`);
     }
+    let buffer = fs.readFileSync(pathname);
     let json;
     try {
-      json = require(path.join(process.cwd(), pathname));
+      json = JSON.parse(buffer.toString());
     } catch (e) {
       throw new Error(`Database config invalid at "${pathname}":\n${e.message}`);
     }
-    Object.keys(json).forEach(env => {
-      Object.keys(json[env]).forEach(name => {
+    for (const env in json) {
+      for (const name in json[env]) {
         try {
           this.constructor.validate(json[env][name]);
         } catch (e) {
           throw new Error(`Database config invalid at "${pathname}" for ["${env}"]["${name}"]:\n${e.message}`);
         }
-      });
-    });
+      }
+    }
     return json;
   }
 
@@ -142,6 +143,7 @@ class ConfigManager extends Logger {
 
   static validate (cfg) {
     let vcfg = {};
+    let keys = Object.keys(cfg || {});
     if (!cfg || typeof cfg !== 'object') {
       throw new Error(`Invalid config: empty`);
     } else if ('connectionString' in cfg) {
@@ -152,22 +154,32 @@ class ConfigManager extends Logger {
         );
       }
       vcfg.connectionString = cfg.connectionString;
-      if (Object.keys(cfg).length > 1) {
+      if (keys.length > 1) {
         throw new Error(
           `Could not validate database config:\n` +
           `If "connectionString" is provided, can not provide other keys.`
         );
       }
     } else {
-      let keys = ['host', 'port', 'user', 'password', 'database', 'ssl', 'in_vpc', 'tunnel'];
-      let unusedKey = Object.keys(cfg).find(key => keys.indexOf(key) === -1);
+      let expectedKeys = {
+        'host': 1,
+        'port': 1,
+        'user': 1,
+        'password': 1,
+        'database': 1,
+        'ssl': 1,
+        'in_vpc': 1,
+        'tunnel': 1
+      };
+      let lookupKeys = Object.keys(expectedKeys);
+      let unusedKey = keys.find(key => !expectedKeys[key]);
       if (unusedKey) {
         throw new Error(
           `Could not validate database config:\n` +
           `Invalid key "${unusedKey}"`
         );
       }
-      keys.forEach(key => {
+      for (const key of lookupKeys) {
         let value = cfg[key];
         if (key === 'password') {
           value = (value === void 0 || value === null || value === false)
@@ -237,7 +249,7 @@ class ConfigManager extends Logger {
         } else {
           vcfg[key] = value;
         }
-      });
+      }
     }
     return vcfg;
   }

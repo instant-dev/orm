@@ -122,17 +122,14 @@ class ConfigManager extends Logger {
     } else if (!cfg[env][name]) {
       throw new Error(`Environment "${env}" database "${name}" not found in Database config at "${pathname}"`);
     }
-    const currentEnv = this.getProcessEnv();
-    const isLiveEnvironment = (
-      currentEnv !== 'development' &&
-      currentEnv === env
-    );
-    // We only validate config if it's not a live environment
-    const config = !isLiveEnvironment
-      ? this.constructor.validate(cfg[env][name])
-      : cfg[env][name];
+    const config = this.constructor.validate(cfg[env][name]);
     // if tunnel.in_vpc is true it means that when deployed,
     // the database environment should be in a vpc and not need a tunnel
+    const currentEnv = this.getProcessEnv();
+    const isLiveEnvironment = (
+      currentEnv === env &&
+      currentEnv !== 'development'
+    );
     if (isLiveEnvironment && config.in_vpc) {
       delete config.tunnel;
     }

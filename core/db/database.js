@@ -5,7 +5,7 @@ const { createTunnel } = require('tunnel-ssh');
 
 const DEFAULT_ADAPTER = 'postgres';
 const ADAPTERS = {
-  'postgres': './adapters/postgres.js',
+  'postgres': require('./adapters/postgres.js')
 };
 
 class Database extends Logger {
@@ -34,7 +34,7 @@ class Database extends Logger {
     if (typeof cfg === 'string') {
       cfg = {connectionString: cfg};
     }
-    const Adapter = require(ADAPTERS[cfg.adapter] || ADAPTERS[DEFAULT_ADAPTER]);
+    const Adapter = ADAPTERS[cfg.adapter] || ADAPTERS[DEFAULT_ADAPTER];
     this.adapter = new Adapter(this, cfg);
     await this.adapter.connect();
     return true;
@@ -44,7 +44,7 @@ class Database extends Logger {
     if (typeof cfg === 'string') {
       cfg = {connectionString: cfg};
     }
-    const Adapter = require(ADAPTERS[cfg.adapter] || ADAPTERS[DEFAULT_ADAPTER]);
+    const Adapter = ADAPTERS[cfg.adapter] || ADAPTERS[DEFAULT_ADAPTER];
     const adapter = new Adapter(this, cfg);
     return adapter.connectToTunnel();
   }

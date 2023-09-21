@@ -46,6 +46,7 @@ class PostgresAdapter extends SQLAdapter {
       cfg = result.config;
       this._tunnel = result.tunnel;
     }
+    this.db.log(`Connecting to ${this.name}${this._config.database ? ` database "${this._config.database}" ...`);
     this._pool = new pg.Pool(cfg);
     let client = await this.createClient();
     client.release();

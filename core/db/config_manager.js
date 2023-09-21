@@ -121,6 +121,7 @@ class ConfigManager extends Logger {
   }
 
   read (env, name) {
+    let pathname = this.pathname();
     this.__check__();
     let cfg = this.load();
     if (!env || !name) {

@@ -108,15 +108,6 @@ class ConfigManager extends Logger {
     } catch (e) {
       throw new Error(`Database config invalid at "${pathname}":\n${e.message}`);
     }
-    for (const env in json) {
-      for (const name in json[env]) {
-        try {
-          this.constructor.validate(json[env][name]);
-        } catch (e) {
-          throw new Error(`Database config invalid at "${pathname}" for ["${env}"]["${name}"]:\n${e.message}`);
-        }
-      }
-    }
     return json;
   }
 
@@ -131,10 +122,17 @@ class ConfigManager extends Logger {
     } else if (!cfg[env][name]) {
       throw new Error(`Environment "${env}" database "${name}" not found in Database config at "${pathname}"`);
     }
-    const config = this.constructor.validate(cfg[env][name]);
+    const currentEnv = this.getProcessEnv();
+    const isLiveEnvironment = (
+      currentEnv !== 'development' &&
+      currentEnv === env
+    );
+    // We only validate config if it's not a live environment
+    const config = !isLiveEnvironment
+      ? this.constructor.validate(cfg[env][name])
+      : cfg[env][name];
     // if tunnel.in_vpc is true it means that when deployed,
     // the database environment should be in a vpc and not need a tunnel
-    const isLiveEnvironment = this.getProcessEnv() === env;
     if (isLiveEnvironment && config.in_vpc) {
       delete config.tunnel;
     }

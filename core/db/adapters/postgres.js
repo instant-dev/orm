@@ -46,11 +46,11 @@ class PostgresAdapter extends SQLAdapter {
       cfg = result.config;
       this._tunnel = result.tunnel;
     }
-    this.db.log(`Connecting to ${this.name}${this._config.database ? ` database "${this._config.database}" ...`);
+    this.db.log(`Connecting to ${this.name}${this._config.database ? ` database "${this._config.database}"` : ``} as role "${this._config.user}" on ${this._config.host}:${this._config.port} ...`);
     this._pool = new pg.Pool(cfg);
     let client = await this.createClient();
     client.release();
-    this.db.log(`Connected to ${this.name}${this._config.database ? ` database "${this._config.database}"` : ``} as role "${this._config.user}" on ${this._config.host}:${this._config.port}`);
+    this.db.log(`Successfully connected to ${this.name}${this._config.database ? ` database "${this._config.database}"` : ``}!`);
     return true;
   }
 

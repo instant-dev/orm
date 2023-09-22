@@ -3,22 +3,24 @@ const Logger = require('../logger.js');
 const colors = require('colors/safe');
 const { createTunnel } = require('tunnel-ssh');
 
-const DEFAULT_ADAPTER = 'postgres';
-const ADAPTERS = {
-  'postgres': require('./adapters/postgres.js')
-};
-
 class Database extends Logger {
 
-  constructor (name = 'main', adapter = null) {
+  static defaultAdapter = 'postgres';
+  static availableAdapters = {
+    'postgres': require('./adapters/postgres.js')
+  };
+
+  static getAdapter (name) {
+    return this.availableAdapters[name];
+  }
+
+  static getDefaultAdapter () {
+    return this.availableAdapters[this.defaultAdapter];
+  }
+
+  constructor (name = 'main') {
     super(`Database[${name}]`, 'green');
-    this.adapter = adapter || DEFAULT_ADAPTER;
     this._useLogColor = 0;
-    if (!this.adapter) {
-      throw new Error(`No adapter specified for Database.`);
-    } else if (ADAPTERS[!this.adapter]) {
-      throw new Error(`Invalid adapter specified for Database: "${this.adapter}"`);
-    }
   }
 
   listTypes () {
@@ -34,7 +36,10 @@ class Database extends Logger {
     if (typeof cfg === 'string') {
       cfg = {connectionString: cfg};
     }
-    const Adapter = ADAPTERS[cfg.adapter] || ADAPTERS[DEFAULT_ADAPTER];
+    const Adapter = (
+      this.constructor.getAdapter(cfg.adapter) ||
+      this.constructor.getDefaultAdapter()
+    );
     this.adapter = new Adapter(this, cfg);
     await this.adapter.connect();
     return true;
@@ -44,7 +49,10 @@ class Database extends Logger {
     if (typeof cfg === 'string') {
       cfg = {connectionString: cfg};
     }
-    const Adapter = ADAPTERS[cfg.adapter] || ADAPTERS[DEFAULT_ADAPTER];
+    const Adapter = (
+      this.constructor.getAdapter(cfg.adapter) ||
+      this.constructor.getDefaultAdapter()
+    );
     const adapter = new Adapter(this, cfg);
     return adapter.connectToTunnel();
   }

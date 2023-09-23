@@ -492,10 +492,16 @@ module.exports = (Instantiator, Databases) => {
 
     describe('ModelFactory', async () => {
 
-      let ParentFactory = new Instantiator.InstantORM.Core.ModelFactory(Parent);
-      let HouseFactory = new Instantiator.InstantORM.Core.ModelFactory(House);
+      it('should create the factories', async () => {
+
+        ParentFactory = new Instantiator.InstantORM.Core.ModelFactory(Parent);
+        HouseFactory = new Instantiator.InstantORM.Core.ModelFactory(House);
+
+      });
 
       it('should not save all parents with verification errors', async () => {
+
+        let error;
 
         try {
           await ParentFactory.create([
@@ -505,8 +511,10 @@ module.exports = (Instantiator, Databases) => {
             {name: 'Sawyer'},
           ]);
         } catch (e) {
-          expect(e).to.exist;
+          error = e;
         }
+
+        expect(error).to.exist;
 
       });
 
@@ -531,6 +539,7 @@ module.exports = (Instantiator, Databases) => {
       it('should not save data from both Parents and Houses with verification errors', async () => {
 
         let results = null;
+        let error;
 
         try {
           results = await Instantiator.InstantORM.Core.ModelFactory.createFromModels(
@@ -550,8 +559,10 @@ module.exports = (Instantiator, Databases) => {
             }
           );
         } catch (e) {
-          expect(e).to.exist;
+          error = e;
         }
+
+        expect(error).to.exist;
 
       });
 

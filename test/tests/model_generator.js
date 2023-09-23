@@ -26,10 +26,11 @@ module.exports = (Instantiator, Databases) => {
       Instant.disconnect();
     });
 
-    it('should do a thing', async () => {
+    it('should extend my model', async () => {
 
       Instant.Generator.extend('my_model');
-      expect(true).to.exist;
+      const file = fs.readFileSync('./_instant/models/my_model.js');
+      expect(file).to.exist;
 
     });
 

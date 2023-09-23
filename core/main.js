@@ -262,6 +262,12 @@ class InstantORM extends Logger {
     return this._Schema.getModel(name);
   }
 
+  ModelFactory (name) {
+    const Model = this.Model(name);
+    const modelFactory = new this.constructor.Core.ModelFactory(Model);
+    return modelFactory;
+  }
+
 };
 
 const output = function () {

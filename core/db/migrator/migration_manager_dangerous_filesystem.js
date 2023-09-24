@@ -138,6 +138,16 @@ class MigrationManagerDangerousFilesystem {
   }
 
   /**
+   * Sees if a seed exists
+   */
+  hasSeed () {
+    let pathname = this.self.parent._Schema.constructor.getDirectory('root');
+    let filename = this.self.parent._Schema.constructor.rootDatabaseSeedFile;
+    let fullpath = path.join(pathname, filename);
+    return fs.existsSync(fullpath);
+  }
+
+  /**
    * Writes an empty seed file to the filesystem
    */
   createSeed () {
@@ -158,7 +168,7 @@ class MigrationManagerDangerousFilesystem {
     let filename = this.self.parent._Schema.constructor.rootDatabaseSeedFile;
     let fullpath = path.join(pathname, filename);
     if (!fs.existsSync(fullpath)) {
-      return this.validateSeed([{}]);
+      return null;
     } else {
       const seedFile = fs.readFileSync(fullpath);
       let seed;

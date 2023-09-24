@@ -45,11 +45,21 @@ module.exports = (Instantiator, Databases) => {
 
       Instant.Migrator.enableDangerous();
       Instant.Migrator.Dangerous.filesystem.createSeed();
-
-      expect(fs.existsSync(`./_instant/seed.json`)).to.equal(true);
-
       let seed = Instant.Migrator.Dangerous.filesystem.readSeed();
 
+      expect(Instant.Migrator.Dangerous.filesystem.hasSeed()).to.equal(true);
+      expect(seed).to.deep.equal([{}]);
+
+      fs.unlinkSync(`./_instant/seed.json`);
+      seed = Instant.Migrator.Dangerous.filesystem.readSeed();
+
+      expect(Instant.Migrator.Dangerous.filesystem.hasSeed()).to.equal(false);
+      expect(seed).to.equal(null);
+
+      Instant.Migrator.Dangerous.createSeedIfNotExists();
+      seed = Instant.Migrator.Dangerous.filesystem.readSeed();
+
+      expect(Instant.Migrator.Dangerous.filesystem.hasSeed()).to.equal(true);
       expect(seed).to.deep.equal([{}]);
 
       Instant.Migrator.disableDangerous();

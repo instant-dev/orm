@@ -27,6 +27,15 @@ class MigrationManagerDangerous {
   }
 
   /**
+   * Creates a seed if one does not exist
+   */
+  createSeedIfNotExists () {
+    if (!this.filesystem.hasSeed()) {
+      this.filesystem.createSeed();
+    }
+  }
+
+  /**
    * Clears entire database
    */
   async annihilate () {

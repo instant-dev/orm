@@ -157,6 +157,7 @@ class MigrationManagerDangerousFilesystem {
     let fullpath = path.join(pathname, filename);
     fs.writeFileSync(fullpath, JSON.stringify([{}], null, 2));
     this.self.parent.log(`Wrote empty seed to disk at "${fullpath}"`);
+    return [{}];
   }
 
   /**
@@ -178,6 +179,7 @@ class MigrationManagerDangerousFilesystem {
         console.error(e);
         throw new Error(`Invalid seed in "${fullpath}": invalid JSON`);
       }
+      this.self.parent.log(`Loaded seed from "${fullpath}"`);
       return this.validateSeed(seed);
     }
   }

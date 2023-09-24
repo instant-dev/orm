@@ -133,7 +133,7 @@ class ModelGenerator extends Logger {
       `module.exports = ${className};`
     ].join('\n');
 
-    let pathname = this.write(`${filename}.js`, output);
+    let pathname = this.write(`${filename}.cjs`, output);
     this.log(`Generated model "${className}" at "${pathname}" to extend table "${tableName}"`);
 
     return {

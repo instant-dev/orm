@@ -29,7 +29,7 @@ module.exports = (Instantiator, Databases) => {
     it('should extend my model', async () => {
 
       Instant.Generator.extend('my_model');
-      const file = fs.readFileSync('./_instant/models/my_model.js');
+      const file = fs.readFileSync('./_instant/models/my_model.cjs');
       expect(file).to.exist;
 
     });

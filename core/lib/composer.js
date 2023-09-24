@@ -28,9 +28,6 @@ class Composer {
     this._parent = parent || null;
     this._readonly = !!(readonlyDb || (parent && parent._readonly));
     this._command = null;
-    this._transaction = this._parent
-      ? this._parent._transaction
-      : null;
     this._shortAliasMap = {};
     this._joinCount = 0;
 
@@ -997,11 +994,19 @@ class Composer {
 
   /**
   * Counts the results in the query
-  * @param {function} callback Supplied with an error and the integer value of the count
+  * @param {Transaction} txn Optional: the transaction to use for the count query
   */
-  async count () {
+  async count (txn) {
+    if (txn) {
+      if (!(txn instanceof Transaction)) {
+        throw new Error('Must provide valid transaction to Composer#transact');
+      }
+      if (txn.adapter.db !== this.db) {
+        throw new Error('Transaction must belong to Model Database');
+      }
+    }
     let countQuery = this.__generateCountQuery__(true);
-    let source = this._transaction ? this._transaction : this.db;
+    let source = txn ? txn : this.db;
     let result = await source.query(countQuery.sql, countQuery.params);
     return (((result && result.rows) || [])[0] || {}).__total__ || 0;
   }
@@ -1034,36 +1039,21 @@ class Composer {
   }
 
   /**
-  * Sets the top-level query as a transaction using provided txn
-  * @param {Transaction} txn The desired transaction to use
-  * @return self
-  */
-  transact (txn) {
-
-    if (!txn) {
-      return this;
-    }
-
-    if (!(txn instanceof Transaction)) {
-      throw new Error('Must provide valid transaction to Composer#transact');
-    }
-
-    if (txn.adapter.db !== this.db) {
-      throw new Error('Transaction must belong to Model Database');
-    }
-
-    this._transaction = txn;
-    return this;
-
-  }
-
-  /**
   * Run a SELECT query you've been composing
+  * @param {Transaction} txn Optional: the transaction to use for the count query
   */
-  async select () {
+  async select (txn) {
+    if (txn) {
+      if (!(txn instanceof Transaction)) {
+        throw new Error('Must provide valid transaction to Composer#transact');
+      }
+      if (txn.adapter.db !== this.db) {
+        throw new Error('Transaction must belong to Model Database');
+      }
+    }
     let query = this.__generateQuery__();
     let countQuery = this.__generateCountQuery__();
-    let source = this._transaction ? this._transaction : this.db;
+    let source = txn ? txn : this.db;
     let countResult = await source.query(countQuery.sql, countQuery.params);
     let result = await source.query(query.sql, query.params);
     return this.__endProcessor__({countResult, result})
@@ -1071,9 +1061,10 @@ class Composer {
 
   /**
   * Shortcut for .limit(1).select() that only returns a model object or error if not found
+  * @param {Transaction} txn Optional: the transaction to use for the count query
   */
-  async first () {
-    let models = await this.limit(1).select();
+  async first (txn) {
+    let models = await this.limit(1).select(txn);
     if (!models.length) {
       throw new Error(`No records for ${this.Model.name} found in your query`);
     }
@@ -1083,8 +1074,17 @@ class Composer {
   /**
   * Execute query as an update query, changed all fields specified.
   * @param {Object} fields The object containing columns (keys) and associated values you'd like to update
+  * @param {Transaction} txn Optional: the transaction to use for the count query
   */
-  async update (fields) {
+  async update (fields, txn) {
+    if (txn) {
+      if (!(txn instanceof Transaction)) {
+        throw new Error('Must provide valid transaction to Composer#transact');
+      }
+      if (txn.adapter.db !== this.db) {
+        throw new Error('Transaction must belong to Model Database');
+      }
+    }
     if (this._readonly) {
       return callback(new Error('Cannot use update in a readonly query.'));
     }
@@ -1094,7 +1094,7 @@ class Composer {
     let query = this.__generateQuery__();
     let countQuery = this.__generateCountQuery__();
     let updateQuery = this.__generateUpdateQuery__(fields);
-    let source = this._transaction ? this._transaction : this.db;
+    let source = txn ? txn : this.db;
     let countResult = await source.query(countQuery.sql, countQuery.params);
     let result = await source.query(query.sql, query.params);
     let updateResult = await source.query(updateQuery.sql, updateQuery.params);

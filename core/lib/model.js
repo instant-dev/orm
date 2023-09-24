@@ -41,9 +41,8 @@ class Model {
     let db = this.prototype.db;
     let query = new Composer(this);
     let models = await query
-      .transact(txn)
       .where({id: id})
-      .select();
+      .select(txn);
     if (!models.length) {
       let e = new Error(`Could not find ${this.name} with id "${id}".`);
       e.notFound = true;
@@ -63,9 +62,8 @@ class Model {
     params[field] = value;
     let query = new Composer(this);
     let models = await query
-      .transact(txn)
       .where(params)
-      .select();
+      .select(txn);
     if (!models.length) {
       let e = new Error(`Could not find ${this.name} with ${field} "${value}".`);
       e.notFound = true;
@@ -994,10 +992,9 @@ class Model {
     }
 
     let query = this.constructor.query()
-      .transact(txn)
       .where({id: this.get('id')});
     joinNames.forEach(joinName => query = query.join(joinName));
-    let models = await query.select();
+    let models = await query.select(txn);
 
     if (!models || !models.length) {
       throw new Error('Could not fetch parent');

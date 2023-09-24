@@ -1390,9 +1390,8 @@ module.exports = (Instantiator, Databases) => {
       let txn = Instant.database().createTransaction();
       let createdChild = await Child.create({name: 'Alec'}, txn);
       let child = await Child.query()
-        .transact(txn)
         .where({id: createdChild.get('id')})
-        .first();
+        .first(txn);
 
       let childrenA = await Child.query()
         .where({id: createdChild.get('id')})

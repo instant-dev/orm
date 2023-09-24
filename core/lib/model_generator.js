@@ -34,8 +34,8 @@ class __templateClass__ extends Model {
      * let model = Model.destroy(id, txn);
 
      * Composer example:
-     * let models = Model.query().transact(txn).[...].select();
-     * let models = Model.query().transact(txn).[...].update();
+     * let models = Model.query().[...].select(txn);
+     * let models = Model.query().[...].update({}, txn);
 
      * Typically you should avoid commits and rollbacks here,
      *   the process that created the txn should handle that

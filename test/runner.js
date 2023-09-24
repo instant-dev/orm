@@ -106,16 +106,16 @@ describe('Test Suite', function() {
 
   }
 
-  const Instantiator = require('../index.js');
+  const InstantORM = require('../index.js');
 
   if (args.length) {
 
-    require(`./tests/${args[0]}.js`)(Instantiator, Databases);
+    require(`./tests/${args[0]}.js`)(InstantORM, Databases);
 
   } else {
 
     let testFilenames = fs.readdirSync('./test/tests');
-    testFilenames.forEach(filename => require(`./tests/${filename}`)(Instantiator, Databases));
+    testFilenames.forEach(filename => require(`./tests/${filename}`)(InstantORM, Databases));
 
   }
 

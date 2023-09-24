@@ -1,8 +1,8 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
 
-  const Instant = Instantiator();
+  const Instant = new InstantORM();
 
   describe('InstantORM.Core.DB.Composer', async () => {
 
@@ -100,38 +100,38 @@ module.exports = (Instantiator, Databases) => {
       ]
     };
 
-    class Parent extends Instantiator.InstantORM.Core.Model {}
+    class Parent extends InstantORM.Core.Model {}
 
     Parent.setDatabase(mainDb);
     Parent.setTableSchema(schemaParent);
     Parent.hides('hidden');
 
-    class Career extends Instantiator.InstantORM.Core.Model {};
+    class Career extends InstantORM.Core.Model {};
 
     Career.setDatabase(mainDb);
     Career.setTableSchema(schemaCareer);
     Career.joinsTo(Parent, {multiple: true});
 
-    class Friendship extends Instantiator.InstantORM.Core.Model {}
+    class Friendship extends InstantORM.Core.Model {}
 
     Friendship.setDatabase(mainDb);
     Friendship.setTableSchema(schemaFriendship);
     Friendship.joinsTo(Parent, {name: 'fromParent', as: 'outgoingFriendships', multiple: true});
     Friendship.joinsTo(Parent, {name: 'toParent', as: 'incomingFriendships', multiple: true});
 
-    class Child extends Instantiator.InstantORM.Core.Model {}
+    class Child extends InstantORM.Core.Model {}
 
     Child.setDatabase(mainDb);
     Child.setTableSchema(schemaChild);
     Child.joinsTo(Parent, {multiple: true});
 
-    class Partner extends Instantiator.InstantORM.Core.Model {}
+    class Partner extends InstantORM.Core.Model {}
 
     Partner.setDatabase(mainDb);
     Partner.setTableSchema(schemaPartner);
     Partner.joinsTo(Parent);
 
-    class Pet extends Instantiator.InstantORM.Core.Model {}
+    class Pet extends InstantORM.Core.Model {}
 
     Pet.setDatabase(mainDb);
     Pet.setTableSchema(schemaPet);
@@ -181,7 +181,7 @@ module.exports = (Instantiator, Databases) => {
           hidden: 'abcdef'.split('')[i % 6]
         }));
 
-        parents = Instantiator.InstantORM.Core.ModelArray.from(parents);
+        parents = InstantORM.Core.ModelArray.from(parents);
 
         parents.forEach((p, i) => {
 
@@ -191,7 +191,7 @@ module.exports = (Instantiator, Databases) => {
             return new Career({parent_id: id, title: title, is_active: true});
           });
 
-          p.setJoined('careers', Instantiator.InstantORM.Core.ModelArray.from(careers));
+          p.setJoined('careers', InstantORM.Core.ModelArray.from(careers));
 
           let children = 'ABCDEFGHIJ'.split('').map((name, n) => {
             var ageOffset = (n >= 5) ? 16 : 0;
@@ -204,7 +204,7 @@ module.exports = (Instantiator, Databases) => {
             });
           });
 
-          p.setJoined('children', Instantiator.InstantORM.Core.ModelArray.from(children));
+          p.setJoined('children', InstantORM.Core.ModelArray.from(children));
 
           let pets = ['Oliver', 'Ruby', 'Pascal'].map((name, i) => {
             return new Pet({
@@ -217,7 +217,7 @@ module.exports = (Instantiator, Databases) => {
             });
           });
 
-          p.setJoined('pets', Instantiator.InstantORM.Core.ModelArray.from(pets));
+          p.setJoined('pets', InstantORM.Core.ModelArray.from(pets));
 
           let partner = new Partner({
             parent_id: id,
@@ -227,7 +227,7 @@ module.exports = (Instantiator, Databases) => {
           });
           p.setJoined('partner', partner);
 
-          let friendships = new Instantiator.InstantORM.Core.ModelArray(Friendship);
+          let friendships = new InstantORM.Core.ModelArray(Friendship);
           while (i--) {
             let friendship = new Friendship({from_parent_id: id, to_parent_id: i + 1});
             friendships.push(friendship);
@@ -273,7 +273,7 @@ module.exports = (Instantiator, Databases) => {
 
       let parents = await Parent.query().select();
 
-      expect(parents).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(parents).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(parents.length).to.equal(10);
 
     });
@@ -282,7 +282,7 @@ module.exports = (Instantiator, Databases) => {
 
       let partners = await Partner.query().select();
 
-      expect(partners).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(partners).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(partners.length).to.equal(10);
 
     });
@@ -291,7 +291,7 @@ module.exports = (Instantiator, Databases) => {
 
       let children = await Child.query().select();
 
-      expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(children).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(children.length).to.equal(100);
 
     });
@@ -338,7 +338,7 @@ module.exports = (Instantiator, Databases) => {
         .orderBy('id', 'DESC')
         .select();
 
-      expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(children).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(children.length).to.equal(100);
       expect(children[0].get('id')).to.equal(100);
     });
@@ -350,7 +350,7 @@ module.exports = (Instantiator, Databases) => {
         .orderBy('parent__name', 'DESC')
         .select();
 
-      expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(children).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(children.length).to.equal(100);
       expect(children[0].joined('parent').get('name')).to.equal('Zoolander');
       expect(children[99].joined('parent').get('name')).to.equal('Albert');
@@ -363,7 +363,7 @@ module.exports = (Instantiator, Databases) => {
         .limit(5, 10)
         .select();
 
-      expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(children).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(children.length).to.equal(10);
       expect(children._meta.total).to.equal(100);
       expect(children._meta.offset).to.equal(5);
@@ -376,7 +376,7 @@ module.exports = (Instantiator, Databases) => {
         .limit(void 0, 10)
         .select();
 
-      expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(children).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(children.length).to.equal(10);
       expect(children._meta.total).to.equal(100);
       expect(children._meta.offset).to.equal(0);
@@ -389,7 +389,7 @@ module.exports = (Instantiator, Databases) => {
         .where({__offset: 5})
         .select();
 
-      expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(children).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(children.length).to.equal(95);
       expect(children._meta.total).to.equal(100);
       expect(children._meta.offset).to.equal(5);
@@ -402,7 +402,7 @@ module.exports = (Instantiator, Databases) => {
         .where({__count: 10})
         .select();
 
-      expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(children).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(children.length).to.equal(10);
       expect(children._meta.total).to.equal(100);
       expect(children._meta.offset).to.equal(0);
@@ -415,7 +415,7 @@ module.exports = (Instantiator, Databases) => {
         .where({__offset: 5, __count: 10})
         .select();
 
-      expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(children).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(children.length).to.equal(10);
       expect(children._meta.total).to.equal(100);
       expect(children._meta.offset).to.equal(5);
@@ -429,7 +429,7 @@ module.exports = (Instantiator, Databases) => {
         .orderBy('id', 'ASC')
         .select();
 
-      expect(children).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(children).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(children.length).to.equal(10);
       expect(children[0].get('id')).to.equal(11);
 

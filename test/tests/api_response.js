@@ -1,8 +1,8 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
 
-  const Instant = Instantiator();
+  const Instant = new InstantORM();
 
   describe('InstantORM.Core.APIResponse', function() {
 
@@ -17,14 +17,14 @@ module.exports = (Instantiator, Databases) => {
       ]
     };
 
-    class Post extends Instantiator.InstantORM.Core.Model {}
+    class Post extends InstantORM.Core.Model {}
     Post.setTableSchema(schemaPost);
 
     it('should output one post properly', () => {
 
       let post = new Post({title: 'Howdy', body: 'hello world'});
 
-      let output = Instantiator.InstantORM.Core.APIResponse.format(post);
+      let output = InstantORM.Core.APIResponse.format(post);
       expect(output).to.have.ownProperty('meta');
       expect(output).to.have.ownProperty('data');
       expect(output.data.length).to.equal(1);
@@ -37,7 +37,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('should output posts properly', () => {
 
-      let posts = Instantiator.InstantORM.Core.ModelArray.from([
+      let posts = InstantORM.Core.ModelArray.from([
         new Post({title: 'What', body: 'Test post A'}),
         new Post({title: 'Who', body: 'Test post B'}),
         new Post({title: 'When', body: 'Test post C'}),
@@ -46,7 +46,7 @@ module.exports = (Instantiator, Databases) => {
 
       posts.setMeta({offset: 1, total: 10});
 
-      let output = Instantiator.InstantORM.Core.APIResponse.format(posts);
+      let output = InstantORM.Core.APIResponse.format(posts);
 
       expect(output).to.have.ownProperty('meta');
       expect(output).to.have.ownProperty('data');
@@ -61,7 +61,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('should format ItemArrays properly', () => {
 
-      let groups = Instantiator.InstantORM.Core.ItemArray.from([
+      let groups = InstantORM.Core.ItemArray.from([
         {count: 5, color: 'red'},
         {count: 6, color: 'green'},
         {count: 7, color: 'blue'}
@@ -69,7 +69,7 @@ module.exports = (Instantiator, Databases) => {
 
       groups.setMeta({offset: 1, total: 10});
 
-      let output = Instantiator.InstantORM.Core.APIResponse.format(groups);
+      let output = InstantORM.Core.APIResponse.format(groups);
 
       expect(output).to.have.ownProperty('meta');
       expect(output).to.have.ownProperty('data');
@@ -84,7 +84,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('should format ItemArrays properly with include', () => {
 
-      let groups = Instantiator.InstantORM.Core.ItemArray.from([
+      let groups = InstantORM.Core.ItemArray.from([
         {count: 5, color: 'red'},
         {count: 6, color: 'green'},
         {count: 7, color: 'blue'}
@@ -92,7 +92,7 @@ module.exports = (Instantiator, Databases) => {
 
       groups.setMeta({offset: 1, total: 10});
 
-      let output = Instantiator.InstantORM.Core.APIResponse.format(groups, ['color']);
+      let output = InstantORM.Core.APIResponse.format(groups, ['color']);
 
       expect(output).to.have.ownProperty('meta');
       expect(output).to.have.ownProperty('data');

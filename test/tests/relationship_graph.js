@@ -1,17 +1,17 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
 
-  const Instant = require('../../index.js')();
+  const Instant = new InstantORM();
 
   describe('InstantORM.Core.RelationshipGraph', async () => {
 
-    let Relationships = new Instantiator.InstantORM.Core.RelationshipGraph();
+    let Relationships = new InstantORM.Core.RelationshipGraph();
 
-    class User extends Instantiator.InstantORM.Core.Model {}
-    class Post extends Instantiator.InstantORM.Core.Model {}
-    class Comment extends Instantiator.InstantORM.Core.Model {}
-    class Avatar extends Instantiator.InstantORM.Core.Model {}
+    class User extends InstantORM.Core.Model {}
+    class Post extends InstantORM.Core.Model {}
+    class Comment extends InstantORM.Core.Model {}
+    class Avatar extends InstantORM.Core.Model {}
 
     Relationships.of(Post).joinsTo(User, {multiple: true});
     Relationships.of(Comment).joinsTo(Post, {multiple: true});

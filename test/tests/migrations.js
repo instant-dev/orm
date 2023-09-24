@@ -1,10 +1,10 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
   const fs = require('fs');
   const path = require('path');
 
-  const Instant = Instantiator();
+  const Instant = new InstantORM();
   // Instant.enableLogs(4);
 
   describe('InstantORM.Core.DB.MigrationManager', async () => {
@@ -193,8 +193,8 @@ module.exports = (Instantiator, Databases) => {
 
       expect(stat.isDirectory()).to.equal(true);
       expect(filenames.length).to.equal(2);
-      expect(filenames[0]).to.equal(`${Instantiator.InstantORM.Core.DB.Migration.padMigrationId(initialMigration.id)}__${initialMigration.name}.json`);
-      expect(filenames[1]).to.equal(`${Instantiator.InstantORM.Core.DB.Migration.padMigrationId(migration.id)}__${migration.name}.json`);
+      expect(filenames[0]).to.equal(`${InstantORM.Core.DB.Migration.padMigrationId(initialMigration.id)}__${initialMigration.name}.json`);
+      expect(filenames[1]).to.equal(`${InstantORM.Core.DB.Migration.padMigrationId(migration.id)}__${migration.name}.json`);
 
       let initialFile = fs.readFileSync(path.join(migration._Schema.constructor.getDirectory('migrations'), filenames[0]));
       let initialJSON = JSON.parse(initialFile.toString());

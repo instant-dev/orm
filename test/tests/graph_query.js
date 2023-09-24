@@ -1,12 +1,12 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
 
-  const Instant = Instantiator();
+  const Instant = new InstantORM();
 
   describe('InstantORM.Core.GraphQuery', async () => {
 
-    let db = new Instantiator.InstantORM.Core.DB.Database();
+    let db = new InstantORM.Core.DB.Database();
 
     let schemaUser = {
       name: 'users',
@@ -54,25 +54,25 @@ module.exports = (Instantiator, Databases) => {
       ]
     };
 
-    class User extends Instantiator.InstantORM.Core.Model {}
+    class User extends InstantORM.Core.Model {}
 
     User.setDatabase(db);
     User.setTableSchema(schemaUser);
 
-    class Thread extends Instantiator.InstantORM.Core.Model {}
+    class Thread extends InstantORM.Core.Model {}
 
     Thread.setDatabase(db);
     Thread.setTableSchema(schemaThread);
     Thread.joinsTo(User, {multiple: true});
 
-    class Post extends Instantiator.InstantORM.Core.Model {}
+    class Post extends InstantORM.Core.Model {}
 
     Post.setDatabase(db);
     Post.setTableSchema(schemaPost);
     Post.joinsTo(User, {multiple: true});
     Post.joinsTo(Thread, {multiple: true});
 
-    class Vote extends Instantiator.InstantORM.Core.Model {};
+    class Vote extends InstantORM.Core.Model {};
 
     Vote.setDatabase(db);
     Vote.setTableSchema(schemaVote);
@@ -101,7 +101,7 @@ module.exports = (Instantiator, Databases) => {
         skill: ['JavaScript', 'Python', 'Ruby'][i % 3]
       }));
 
-      users = Instantiator.InstantORM.Core.ModelArray.from(users);
+      users = InstantORM.Core.ModelArray.from(users);
 
       users.forEach((user, i) => {
 
@@ -113,7 +113,7 @@ module.exports = (Instantiator, Databases) => {
           'Upvote this pls'
         ].map((title) => new Thread({title: title, user_id: uid}));
 
-        user.setJoined('threads', Instantiator.InstantORM.Core.ModelArray.from(threads));
+        user.setJoined('threads', InstantORM.Core.ModelArray.from(threads));
 
         let posts = [];
         let votes = [];
@@ -126,8 +126,8 @@ module.exports = (Instantiator, Databases) => {
         posts = posts.map(post => new Post(post));
         votes = votes.map(vote => new Vote(vote));
 
-        user.setJoined('posts', Instantiator.InstantORM.Core.ModelArray.from(posts));
-        user.setJoined('votes', Instantiator.InstantORM.Core.ModelArray.from(votes));
+        user.setJoined('posts', InstantORM.Core.ModelArray.from(posts));
+        user.setJoined('votes', InstantORM.Core.ModelArray.from(votes));
 
 
       });
@@ -152,7 +152,7 @@ module.exports = (Instantiator, Databases) => {
       Instant.disconnect();
     });
 
-    const GraphQuery = Instantiator.InstantORM.Core.GraphQuery;
+    const GraphQuery = InstantORM.Core.GraphQuery;
 
     it ('should parse properly', () => {
 

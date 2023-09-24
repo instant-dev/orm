@@ -1,8 +1,8 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
 
-  const Instant = Instantiator();
+  const Instant = new InstantORM();
   // Instant.enableLogs(4);
 
   describe('InstantORM.Core.DB.ConfigManager', async () => {

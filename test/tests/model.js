@@ -1,8 +1,8 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
 
-  const Instant = Instantiator();
+  const Instant = new InstantORM();
 
   describe('InstantORM.Core.Model', async () => {
 
@@ -20,7 +20,7 @@ module.exports = (Instantiator, Databases) => {
         {name: 'updated_at', type: 'datetime'}
       ]
     };
-    class Parent extends Instantiator.InstantORM.Core.Model {}
+    class Parent extends InstantORM.Core.Model {}
     Parent.hides('secret');
     Parent.setTableSchema(schemaParent);
 
@@ -45,7 +45,7 @@ module.exports = (Instantiator, Databases) => {
         {name: 'updated_at', type: 'datetime'}
       ]
     };
-    class House extends Instantiator.InstantORM.Core.Model {}
+    class House extends InstantORM.Core.Model {}
     House.setTableSchema(schemaHouse);
 
     House.joinsTo(Parent);
@@ -57,10 +57,10 @@ module.exports = (Instantiator, Databases) => {
         {name: 'name', type: 'string', properties: {unique: true}}
       ]
     };
-    class SpecialItem extends Instantiator.InstantORM.Core.Model {}
+    class SpecialItem extends InstantORM.Core.Model {}
     SpecialItem.setTableSchema(schemaSpecialItem);
 
-    class User extends Instantiator.InstantORM.Core.Model {}
+    class User extends InstantORM.Core.Model {}
     User.setTableSchema({
       name: 'users',
       columns: [
@@ -69,7 +69,7 @@ module.exports = (Instantiator, Databases) => {
       ]
     });
 
-    class Post extends Instantiator.InstantORM.Core.Model {}
+    class Post extends InstantORM.Core.Model {}
     Post.setTableSchema({
       name: 'posts',
       columns: [
@@ -81,7 +81,7 @@ module.exports = (Instantiator, Databases) => {
     });
     Post.joinsTo(User, {multiple: true});
 
-    class Comment extends Instantiator.InstantORM.Core.Model {}
+    class Comment extends InstantORM.Core.Model {}
     Comment.setTableSchema({
       name: 'comments',
       columns: [
@@ -121,7 +121,7 @@ module.exports = (Instantiator, Databases) => {
     it('should instantiate', () => {
 
       let parent = new Parent();
-      expect(parent).to.be.instanceof(Instantiator.InstantORM.Core.Model);
+      expect(parent).to.be.instanceof(InstantORM.Core.Model);
 
     });
 
@@ -270,7 +270,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('should toObject with interface from ModelArray', () => {
 
-      let parents = new Instantiator.InstantORM.Core.ModelArray(Parent);
+      let parents = new InstantORM.Core.ModelArray(Parent);
 
       parents.push(new Parent({name: 'Parent'}));
 
@@ -286,9 +286,9 @@ module.exports = (Instantiator, Databases) => {
 
     it('should toObject with multiply-nested ModelArray', () => {
 
-      let comments = Instantiator.InstantORM.Core.ModelArray.from([new Comment({body: 'Hello, World'})]);
-      let posts = Instantiator.InstantORM.Core.ModelArray.from([new Post({title: 'Hello', body: 'Everybody'})]);
-      let users =  Instantiator.InstantORM.Core.ModelArray.from([new User({username: 'Ruby'})]);
+      let comments = InstantORM.Core.ModelArray.from([new Comment({body: 'Hello, World'})]);
+      let posts = InstantORM.Core.ModelArray.from([new Post({title: 'Hello', body: 'Everybody'})]);
+      let users =  InstantORM.Core.ModelArray.from([new User({username: 'Ruby'})]);
 
       posts[0].setJoined('comments', comments);
       users[0].setJoined('posts', posts);
@@ -305,8 +305,8 @@ module.exports = (Instantiator, Databases) => {
 
     it('should clear joined models properly', () => {
 
-      let comments = Instantiator.InstantORM.Core.ModelArray.from([new Comment({body: 'Hello, World'})]);
-      let posts = Instantiator.InstantORM.Core.ModelArray.from([new Post({title: 'Hello', body: 'Everybody'})]);
+      let comments = InstantORM.Core.ModelArray.from([new Comment({body: 'Hello, World'})]);
+      let posts = InstantORM.Core.ModelArray.from([new Post({title: 'Hello', body: 'Everybody'})]);
 
       posts[0].setJoined('comments', comments);
       posts[0].clearJoined('comments');
@@ -459,7 +459,7 @@ module.exports = (Instantiator, Databases) => {
 
       it('should save multiple parents', async () => {
 
-        let parents = new Instantiator.InstantORM.Core.ModelArray(Parent);
+        let parents = new InstantORM.Core.ModelArray(Parent);
 
         for (let i = 0; i < 10; i++) {
           parents.push(new Parent({name: 'Parent_' + i, age: 20}));
@@ -494,8 +494,8 @@ module.exports = (Instantiator, Databases) => {
 
       it('should create the factories', async () => {
 
-        ParentFactory = new Instantiator.InstantORM.Core.ModelFactory(Parent);
-        HouseFactory = new Instantiator.InstantORM.Core.ModelFactory(House);
+        ParentFactory = new InstantORM.Core.ModelFactory(Parent);
+        HouseFactory = new InstantORM.Core.ModelFactory(House);
 
       });
 
@@ -542,7 +542,7 @@ module.exports = (Instantiator, Databases) => {
         let error;
 
         try {
-          results = await Instantiator.InstantORM.Core.ModelFactory.createFromModels(
+          results = await InstantORM.Core.ModelFactory.createFromModels(
             {
               parents: Parent,
               houses: House
@@ -568,7 +568,7 @@ module.exports = (Instantiator, Databases) => {
 
       it('should save data from both Parents and Houses', async () => {
 
-        let results = await Instantiator.InstantORM.Core.ModelFactory.createFromModels(
+        let results = await InstantORM.Core.ModelFactory.createFromModels(
           {
             parents: Parent,
             houses: House

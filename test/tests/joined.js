@@ -1,12 +1,12 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
 
-  const Instant = Instantiator();
+  const Instant = new InstantORM();
 
   describe('InstantORM.Core.DB.Composer (joined)', async () => {
 
-    let db = new Instantiator.InstantORM.Core.DB.Database();
+    let db = new InstantORM.Core.DB.Database();
 
     let schemaUser = {
       name: 'users',
@@ -42,19 +42,19 @@ module.exports = (Instantiator, Databases) => {
       ]
     };
 
-    class User extends Instantiator.InstantORM.Core.Model {}
+    class User extends InstantORM.Core.Model {}
 
     User.setDatabase(db);
     User.setTableSchema(schemaUser);
 
-    class Membership extends Instantiator.InstantORM.Core.Model {}
+    class Membership extends InstantORM.Core.Model {}
 
     Membership.setDatabase(db);
     Membership.setTableSchema(schemaMembership);
     Membership.joinsTo(User, {multiple: true, as: 'memberships'});
     Membership.joinsTo(User, {multiple: true, via: 'organization_id', name: 'organization', as: 'members'});
 
-    class OrganizationLocations extends Instantiator.InstantORM.Core.Model {}
+    class OrganizationLocations extends InstantORM.Core.Model {}
 
     OrganizationLocations.setDatabase(db);
     OrganizationLocations.setTableSchema(schemaOrganizationLocations);
@@ -75,7 +75,7 @@ module.exports = (Instantiator, Databases) => {
         }).join(';')
       );
 
-      let users = Instantiator.InstantORM.Core.ModelArray.from([
+      let users = InstantORM.Core.ModelArray.from([
         new User({username: 'francis'}),
         new User({username: 'felicia'}),
         new User({username: 'gregory'}),
@@ -86,7 +86,7 @@ module.exports = (Instantiator, Databases) => {
         new User({username: 'sergey', organization_location_id: 1}),
       ]);
 
-      let memberships = Instantiator.InstantORM.Core.ModelArray.from([
+      let memberships = InstantORM.Core.ModelArray.from([
         new Membership({user_id: 1, organization_id: 6}),
         new Membership({user_id: 2, organization_id: 6}),
         new Membership({user_id: 3, organization_id: 7}),
@@ -94,7 +94,7 @@ module.exports = (Instantiator, Databases) => {
         new Membership({user_id: 5, organization_id: 7})
       ]);
 
-      let organizationLocations = Instantiator.InstantORM.Core.ModelArray.from([
+      let organizationLocations = InstantORM.Core.ModelArray.from([
         new OrganizationLocations({organization_id: 7, organization_authorization_access_code: 'secret_password', location: 'Mountain View'})
       ]);
 
@@ -119,7 +119,7 @@ module.exports = (Instantiator, Databases) => {
       let users = await User.query()
         .select();
 
-      expect(users).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(users).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(users.length).to.equal(8);
 
     });
@@ -135,7 +135,7 @@ module.exports = (Instantiator, Databases) => {
         })
         .select();
 
-      expect(memberships).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(memberships).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(memberships.length).to.equal(1);
       expect(memberships[0].joined('user').get('username')).to.equal('georgia');
       expect(memberships[0].joined('organization').get('username')).to.equal('google');
@@ -155,7 +155,7 @@ module.exports = (Instantiator, Databases) => {
         })
         .select();
 
-      expect(users).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(users).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(users.length).to.equal(1);
       expect(users[0].joined('memberships').length).to.equal(1);
       expect(users[0].joined('memberships')[0].joined('organization').get('username')).to.equal('google');
@@ -176,7 +176,7 @@ module.exports = (Instantiator, Databases) => {
         .where({username: 'google'})
         .select();
 
-      expect(organizations).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(organizations).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(organizations.length).to.equal(1);
       expect(organizations[0].joined('members').length).to.equal(3);
       expect(organizations[0].joined('members').find((member) => {
@@ -199,7 +199,7 @@ module.exports = (Instantiator, Databases) => {
         .where({username: 'google'})
         .select();
 
-      expect(organizations).to.be.an.instanceOf(Instantiator.InstantORM.Core.ModelArray);
+      expect(organizations).to.be.an.instanceOf(InstantORM.Core.ModelArray);
       expect(organizations.length).to.equal(1);
       expect(organizations[0].joined('members').length).to.equal(2);
       expect(organizations[0].joined('members').find((member) => {

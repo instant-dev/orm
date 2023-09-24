@@ -1,10 +1,10 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
   const fs = require('fs');
   const path = require('path');
 
-  const Instant = Instantiator();
+  const Instant = new InstantORM();
   // Instant.enableLogs(2);
 
   describe('InstantORM.Core.ModelGenerator', async () => {
@@ -29,7 +29,7 @@ module.exports = (Instantiator, Databases) => {
     it('should extend my model', async () => {
 
       Instant.Generator.extend('my_model');
-      const file = fs.readFileSync('./_instant/models/my_model.cjs');
+      const file = fs.readFileSync('./_instant/models/my_model.mjs');
       expect(file).to.exist;
 
     });

@@ -1,8 +1,8 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
 
-  const Instant = Instantiator();
+  const Instant = new InstantORM();
 
   describe('InstantORM.Core.DB.Database', async () => {
 
@@ -43,7 +43,7 @@ module.exports = (Instantiator, Databases) => {
 
     before(async () => {
 
-      db = new Instantiator.InstantORM.Core.DB.Database();
+      db = new InstantORM.Core.DB.Database();
 
     });
 

@@ -97,7 +97,7 @@ class ModelGenerator extends Logger {
     className = (className || inflect.classify(tableName)) + '';
 
     let output = [
-      `const { InstantORM } = require('${process.env.__INSTANT_MODEL_IMPORT || '@instant.dev/orm'}');`,
+      `import InstantORM from '${process.env.__INSTANT_MODEL_IMPORT || '@instant.dev/orm'}';`,
       ``,
       __templateClass__.toString()
         .replace(/__templateClass__/g, className)
@@ -130,10 +130,10 @@ class ModelGenerator extends Logger {
       `// hides a field: prevent output via .toJSON()`,
       `// ${className}.hides('hidden_field');`,
       ``,
-      `module.exports = ${className};`
+      `export default ${className};`
     ].join('\n');
 
-    let pathname = this.write(`${filename}.cjs`, output);
+    let pathname = this.write(`${filename}.mjs`, output);
     this.log(`Generated model "${className}" at "${pathname}" to extend table "${tableName}"`);
 
     return {

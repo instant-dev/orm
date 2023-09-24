@@ -1,10 +1,10 @@
-module.exports = (Instantiator, Databases) => {
+module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
   const fs = require('fs');
   const path = require('path');
 
-  const Instant = Instantiator();
+  const Instant = new InstantORM();
   // Instant.enableLogs(4);
 
   describe('InstantORM.Core.DB.MigrationManager (Foreign Keys)', async () => {

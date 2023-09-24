@@ -138,6 +138,75 @@ class MigrationManagerDangerousFilesystem {
   }
 
   /**
+   * Writes an empty seed file to the filesystem
+   */
+  createSeed () {
+    let pathname = this.self.parent._Schema.constructor.getDirectory('root');
+    SchemaManager.checkdir(pathname);
+    let filename = this.self.parent._Schema.constructor.rootDatabaseSeedFile;
+    let fullpath = path.join(pathname, filename);
+    fs.writeFileSync(fullpath, JSON.stringify([{}], null, 2));
+    this.self.parent.log(`Wrote empty seed to disk at "${fullpath}"`);
+  }
+
+  /**
+   * Reads your provided seed file on disk
+   */
+  readSeed () {
+    let pathname = this.self.parent._Schema.constructor.getDirectory('root');
+    SchemaManager.checkdir(pathname);
+    let filename = this.self.parent._Schema.constructor.rootDatabaseSeedFile;
+    let fullpath = path.join(pathname, filename);
+    if (!fs.existsSync(fullpath)) {
+      return this.validateSeed([{}]);
+    } else {
+      const seedFile = fs.readFileSync(fullpath);
+      let seed;
+      try {
+        seed = JSON.parse(seedFile.toString());
+      } catch (e) {
+        console.error(e);
+        throw new Error(`Invalid seed in "${fullpath}": invalid JSON`);
+      }
+      return this.validateSeed(seed);
+    }
+  }
+
+  /**
+   * Ensures a seed file is formatted correctly
+   */
+  validateSeed (seed) {
+    if (!Array.isArray(seed)) {
+      throw new Error(`Invalid seed: top-level must be an Array`);
+    }
+    seed.forEach((seedObj, i) => {
+      if (
+        !seedObj ||
+        typeof seedObj !== 'object' ||
+        Array.isArray(seedObj)
+      ) {
+        throw new Error(`Invalid seed[${i}]: must be an Object`);
+      }
+      Object.keys(seedObj).forEach(key => {
+        let arr = seedObj[key];
+        if (!Array.isArray(arr)) {
+          throw new Error(`Invalid seed[${i}]["${key}"]: must be an Array`);
+        }
+        arr.forEach((model, j) => {
+          if (
+            !model ||
+            typeof model !== 'object' ||
+            Array.isArray(model)
+          ) {
+            throw new Error(`Invalid seed[${i}]["${key}"][${j}]: must be an Object`);
+          }
+        });
+      });
+    });
+    return seed;
+  }
+
+  /**
    * Fast-forwards filesystem
    * Pulls migrations from the database to the local filesystem
    */

@@ -41,6 +41,21 @@ module.exports = (Instantiator, Databases) => {
 
     });
 
+    it('should write an empty seed', async () => {
+
+      Instant.Migrator.enableDangerous();
+      Instant.Migrator.Dangerous.filesystem.createSeed();
+
+      expect(fs.existsSync(`./_instant/seed.json`)).to.equal(true);
+
+      let seed = Instant.Migrator.Dangerous.filesystem.readSeed();
+
+      expect(seed).to.deep.equal([{}]);
+
+      Instant.Migrator.disableDangerous();
+
+    });
+
     it('should show migrator disabled', async () => {
 
       let hasMigrationsEnabled = await Instant.Migrator.isEnabled();

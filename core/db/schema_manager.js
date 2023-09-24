@@ -9,6 +9,7 @@ class SchemaManager {
 
   static rootDirectory = './_instant';
   static rootDatabaseConfigFile = 'db.json';
+  static rootDatabaseSeedFile = 'seed.json';
   static migrationsTable = '_instant_migrations';
   static migrationsDirectory = 'migrations';
   static cacheDirectory = 'cache';
@@ -37,7 +38,9 @@ class SchemaManager {
   }
 
   static getDirectory (type) {
-    if (type === 'migrations') {
+    if (type === 'root') {
+      return path.join(this.rootDirectory);
+    } else if (type === 'migrations') {
       return path.join(this.rootDirectory, this.migrationsDirectory);
     } else if (type === 'cache') {
       return path.join(this.rootDirectory, this.cacheDirectory);

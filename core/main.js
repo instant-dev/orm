@@ -55,7 +55,7 @@ class InstantORM extends Logger {
    * you can use this to use Instant as a simple database client with built-in
    * transaction support without model functionality
    * @param {Object|String} cfg Connection configuration for the main db
-   * @param {Object|String} schema Schema details, see #loadSchema()
+   * @param {Object|String} schema Schema details, see #setSchema()
    */
   async connect (cfg, schema) {
     if (cfg === void 0 && schema === void 0 && this._databases['main']) {
@@ -64,12 +64,12 @@ class InstantORM extends Logger {
       let db = await this.addDatabase('main', cfg);
       if (schema === null) {
         // Load an empty schema if it's null
-        await this.loadSchema(this.constructor.Core.DB.SchemaManager.emptySchema());
+        await this.setSchema(this.constructor.Core.DB.SchemaManager.emptySchema());
       } else {
         // Otherwise load a schema automatically
         // Do not fall back to the cache if a config is manually provided
         const useCache = cfg === void 0;
-        await this.loadSchema(schema, useCache);
+        await this.setSchema(schema, useCache);
       }
       return db;
     }
@@ -94,7 +94,7 @@ class InstantORM extends Logger {
 
   __checkSchema__ () {
     if (!this._Schema) {
-      throw new Error(`You have not specified a schema: use .loadSchema()`);
+      throw new Error(`You have not specified a schema: use .setSchema()`);
     }
   }
 
@@ -179,7 +179,7 @@ class InstantORM extends Logger {
    * @param {Object|String|undefined} schema Schema to load
    * @param {Boolean} useCache Should we use the cached filesystem value
    */
-  async loadSchema (src, useCache = true) {
+  async setSchema (src, useCache = true) {
     this.__checkConnection__();
     const db = this._databases['main'];
     let json;
@@ -189,7 +189,7 @@ class InstantORM extends Logger {
     if (src === void 0) {
       // If we don't provide an argument, we'll try to automatically determine
       // the schema from the database
-      let tmpSchema = new this.constructor.Core.DB.SchemaManager(db, this.constructor.Core.DB.SchemaManager.emptySchema());
+      let tmpSchema = new this.constructor.Core.DB.SchemaManager(db);
       let tmpMigrator = new this.constructor.Core.DB.MigrationManager(tmpSchema);
       useCache && this.log(`Checking to see if schema is cached...`);
       if (useCache && tmpSchema.isCacheAvailable()) {
@@ -230,7 +230,8 @@ class InstantORM extends Logger {
     } else {
       throw new Error(`Invalid schema provided: ${src}`);
     }
-    this._Schema = new this.constructor.Core.DB.SchemaManager(db, json);
+    this._Schema = new this.constructor.Core.DB.SchemaManager(db);
+    await this._Schema.setSchema(json);
     this._Migrator = new this.constructor.Core.DB.MigrationManager(this._Schema);
     this._Migrator.enableLogs(this._logLevel); // Pass through logging
     this._Generator = new this.constructor.Core.ModelGenerator();

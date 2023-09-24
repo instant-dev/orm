@@ -61,7 +61,7 @@ class Migration extends Logger {
     return path.join(this._Schema.constructor.getDirectory('migrations'), this.getFilename());
   }
 
-  addCommand (list) {
+  async addCommand (list) {
     list = this.constructor.validateCommand(list, this._Schema.db);
     if (this.direction === 1) {
       this.commands.push(list);
@@ -70,77 +70,77 @@ class Migration extends Logger {
       if (!fn) {
         throw new Error(`Could not find function Schema#${list[0]}()`);
       }
-      fn.apply(this._Schema, list.slice(1));
+      await fn.apply(this._Schema, list.slice(1));
     } else {
       this.commands.unshift(list);
     }
   }
 
-  setSchema (schema) {
+  async setSchema (schema) {
     if (!this.parent) {
       if (!this.name) {
         this.name = 'set_schema';
       }
       let oldSchema = JSON.parse(JSON.stringify(this._Schema.schema));
-      this.up.setSchema(schema);
-      this.down.setSchema(oldSchema);
+      await this.up.setSchema(schema);
+      await this.down.setSchema(oldSchema);
     } else {
-      this.addCommand(['setSchema', schema]);
+      await this.addCommand(['setSchema', schema]);
     }
   }
 
-  createTable (table, arrFieldData) {
+  async createTable (table, arrFieldData) {
     if (!this.parent) {
       if (!this.name) {
         this.name = `create_${table}`;
       }
-      this.up.createTable(table, arrFieldData);
-      this.down.dropTable(table);
+      await this.up.createTable(table, arrFieldData);
+      await this.down.dropTable(table);
     } else {
       if (this.direction === 1) {
         if (this._Schema.findTable(table)) {
           throw new Error(`Table "${table}" already exists in your schema`);
         }
       }
-      this.addCommand(['createTable', table, arrFieldData]);
+      await this.addCommand(['createTable', table, arrFieldData]);
     }
   }
 
-  dropTable (table) {
+  async dropTable (table) {
     if (!this.parent) {
       if (!this.name) {
         this.name = `drop_${table}`;
       }
-      this.up.dropTable(table);
-      this.down.createTable(table, arrFieldData);
+      await this.up.dropTable(table);
+      await this.down.createTable(table, arrFieldData);
     } else {
       if (this.direction === 1) {
         if (!this._Schema.findTable(table)) {
           throw new Error(`Table "${table}" does not exist in your schema`);
         }
       }
-      this.addCommand(['dropTable', table]);
+      await this.addCommand(['dropTable', table]);
     }
   }
 
-  renameTable (table, newTable) {
+  async renameTable (table, newTable) {
     if (!this.parent) {
       if (!this.name) {
         this.name = `rename_${table}_to_${newTable}`;
       }
-      this.up.renameTable(table, newTable);
-      this.down.renameTable(newTable, table);
+      await this.up.renameTable(table, newTable);
+      await this.down.renameTable(newTable, table);
     } else {
       if (this.direction === 1) {
         if (!this._Schema.findTable(table)) {
           throw new Error(`Table "${table}" does not exist in your schema`);
         }
       }
-      this.addCommand(['renameTable', table, newTable]);
+      await this.addCommand(['renameTable', table, newTable]);
     }
   }
 
-  alterColumn (table, column, type, properties) {
+  async alterColumn (table, column, type, properties) {
     if (!this.parent) {
       if (!this.name) {
         this.name = `alter_${table}_column_${column}`;
@@ -149,36 +149,36 @@ class Migration extends Logger {
       let oldColumn = model.columns.find(c => c.name === column);
       let oldType = oldColumn.type;
       let oldProperties = oldColumn.properties;
-      this.up.alterColumn(table, column, type, properties);
-      this.down.alterColumn(table, column, oldType, oldProperties);
+      await this.up.alterColumn(table, column, type, properties);
+      await this.down.alterColumn(table, column, oldType, oldProperties);
     } else {
       if (this.direction === 1) {
         if (!this._Schema.findTableColumn(table, column)) {
           throw new Error(`Column "${table}"."${column}" does not exist in your schema`);
         }
       }
-      this.addCommand(['alterColumn', table, column, type, properties]);
+      await this.addCommand(['alterColumn', table, column, type, properties]);
     }
   }
 
-  addColumn (table, column, type, properties) {
+  async addColumn (table, column, type, properties) {
     if (!this.parent) {
       if (!this.name) {
         this.name = `add_${table}_column_${column}`;
       }
-      this.up.addColumn(table, column, type, properties);
-      this.down.dropColumn(table, column);
+      await this.up.addColumn(table, column, type, properties);
+      await this.down.dropColumn(table, column);
     } else {
       if (this.direction === 1) {
         if (this._Schema.findTableColumn(table, column)) {
           throw new Error(`Column "${table}"."${column}" already exists in your schema`);
         }
       }
-      this.addCommand(['addColumn', table, column, type, properties]);
+      await this.addCommand(['addColumn', table, column, type, properties]);
     }
   }
 
-  dropColumn (table, column) {
+  async dropColumn (table, column) {
     if (!this.parent) {
       if (!this.name) {
         this.name = `drop_${table}_column_${column}`;
@@ -187,71 +187,71 @@ class Migration extends Logger {
       let oldColumn = model.columns.find(c => c.name === column);
       let oldType = oldColumn.type;
       let oldProperties = oldColumn.properties;
-      this.up.dropColumn(table, column);
-      this.down.addColumn(table, column, oldType, oldProperties);
+      await this.up.dropColumn(table, column);
+      await this.down.addColumn(table, column, oldType, oldProperties);
     } else {
       if (this.direction === 1) {
         if (!this._Schema.findTableColumn(table, column)) {
           throw new Error(`Column "${table}"."${column}" does not exist in your schema`);
         }
       }
-      this.addCommand(['dropColumn', table, column]);
+      await this.addCommand(['dropColumn', table, column]);
     }
   }
 
-  renameColumn (table, column, newColumn) {
+  async renameColumn (table, column, newColumn) {
     if (!this.name) {
       this.name = `rename_${table}_column_${column}_to_${newColumn}`;
     }
     if (!this.parent) {
-      this.up.renameColumn(table, column, newColumn);
-      this.down.renameColumn(table, newColumn, column);
+      await this.up.renameColumn(table, column, newColumn);
+      await this.down.renameColumn(table, newColumn, column);
     } else {
       if (this.direction === 1) {
         if (!this._Schema.findTableColumn(table, column)) {
           throw new Error(`Column "${table}"."${column}" does not exist in your schema`);
         }
       }
-      this.addCommand(['renameColumn', table, column, newColumn]);
+      await this.addCommand(['renameColumn', table, column, newColumn]);
     }
   }
 
-  createIndex (table, column, type) {
+  async createIndex (table, column, type) {
     if (!this.name) {
       this.name = `create_index_on_${table}_column_${column}`;
     }
     if (!this.parent) {
-      this.up.createIndex(table, column, type);
-      this.down.dropIndex(table, column);
+      await this.up.createIndex(table, column, type);
+      await this.down.dropIndex(table, column);
     } else {
       if (!this._Schema.findTableColumn(table, column)) {
         throw new Error(`Column "${table}"."${column}" does not exist in your schema`);
       }
-      this.addCommand(['createIndex', table, column, type]);
+      await this.addCommand(['createIndex', table, column, type]);
     }
   }
 
-  dropIndex (table, column) {
+  async dropIndex (table, column) {
     if (!this.name) {
       this.name = `drop_index_on_${table}_column_${column}`;
     }
     if (!this.parent) {
       let index = this._Schema.findIndexEntry(table, column, true);
       let oldType = index.type;
-      this.up.dropIndex(table, column);
-      this.down.createIndex(table, column, oldType);
+      await this.up.dropIndex(table, column);
+      await this.down.createIndex(table, column, oldType);
     } else {
-      this.addCommand(['dropIndex', table, column]);
+      await this.addCommand(['dropIndex', table, column]);
     }
   }
 
-  createForeignKey (table, column, parentTable, parentColumn, behavior) {
+  async createForeignKey (table, column, parentTable, parentColumn, behavior) {
     if (!this.name) {
       this.name = `add_foreign_key_on_${table}_column_${column}`;
     }
     if (!this.parent) {
-      this.up.createForeignKey(table, column, parentTable, parentColumn, behavior);
-      this.down.dropForeignKey(table, column);
+      await this.up.createForeignKey(table, column, parentTable, parentColumn, behavior);
+      await this.down.dropForeignKey(table, column);
     } else {
       if (this.direction === 1) {
         if (!this._Schema.findTableColumn(table, column)) {
@@ -261,20 +261,20 @@ class Migration extends Logger {
           throw new Error(`Column "${parentTable}"."${parentColumn}" does not exist in your schema`);
         }
       }
-      this.addCommand(['createForeignKey', table, column, parentTable, parentColumn, behavior]);
+      await this.addCommand(['createForeignKey', table, column, parentTable, parentColumn, behavior]);
     }
   }
 
-  dropForeignKey (table, column) {
+  async dropForeignKey (table, column) {
     if (!this.name) {
       this.name = `drop_foreign_key_on_${table}_column_${column}`;
     }
     if (!this.parent) {
       let foreignKey = this._Schema.findForeignKey(table, column, true);
-      this.up.dropForeignKey(table, column);
-      this.down.createForeignKey(table, column, foreignKey.parentTable, foreignKey.parentColumn, foreignKey.behavior);
+      await this.up.dropForeignKey(table, column);
+      await this.down.createForeignKey(table, column, foreignKey.parentTable, foreignKey.parentColumn, foreignKey.behavior);
     } else {
-      this.addCommand(['dropForeignKey', table, column]);
+      await this.addCommand(['dropForeignKey', table, column]);
     }
   }
 

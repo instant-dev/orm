@@ -13,14 +13,14 @@ module.exports = (Instantiator, Databases) => {
       await Instant.connect(Databases['main']);
       Instant.Generator.destroyModels();
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
     });
 
     after(async () => {
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
       Instant.disconnect();

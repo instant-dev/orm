@@ -36,7 +36,7 @@ class MigrationManagerDangerousFilesystem {
   /**
    * Initializes filesystem filesystem migrations
    */
-  initialize (json) {
+  async initialize (json) {
     let pathname = this.self.parent._Schema.constructor.getDirectory('migrations');
     if (fs.existsSync(pathname)) {
       throw new Error(
@@ -46,11 +46,12 @@ class MigrationManagerDangerousFilesystem {
     }
     SchemaManager.checkdir(pathname);
     json = JSON.parse(JSON.stringify(json));
-    let tmpSchema = new SchemaManager(this.self.parent._Schema.db, json);
+    let tmpSchema = new SchemaManager(this.self.parent._Schema.db);
+    await tmpSchema.setSchema(json);
     let newJSON = JSON.parse(JSON.stringify(json));
     newJSON.migration_id = (newJSON.migration_id || 0) + 1;
     const migration = new Migration(newJSON.migration_id, 'initial_migration', tmpSchema, this.self.parent);
-    migration.setSchema(newJSON);
+    await migration.setSchema(newJSON);
     this.write(migration);
     return migration;
   }

@@ -205,12 +205,13 @@ class SchemaManager {
     return this.validate(json);
   }
 
-  constructor (db, schema) {
+  constructor (db) {
     if (!(db instanceof Database)) {
       throw new Error('Migrator requires valid database instance');
     }
     this.db = db;
-    this.setSchema(schema);
+    this.schema = this.constructor.emptySchema();
+    this.Models = {};
   }
 
   getCacheFilename () {
@@ -228,16 +229,16 @@ class SchemaManager {
     return JSON.parse(JSON.stringify(this.schema));
   }
 
-  readModels (schema, modelsFn) {
+  async readModels (schema, modelsFn) {
     let Models = {};
     if (fs.existsSync(this.constructor.getDirectory('models'))) {
       let filenames = fs.readdirSync(this.constructor.getDirectory('models'));
       let cwd = process.cwd();
-      filenames.forEach(filename => {
+      for (const filename of filenames) {
         let _Model;
         let pathname = path.join(cwd, this.constructor.getDirectory('models'), filename);
         try {
-          _Model = require(pathname);
+          _Model = (await import(pathname)).default;
         } catch (e) {
           console.error(e);
           throw new Error(`Could not load model from "${pathname}":\n${e.message}`);
@@ -251,15 +252,15 @@ class SchemaManager {
           throw new Error(`Model in "${pathname}" invalid: missing static "tableName"`);
         }
         Models[_Model.tableName] = _Model;
-      });
+      }
     }
     return Models;
   }
 
-  setSchema (schema) {
+  async setSchema (schema) {
     this.schema = this.constructor.validate(schema);
     this.Models = {};
-    const Models = this.readModels(this.schema);
+    const Models = await this.readModels(this.schema);
     Object.keys(this.schema.tables).forEach(name => {
       let className = inflect.classify(name);
       const _Model = Models[name]
@@ -323,13 +324,13 @@ class SchemaManager {
     return model;
   }
 
-  clear () {
-    this.setSchema(this.constructor.emptySchema());
+  async clear () {
+    await this.setSchema(this.constructor.emptySchema());
   }
 
-  update (id) {
+  async update (id) {
     this.setMigrationId(id || this.schema.migration_id);
-    this.setSchema(this.schema);
+    return this.setSchema(this.schema);
   }
 
   getMigrationId () {

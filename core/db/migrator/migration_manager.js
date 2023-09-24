@@ -107,21 +107,22 @@ class MigrationManager extends Logger {
       migrations = migrations.slice(1);
     }
     // NOTE: Must create tmpSchema, we make changes as we add commands
-    const tmpSchema = new SchemaManager(this._Schema.db, initJSON);
-    migrations.forEach(migrationJSON => {
+    const tmpSchema = new SchemaManager(this._Schema.db);
+    await tmpSchema.setSchema(initJSON);
+    for (const migrationJSON of migrations) {
       if (!migrationJSON.commands) {
         throw new Error(`Could not create new migration: Invalid migration in database for migration(id=${migrationJSON.id}):\nMigration commands empty.`);
       }
-      migrationJSON.commands.up.forEach(command => {
+      for (const command of migrationJSON.commands.up) {
         try {
           Migration.validateCommand(command, this._Schema.db);
         } catch (e) {
           throw new Error(`Could not create new migration: Invalid command in database for migration(id=${migrationJSON.id}):\n` + e.message);
         }
-        tmpSchema[command[0]].apply(tmpSchema, command.slice(1));
-      });
+        await tmpSchema[command[0]].apply(tmpSchema, command.slice(1));
+      }
       tmpSchema.setMigrationId(migrationJSON.id);
-    });
+    }
     if (!deepEqual(tmpSchema.schema, this._Schema.schema)) {
       throw new Error(
         `Could not create new migration: your current schema doesn't match the database schema.\n` +
@@ -143,22 +144,22 @@ class MigrationManager extends Logger {
     }
     let migration = await this.create(migrationJSON.id, migrationJSON.name);
     if (migrationJSON.down) {
-      migrationJSON.up.forEach(command => {
+      for (const command of migrationJSON.up) {
         let name = command[0];
         let args = command.slice(1);
-        migration.up[name].apply(migration.up, args);
-      });
-      migrationJSON.down.forEach(command => {
+        await migration.up[name].apply(migration.up, args);
+      }
+      for (const command of migrationJSON.down) {
         let name = command[0];
         let args = command.slice(1);
-        migration.down[name].apply(migration.down, args);
-      });
+        await migration.down[name].apply(migration.down, args);
+      }
     } else {
-      migrationJSON.up.forEach(command => {
+      for (const command of migrationJSON.up) {
         let name = command[0];
         let args = command.slice(1);
-        migration[name].apply(migration, args);
-      });
+        await migration[name].apply(migration, args);
+      }
     }
     return migration;
   }
@@ -172,7 +173,8 @@ class MigrationManager extends Logger {
     }
     id = Migration.validateMigrationId(id);
     let initJSON = this._Schema.schema;
-    const tmpSchema = new SchemaManager(this._Schema.db, initJSON);
+    const tmpSchema = new SchemaManager(this._Schema.db);
+    await tmpSchema.setSchema(initJSON);
     let migration = new Migration(id, name, tmpSchema, this);
     migration.enableLogs(this._logLevel);
     return migration;
@@ -184,8 +186,8 @@ class MigrationManager extends Logger {
    * =====================
    */
 
-  setSchema (schema) {
-    this._Schema.setSchema(schema);
+  async setSchema (schema) {
+    await this._Schema.setSchema(schema);
     let tableObject = this._Schema.schema.tables;
     let tables = Object.keys(tableObject).map(name => tableObject[name]);
     let indices = this._Schema.schema.indices;

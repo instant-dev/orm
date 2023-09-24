@@ -21,8 +21,8 @@ class MigrationManagerDangerous {
   /**
    * Resets the schema and filesystem migrations
    */
-  reset () {
-    this.parent._Schema.clear();
+  async reset () {
+    await this.parent._Schema.clear();
     this.filesystem.clear();
   }
 
@@ -98,7 +98,7 @@ class MigrationManagerDangerous {
       applyMigration = false;
     }
     json = this.parent._Schema.constructor.validate(json);
-    let migration = this.filesystem.initialize(json);
+    let migration = await this.filesystem.initialize(json);
     let result = await this.commit(migration, applyMigration);
     this.parent.log(`Table "${this.parent._Schema.constructor.migrationsTable}" initialized from migration(id=${json.migration_id})`);
     return migration;
@@ -203,12 +203,12 @@ class MigrationManagerDangerous {
       }
     }
     let queries = [];
-    migrationJSON.up.forEach(command => {
-      let query = this.parent[command[0]].apply(this.parent, command.slice(1));
+    for (const command of migrationJSON.up) {
+      let query = await this.parent[command[0]].apply(this.parent, command.slice(1));
       if (applyMigration) {
         queries.push(query);
       }
-    });
+    }
     queries.push(
       [
         this.parent._Schema.db.adapter.generateInsertQuery(
@@ -228,12 +228,12 @@ class MigrationManagerDangerous {
       let migrationResult = await this.parent._Schema.db.transact(queries);
     } catch (e) {
       this.parent.error(`Error during migration: ${e.message}`, e);
-      migrationJSON.down.map(command => {
-        this.parent[command[0]].apply(this.parent, command.slice(1));
-      });
+      for (const command of migrationJSON.down) {
+        await this.parent[command[0]].apply(this.parent, command.slice(1));
+      }
       throw e;
     }
-    this.parent._Schema.update(migrationJSON.id);
+    await this.parent._Schema.update(migrationJSON.id);
     this.parent.log(`Ran migration(id=${migrationJSON.id}, name=${migrationJSON.name}) successfully! (${migrationJSON.up.map(cmd => cmd[0]).join(', ')})`);
     if (writeSchema) {
       this.filesystem.writeSchema(this.parent._Schema);
@@ -521,9 +521,10 @@ class MigrationManagerDangerous {
     for (let i = 0; i < rollbacks.length; i++) {
       let rollback = rollbacks[i];
       let migration = rollback.migration;
-      let queries = migration.down.map(command => {
-        return this.parent[command[0]].apply(this.parent, command.slice(1));
-      });
+      let queries = [];
+      for (const command of migration.down) {
+        queries.push(await this.parent[command[0]].apply(this.parent, command.slice(1)));
+      }
       queries.push(
         [
           this.parent._Schema.db.adapter.generateDeleteQuery(
@@ -539,12 +540,12 @@ class MigrationManagerDangerous {
         let rollbackResult = await this.parent._Schema.db.transact(queries);
       } catch (e) {
         this.parent.error(`Error during rollback: ${e.message}`, e);
-        migrationJSON.up.map(command => {
-          this.parent[command[0]].apply(this.parent, command.slice(1));
-        });
+        for (const command of migrationJSON.up) {
+          await this.parent[command[0]].apply(this.parent, command.slice(1));
+        }
         throw e;
       }
-      this.parent._Schema.update(rollback.prevId);
+      await this.parent._Schema.update(rollback.prevId);
       this.parent.log(`Rolled back migration(id=${migration.id}, name=${migration.name}) successfully! (${migration.down.map(cmd => cmd[0]).join(', ')})`);
     }
     this.filesystem.writeSchema(this.parent._Schema);

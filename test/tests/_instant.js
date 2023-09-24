@@ -149,7 +149,7 @@ module.exports = (Instantiator, Databases) => {
 
       it('should successfully save the current schema with migration_id set', async () => {
 
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
@@ -198,7 +198,7 @@ module.exports = (Instantiator, Databases) => {
 
       it('should prepare the database for migrations again', async () => {
 
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         let result = await Instant.database().query(`SELECT * FROM "${Instant.Schema.constructor.migrationsTable}"`, []);
@@ -208,7 +208,7 @@ module.exports = (Instantiator, Databases) => {
 
       it('should fail to find models before db initialized', async () => {
 
-        Instant.Schema.setSchema(schema);
+        await Instant.Schema.setSchema(schema);
         const modelNames = Instant.Schema.listTableNames();
 
         expect(modelNames.length).to.be.greaterThan(0);

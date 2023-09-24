@@ -12,14 +12,14 @@ module.exports = (Instantiator, Databases) => {
     before(async () => {
       await Instant.connect(Databases['main']);
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
     });
 
     after(async () => {
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
       Instant.disconnect();
@@ -76,7 +76,7 @@ module.exports = (Instantiator, Databases) => {
 
     it('should fail to create a migration if database is not ready', async () => {
 
-      let errpr;
+      let error;
 
       try {
         const migration = await Instant.Migrator.create();
@@ -92,13 +92,13 @@ module.exports = (Instantiator, Databases) => {
     it('should initialize database migrations and create first migration, but not run it', async () => {
 
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.prepare();
       await Instant.Migrator.Dangerous.initialize();
       const migration = await Instant.Migrator.create();
 
-      migration.createTable('blog_posts', [{name: 'title', type: 'string'}]);
-      migration.alterColumn('blog_posts', 'title', 'varchar');
+      await migration.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+      await migration.alterColumn('blog_posts', 'title', 'varchar');
       let json = migration.toJSON();
 
       expect(migration).to.exist;
@@ -121,7 +121,7 @@ module.exports = (Instantiator, Databases) => {
     it('should fail when provided invalid command input', async () => {
 
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.prepare();
       await Instant.Migrator.Dangerous.initialize();
       const migration = await Instant.Migrator.create();
@@ -129,8 +129,8 @@ module.exports = (Instantiator, Databases) => {
       let error;
 
       try {
-        migration.createTable('blog_posts', [{name: 'title', type: 'string'}]);
-        migration.alterColumn('blog_posts', 'title', {type: 'varchar'});
+        await migration.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+        await migration.alterColumn('blog_posts', 'title', {type: 'varchar'});
       } catch (e) {
         error = e;
       }
@@ -143,13 +143,13 @@ module.exports = (Instantiator, Databases) => {
     it('should initialize database migrations and create first named migration, and run it', async () => {
 
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.prepare();
       await Instant.Migrator.Dangerous.initialize();
       const migration = await Instant.Migrator.create(null, 'my_first_migration');
 
-      migration.createTable('blog_posts', [{name: 'title', type: 'string'}]);
-      migration.alterColumn('blog_posts', 'title', 'varchar');
+      await migration.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+      await migration.alterColumn('blog_posts', 'title', 'varchar');
 
       await Instant.Migrator.Dangerous.commit(migration);
 
@@ -178,14 +178,14 @@ module.exports = (Instantiator, Databases) => {
     it('should create a migration and write it to a file', async () => {
 
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       await Instant.Migrator.Dangerous.prepare();
       const initialMigration = await Instant.Migrator.Dangerous.initialize();
       const migration = await Instant.Migrator.create(null, 'my_first_migration');
 
-      migration.createTable('blog_posts', [{name: 'title', type: 'string'}]);
-      migration.alterColumn('blog_posts', 'title', 'varchar');
+      await migration.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+      await migration.alterColumn('blog_posts', 'title', 'varchar');
       Instant.Migrator.Dangerous.filesystem.write(migration);
 
       let stat = fs.statSync(migration._Schema.constructor.getDirectory('migrations'));
@@ -211,7 +211,7 @@ module.exports = (Instantiator, Databases) => {
       it('should throw an error for no migrations directory', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
 
@@ -270,7 +270,7 @@ module.exports = (Instantiator, Databases) => {
         let localMigrations = Instant.Migrator.Dangerous.filesystem.getMigrations();
 
         const migration = await Instant.Migrator.create(localMigrations[1].id, 'create_users');
-        migration.createTable('users', [{name: 'username', type: 'string'}]);
+        await migration.createTable('users', [{name: 'username', type: 'string'}]);
 
         try {
           Instant.Migrator.Dangerous.filesystem.write(migration);
@@ -345,22 +345,22 @@ module.exports = (Instantiator, Databases) => {
       it('should fail to migrate when "mismatch"', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
 
         const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+        await migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         const migrationB = await Instant.Migrator.create(200, 'create_users');
-        migrationB.createTable('users', [{name: 'username', type: 'string'}]);
+        await migrationB.createTable('users', [{name: 'username', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationB);
 
         // Need to create unwritten migration here or we get an error...
         let migrationA1 = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA1.createTable('blog_posts', [{name: 'title', type: 'string'}, {name: 'content', type: 'string'}]);
+        await migrationA1.createTable('blog_posts', [{name: 'title', type: 'string'}, {name: 'content', type: 'string'}]);
 
         await Instant.Migrator.Dangerous.migrate();
         fs.unlinkSync(migrationA.getFilepath());
@@ -393,17 +393,17 @@ module.exports = (Instantiator, Databases) => {
       it('should fail to migrate when "database_ahead"', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
 
         const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+        await migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         const migrationB = await Instant.Migrator.create(200, 'create_users');
-        migrationB.createTable('users', [{name: 'username', type: 'string'}]);
+        await migrationB.createTable('users', [{name: 'username', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationB);
 
         await Instant.Migrator.Dangerous.migrate();
@@ -435,21 +435,21 @@ module.exports = (Instantiator, Databases) => {
       it('should fail to migrate when "unsynced"', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
 
         const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+        await migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         const migrationB = await Instant.Migrator.create(200, 'create_users');
-        migrationB.createTable('users', [{name: 'username', type: 'string'}]);
+        await migrationB.createTable('users', [{name: 'username', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationB);
 
         const migrationC = await Instant.Migrator.create(300, 'create_uploads');
-        migrationC.createTable('uploads', [{name: 'filename', type: 'string'}]);
+        await migrationC.createTable('uploads', [{name: 'filename', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationC);
 
         await Instant.Migrator.Dangerous.migrate();
@@ -481,7 +481,7 @@ module.exports = (Instantiator, Databases) => {
       it('should migrate based on number of steps', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
@@ -525,21 +525,21 @@ module.exports = (Instantiator, Databases) => {
       it('should rollback based on number of steps', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
 
         const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+        await migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         const migrationB = await Instant.Migrator.create(200, 'create_users');
-        migrationB.createTable('users', [{name: 'username', type: 'string'}]);
+        await migrationB.createTable('users', [{name: 'username', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationB);
 
         const migrationC = await Instant.Migrator.create(300, 'create_uploads');
-        migrationC.createTable('uploads', [{name: 'filename', type: 'string'}]);
+        await migrationC.createTable('uploads', [{name: 'filename', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationC);
 
         await Instant.Migrator.Dangerous.migrate();
@@ -621,21 +621,21 @@ module.exports = (Instantiator, Databases) => {
       it('should rollback to a specific migration id', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
 
         const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+        await migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         const migrationB = await Instant.Migrator.create(200, 'create_users');
-        migrationB.createTable('users', [{name: 'username', type: 'string'}]);
+        await migrationB.createTable('users', [{name: 'username', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationB);
 
         const migrationC = await Instant.Migrator.create(300, 'create_uploads');
-        migrationC.createTable('uploads', [{name: 'filename', type: 'string'}]);
+        await migrationC.createTable('uploads', [{name: 'filename', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationC);
 
         await Instant.Migrator.Dangerous.migrate();
@@ -698,7 +698,7 @@ module.exports = (Instantiator, Databases) => {
       it('should rollbackSync = false when already synced', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
@@ -725,21 +725,21 @@ module.exports = (Instantiator, Databases) => {
       it('should rollbackSync = true when not synced', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
 
         const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+        await migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         const migrationB = await Instant.Migrator.create(200, 'create_users');
-        migrationB.createTable('users', [{name: 'username', type: 'string'}]);
+        await migrationB.createTable('users', [{name: 'username', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationB);
 
         const migrationC = await Instant.Migrator.create(300, 'create_uploads');
-        migrationC.createTable('uploads', [{name: 'filename', type: 'string'}]);
+        await migrationC.createTable('uploads', [{name: 'filename', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationC);
 
         await Instant.Migrator.Dangerous.migrate();
@@ -798,7 +798,7 @@ module.exports = (Instantiator, Databases) => {
       it('should fast-forward from the database', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
@@ -832,22 +832,22 @@ module.exports = (Instantiator, Databases) => {
       it('should fail to fast-forward when "mismatch"', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
 
         const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+        await migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         const migrationB = await Instant.Migrator.create(200, 'create_users');
-        migrationB.createTable('users', [{name: 'username', type: 'string'}]);
+        await migrationB.createTable('users', [{name: 'username', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationB);
 
         // Need to create unwritten migration here or we get an error...
         let migrationA1 = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA1.createTable('blog_posts', [{name: 'title', type: 'string'}, {name: 'content', type: 'string'}]);
+        await migrationA1.createTable('blog_posts', [{name: 'title', type: 'string'}, {name: 'content', type: 'string'}]);
 
         await Instant.Migrator.Dangerous.migrate();
 
@@ -872,21 +872,21 @@ module.exports = (Instantiator, Databases) => {
       it('should fail to fast-forward when "unsynced"', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
 
         const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+        await migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         const migrationB = await Instant.Migrator.create(200, 'create_users');
-        migrationB.createTable('users', [{name: 'username', type: 'string'}]);
+        await migrationB.createTable('users', [{name: 'username', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationB);
 
         const migrationC = await Instant.Migrator.create(300, 'create_uploads');
-        migrationC.createTable('uploads', [{name: 'filename', type: 'string'}]);
+        await migrationC.createTable('uploads', [{name: 'filename', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationC);
 
         await Instant.Migrator.Dangerous.migrate();
@@ -909,17 +909,17 @@ module.exports = (Instantiator, Databases) => {
       it('should fail to fast-forward when "filesystem_ahead"', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
 
         const migrationA = await Instant.Migrator.create(100, 'create_blog_posts');
-        migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
+        await migrationA.createTable('blog_posts', [{name: 'title', type: 'string'}]);
         Instant.Migrator.Dangerous.filesystem.write(migrationA);
 
         const migrationB = await Instant.Migrator.create(200, 'create_users');
-        migrationB.createTable('users', [{name: 'username', type: 'string'}]);
+        await migrationB.createTable('users', [{name: 'username', type: 'string'}]);
 
         await Instant.Migrator.Dangerous.migrate();
 
@@ -952,7 +952,7 @@ module.exports = (Instantiator, Databases) => {
       it('should rewind based on number of steps', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
@@ -1005,7 +1005,7 @@ module.exports = (Instantiator, Databases) => {
       it('should rewind to a specific migration id', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
@@ -1051,7 +1051,7 @@ module.exports = (Instantiator, Databases) => {
       it('should filesystem.rewindSync = false when already synced', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
@@ -1078,7 +1078,7 @@ module.exports = (Instantiator, Databases) => {
       it('should filesystem.rewindSync = true when not synced', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();
@@ -1119,7 +1119,7 @@ module.exports = (Instantiator, Databases) => {
       it('should create serial fields without extra params (defaults included)', async () => {
 
         Instant.Migrator.enableDangerous();
-        Instant.Migrator.Dangerous.reset();
+        await Instant.Migrator.Dangerous.reset();
         await Instant.Migrator.Dangerous.annihilate();
         await Instant.Migrator.Dangerous.prepare();
         await Instant.Migrator.Dangerous.initialize();

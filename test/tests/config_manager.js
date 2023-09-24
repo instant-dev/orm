@@ -12,7 +12,7 @@ module.exports = (Instantiator, Databases) => {
     before(async () => {
       await Instant.connect(Databases['main']);
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
       Instant.disconnect();
@@ -22,7 +22,7 @@ module.exports = (Instantiator, Databases) => {
     after(async () => {
       await Instant.connect(Databases['main']);
       Instant.Migrator.enableDangerous();
-      Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
       Instant.disconnect();

@@ -4,7 +4,8 @@
 ## JavaScript ORM for Postgres
 
 This is the core ORM package for [**`instant.dev`**](https://github.com/instant-dev/instant).
-It is recommended that you use it with the `instant` command line utility for
+It is recommended that you use it with the `instant` command line utility
+available at [instant-dev/instant](https://github.com/instant-dev/instant) for
 easy migration management, **however, it can be used as a standalone ORM**. By
 default, upon connecting to a database, the Instant ORM will introspect your
 Database schema and determine appropriate models and relationships.

@@ -15,7 +15,7 @@ Database schema and determine appropriate models and relationships.
 Installing the Instant ORM:
 
 ```shell
-npm i @instant.dev/orm
+npm i @instant.dev/orm@latest --save
 ```
 
 Initializing (CommonJS):

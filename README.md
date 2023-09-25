@@ -1,4 +1,5 @@
-# Instant ORM ![npm version](https://img.shields.io/npm/v/@instant.dev/orm?label=) ![Build Status](https://app.travis-ci.com/instant-dev/orm.svg?branch=main)
+# Instant ORM
+![npm version](https://img.shields.io/npm/v/@instant.dev/orm?label=) ![Build Status](https://app.travis-ci.com/instant-dev/orm.svg?branch=main)
 
 ## JavaScript ORM for Postgres
 

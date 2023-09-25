@@ -80,6 +80,82 @@ const cfg = {
 await Instant.connect(cfg); // now connected to custom Database
 ```
 
+### Connecting to another database
+
+By default, the `Instant.connect()` method will assign your initial database
+connection the alias `"main"`. You can access your Database object directly
+via:
+
+```javascript
+const db = Instant.database();
+const mainDb = Instant.database('main');
+console.log(db === mainDb); // true, "main" is an alias for your main db
+```
+
+To connect to another database, simply use:
+
+```javascript
+// connect
+Instant.addDatabase(name, cfg);
+// read
+const otherDb = Instant.database(name);
+```
+
+### Querying your databases directly
+
+Querying your database directly is easy. To run a standalone query;
+
+```javascript
+const db = Instant.database();
+const result = await db.query(`SELECT * FROM my_table WHERE x = $1`, [27]);
+```
+
+To execute a batched transaction from prepared statements and queries;
+
+```javascript
+const db = Instant.database();
+// Pass in an array of statements
+const result = await db.transact([
+  `SELECT * FROM my_table`,
+  `INSERT INTO my_table(field) VALUES((1))`,
+  // Parameterized statements can be passed in as well
+  [`INSERT INTO my_other_table(other_field) VALUES(($1))`, [2]]
+]);
+```
+
+And to create a transaction that you want to work with in real-time, potentially
+querying third party services before deciding whether or not to commit the query:
+
+```javascript
+const db = Instant.database();
+const txn = db.createTransaction();
+
+let result = await txn.query(`SELECT * FROM my_table WHERE x = $1`, [27]);
+let result2 = await txn.query(`INSERT INTO my_table(field) VALUES(($1))`, [5]);
+let manyQueries = await txn.transact([
+  `SELECT * FROM my_table`,
+  `INSERT INTO my_table(field) VALUES((1))`,
+]);
+// to commit
+await txn.commit();
+// to rollback
+await txn.rollback();
+```
+
+### Disconnecting
+
+To disconnect from a specific database:
+
+```javascript
+Instant.closeDatabase(name);
+```
+
+And to disconnect from all open databases and reset your connection:
+
+```javascript
+Instant.disconnect();
+```
+
 ## Loading a Schema
 
 When you connect to a database, Instant ORM will attempt to determine the

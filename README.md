@@ -35,14 +35,18 @@ const Instant = new InstantORM();
 ## Connecting to a Database
 
 By default, the Instant ORM will attempt to load database credentials from
-`_instant/db.json[process.env.NODE_ENV]["main"]`. If this file does not exist,
-or you want to override these credentials, you can pass in a custom
-`databaseConfig` object.
+`_instant/db.json[process.env.NODE_ENV]["main"]`:
 
 ```javascript
 await Instant.connect(); // connects based on _instant/db.json
+```
 
-const databaseConfig = {
+However, you can also provide custom credentials to any database you'd like
+by passing in a `cfg` configuration object with the credentials in the following
+format:
+
+```javascript
+const cfg = {
   host: 'my.postgres.host',
   port: 5432,
   user: 'postgres',
@@ -57,7 +61,23 @@ const databaseConfig = {
     private_key: 'path/to/private_key.pem'
   }
 };
-await Instant.connect(databaseConfig); // now connected to custom Database
+await Instant.connect(cfg); // now connected to custom Database
+```
+
+You can also opt to provide a `connectionString` instead:
+
+```javascript
+const cfg = {
+  connectionString: 'postgres://postgres:mypass@my.postgres.host:5432/postgres?sslmode=true',
+  in_vpc: false // optional: if false, will use provided SSH tunnel when deployed
+  tunnel: { // optional: use this if we need to SSH tunnel into database
+    host: 'my.ssh.host.com',
+    port: 22,
+    user: 'ec2-user',
+    private_key: 'path/to/private_key.pem'
+  }
+};
+await Instant.connect(cfg); // now connected to custom Database
 ```
 
 ## Loading a Schema
@@ -77,6 +97,10 @@ schema of your database in a few ways.
   - All tables, columns, sequences and constraints will be inspected
   - Foreign keys and uniqueness will be used to determine one-to-one and
     one-to-many relationships
+
+Additionally, you can also pass a custom `schema` object to the
+`Instant.connect(cfg)` method as a second argument, but this is
+**not recommended**. It is usually reserved for testing purposes.
 
 ## Loading Custom Model Logic
 

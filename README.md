@@ -223,9 +223,175 @@ Instant.Model('SampleModel');
 
 ## Using Models
 
+Models are accessible via the `Instant.Model(modelName)` method. This method
+will automatically look up the most likely model based on the matching `table`
+in your database schema.
+
+```javascript
+const User = Instant.Model('User');
+```
+
+This method would also accept the strings `Users`, `user`, `users`. If your
+table has pluralization and underscores we recommend using the singular version,
+but you can access using the table name as well. For example, the table name
+`object_children` could be accessed via:
+
+```javascript
+const ObjectChild = Instant.Model('ObjectChild'); // recommended
+```
+
+However, the following would also work:
+
+```javascript
+Instant.Model('ObjectChildren');
+Instant.Model('object_child');
+Instant.Model('object_children');
+```
+
+In the case of ambiguity - multiple tables potentially matching the object name -
+`Instant.Model()` will throw an error and ask you to use the specific table.
+
 ### CRUD Operations
 
-Write me
+#### Create
+
+You can create new model instances and save them to the database with
+`Model.create(data)` or `new Model(data)` and then a subsequent `model.save()`:
+
+```javascript
+const User = Instant.Model('User');
+
+// Model.create() method creates a user:
+let user1 = await User.create({email: 'keith@instant.dev', username: 'keith'});
+console.log(user1.inStorage()); // true
+
+// Can also use new Model() and then save it
+let user2 = new User({email: 'scott@instant.dev'});
+user2.set('username', 'scott'); // can set values independently
+console.log(user2.inStorage()); // false
+await user2.save();
+console.log(user2.inStorage()); // true
+```
+
+#### Read
+
+Reading model data can be done in a few ways: `Model.find()`, `Model.findBy()`
+or via [Query composition](#query-composition) using the `query.select()`
+method.
+
+```javascript
+let user1 = await User.find(1); // uses id
+let user2 = await User.findBy('email', 'keith@instant.dev');
+let user3 = await User.query()
+  .where({email: 'keith@instant.dev'})
+  .first(); // throws error if not found
+let userList = await User.query()
+  .where({email: 'keith@instant.dev'})
+  .select(); // can return an empty list
+let userCount = await User.query()
+  .where({email: 'keith@instant.dev'})
+  .count();
+```
+
+#### Update
+
+Updating model data can be performed by (1) updating and saving individual
+models, (2) update and saving ModelArrays, (3) `Model.updateOrCreateBy()` or
+(4) [Query composition](#query-composition) using the `query.update()` method.
+
+**Note:** `query.update()` will bypass model lifecycle methods `beforeSave()`
+and `afterSave()` as well as all validations verifications. Read more in
+[Lifecycle callbacks](#lifecycle-callbacks).
+
+```javascript
+let user = await user.findBy('username', 'keith');
+user.set('username', 'keith_h');
+await user.save();
+
+// Update by reading from data
+user.read({username: 'keith_h2'});
+await user.save();
+
+// Save many models at once using ModelArrays
+// Let's make all our moderators superusers
+let users = await User.query()
+  .where({is_moderator: true})
+  .select();
+users.setAll('is_superuser', true);
+await users.saveAll();
+
+// Can also use `readAll`
+users.readAll({free_credits: 100});
+await users.saveAll();
+
+// Can update models directly with new data if there's a matching entry
+user = await User.updateOrCreateBy(
+  'username',
+  {username: 'keith_h2', email: 'keith+new@instant.dev'}
+);
+
+// Bypass lifecycle callbacks, validations and verifications
+// Useful for updating many models at once and batch processing
+users = await User.query()
+  .where({username: 'keith_h2'})
+  .update({username: 'keith'});
+```
+
+##### Incrementing values and custom SQL
+
+You can run custom SQL when updating models using the `query.update()` method.
+**This will bypass [Lifecycle callbacks](#lifecycle-callbacks)**. However it is
+the most efficient way to do things like incrementing values.
+
+```javascript
+const user = User.findBy('email', 'keith@instant.dev');
+await User.query()
+  .where({user_id: user.get('id')})
+  .update({post_count: (post_count) => `${post_count} + 1`});
+```
+
+In this case, the `post_count` variable will hold the query column reference.
+You can reference multiple fields by including more fields in the function
+arguments:
+
+```javascript
+const user = User.findBy('email', 'keith@instant.dev');
+await User.query()
+  .where({user_id: user.get('id')})
+  .update({
+    post_count: (post_count) => `${post_count} + 1`,
+    karma: (karma, post_count) => `${karma} + LOG(${post_count})`
+  });
+```
+
+Any valid SQL expression can be returned by these methods.
+
+#### Destroy
+
+We purposefully **do not** include a `delete` method in
+[Query composition](#query-composition). In most application contexts,
+permanently deleting records is bad practice from a security and monitoring
+perspective. We usually recommend `is_archived` or `is_deleted` flags.
+In the case you really do need to delete records, there is a `Model.destroy(id)`
+method, a `model.destroy()` method and a `modelArray.destroyAll()` method.
+We also provide `model.destroyCascade()` and `modelArray.destroyCascade()` for
+a cascading delete if foreign key constraints prevent deleting a model directly.
+
+```javascript
+await User.destroy(100); // goodbye User(id=100)!
+
+let user = await User.findBy('email', 'nouser@instant.dev');
+await user.destroy();
+let user2 = await User.findBy('email', 'nouser2@instant.dev');
+await user2.destroyCascade(); // destroy model + children (useful for foreign keys)
+
+/* ModelArray methods */
+let bannedUsers = await User.query().where({is_banned: true}).select();
+await bannedUsers.destroyAll();
+
+let mutedUsers = await User.query().where({is_muted: true}).select();
+await mutedUsers.destroyCascade();
+```
 
 ### Query composition
 

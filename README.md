@@ -53,7 +53,7 @@ const cfg = {
   password: '',
   database: 'postgres',
   ssl: false, // optional: acceptable values are [true, false, "unauthorized"]
-  in_vpc: false // optional: if false, will use provided SSH tunnel when deployed
+  in_vpc: false, // optional: if false, will use provided SSH tunnel when deployed
   tunnel: { // optional: use this if we need to SSH tunnel into database
     host: 'my.ssh.host.com',
     port: 22,
@@ -69,7 +69,7 @@ You can also opt to provide a `connectionString` instead:
 ```javascript
 const cfg = {
   connectionString: 'postgres://postgres:mypass@my.postgres.host:5432/postgres?sslmode=true',
-  in_vpc: false // optional: if false, will use provided SSH tunnel when deployed
+  in_vpc: false, // optional: if false, will use provided SSH tunnel when deployed
   tunnel: { // optional: use this if we need to SSH tunnel into database
     host: 'my.ssh.host.com',
     port: 22,

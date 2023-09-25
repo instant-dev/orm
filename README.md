@@ -1,12 +1,12 @@
-# Instant ORM ![Build Status](https://app.travis-ci.com/instant-dev/orm.svg?branch=main)
+# Instant ORM ![npm version](https://img.shields.io/npm/v/@instant.dev/orm?label=) ![Build Status](https://app.travis-ci.com/instant-dev/orm.svg?branch=main)
 
 ## JavaScript ORM for Postgres
 
-This is the core [instant.dev](https://github.com/instant-dev/instant) ORM
-package. It is recommended that you use it with the `instant.dev` CLI for easy
-migration management, however it can be used as a standalone ORM. By default,
-upon connecting to a database, the Instant ORM will introspect your Database
-schema and determine appropriate models and relationships.
+This is the core ORM package for [**`instant.dev`**](https://github.com/instant-dev/instant).
+It is recommended that you use it with the `instant` command line utility for
+easy migration management, **however, it can be used as a standalone ORM**. By
+default, upon connecting to a database, the Instant ORM will introspect your
+Database schema and determine appropriate models and relationships.
 
 ## Getting Started
 

@@ -4,6 +4,10 @@ const inflect = require('i')();
 
 const Logger = require('./logger.js');
 
+/**
+* Instant ORM
+* @class
+*/
 class InstantORM extends Logger {
 
   static Core = {
@@ -24,6 +28,9 @@ class InstantORM extends Logger {
     RelationshipGraph: require('./lib/relationship_graph.js')
   };
 
+  /**
+   * Create a new Instant ORM instance
+   */
   constructor () {
     super('Instant', 'blue');
     this.__initialize__();
@@ -41,21 +48,43 @@ class InstantORM extends Logger {
     this._Models = {};
   }
 
+  __checkConnection__ () {
+    if (!this._databases['main']) {
+      throw new Error(`You are not connected to a main database: use .connect()`);
+    }
+    return true;
+  }
+
+  __checkSchema__ () {
+    if (!this._Schema) {
+      throw new Error(`You have not specified a schema: use .setSchema()`);
+    }
+  }
+
+  /**
+   * Retrieve the root installation directory
+   * @returns {string}
+   */
   filesystemRoot () {
     return this.constructor.Core.DB.SchemaManager.rootDirectory;
   }
 
+  /**
+   * Check if Instant Migrations have been initialized in the filesystem
+   * @returns {boolean}
+   */
   isFilesystemInitialized () {
     return !!fs.existsSync(this.filesystemRoot());
   }
 
   /**
    * Connect to a database and loads a schema
-   * If `schema` is provided as null, will intentionally not load a schema;
-   * you can use this to use Instant as a simple database client with built-in
-   * transaction support without model functionality
-   * @param {Object|String} cfg Connection configuration for the main db
-   * @param {Object|String} schema Schema details, see #setSchema()
+   * If cfg is not provided, will load "main" configuration from "./_instant/db.json"
+   * If schema is not provided, will load schema automatically
+   * If schema is provided as `null`, no schema will be loaded
+   * @param {?import('./types').DatabaseConfig} cfg Connection configuration for the main db
+   * @param {?object} schema Schema details, see #setSchema()
+   * @returns {Promise<import('./db/database')>}
    */
   async connect (cfg, schema) {
     if (cfg === void 0 && schema === void 0 && this._databases['main']) {
@@ -77,7 +106,7 @@ class InstantORM extends Logger {
 
   /**
    * Creates a standalone SSH tunnel to a database, if applicable
-   * @param {Object|String} cfg Connection configuration for the main db
+   * @param {import('./types').DatabaseConfig} cfg Connection configuration for the main db
    */
   async tunnel (cfg) {
     const db = new this.constructor.Core.DB.Database('tunnel');
@@ -85,19 +114,10 @@ class InstantORM extends Logger {
     return db.tunnel(cfg);
   }
 
-  __checkConnection__ () {
-    if (!this._databases['main']) {
-      throw new Error(`You are not connected to a main database: use .connect()`);
-    }
-    return true;
-  }
-
-  __checkSchema__ () {
-    if (!this._Schema) {
-      throw new Error(`You have not specified a schema: use .setSchema()`);
-    }
-  }
-
+  /**
+   * Disconnects from all databases
+   * @returns {boolean}
+   */
   disconnect () {
     let names = Object.keys(this._databases)
       .filter(name => name !== 'main' && this._databases[name])
@@ -107,6 +127,11 @@ class InstantORM extends Logger {
     return true;
   }
 
+  /**
+   * Enables logging, different levels of logging are provided
+   * @param {0|1|2|3|4} logLevel DISABLED=0, ERRORS_ONLY=1, SYSTEM_LOGS=2, INFO_LOGS=3, QUERY_LOGS=4
+   * @returns {0|1|2|3|4}
+   */
   enableLogs (logLevel) {
     super.enableLogs(logLevel);
     Object.keys(this._databases)
@@ -117,8 +142,16 @@ class InstantORM extends Logger {
     this._Migrator && this._Migrator.enableLogs(logLevel);
     this._Generator && this._Generator.enableLogs(logLevel);
     this.Config && this.Config.enableLogs(logLevel);
+    return logLevel;
   }
 
+  /**
+   * Connects to another database. Must be connected via `.connect()` first.
+   * If no configuration is provided, will rely on configuration in "./_instant/db.json"
+   * @param {string} name Alias of the database when using .database()
+   * @param {?import('./types').DatabaseConfig} cfg
+   * @returns {Promise<import('./db/database')>}
+   */
   async addDatabase (name, cfg) {
     if (name !== 'main') {
       this.__checkConnection__();
@@ -142,6 +175,11 @@ class InstantORM extends Logger {
     return this._databases[name];
   }
 
+  /**
+   * Disconnects from a specific database
+   * @param {string} name 
+   * @returns {boolean}
+   */
   closeDatabase (name) {
     this.__checkConnection__();
     const db = this.database(name);
@@ -157,6 +195,11 @@ class InstantORM extends Logger {
     return true;
   }
 
+  /**
+   * Access a database directly
+   * @param {string} name alias you connected with
+   * @returns {import('./db/database')}
+   */
   database (name = 'main') {
     this.__checkConnection__();
     if (!this._databases[name]) {
@@ -170,14 +213,9 @@ class InstantORM extends Logger {
    * If src is undefined, it will automatically detect schema from the database;
    * first by checking "schema_migrations" table, and if that fails by
    * introspecting the database structure
-   * If src is a string beginning with "/", "./" or "../", it will attempt
-   * to load the schema from a local file - you can use this to cache your
-   * schema and speed up connections
-   * If src is any other string, it will treat it like a URL and try
-   * to download the schema from the URL provided
-   * If src is an object, it will load the schema directly from the object
-   * @param {Object|String|undefined} schema Schema to load
-   * @param {Boolean} useCache Should we use the cached filesystem value
+   * @param {?object} schema Schema to load
+   * @param {boolean} useCache Should we use the cached filesystem value, if available
+   * @returns {import('./db/schema_manager')}
    */
   async setSchema (src, useCache = true) {
     this.__checkConnection__();
@@ -239,30 +277,49 @@ class InstantORM extends Logger {
     return this._Schema;
   }
 
+  /**
+   * @returns {import('./db/schema_manager')}
+   */
   get Schema () {
     this.__checkConnection__();
     this.__checkSchema__();
     return this._Schema;
   }
 
+  /**
+   * @returns {import('./db/migrator/migration_manager')}
+   */
   get Migrator () {
     this.__checkConnection__();
     this.__checkSchema__();
     return this._Migrator;
   }
 
+  /**
+   * @returns {import('./lib/model_generator')}
+   */
   get Generator () {
     this.__checkConnection__();
     this.__checkSchema__();
     return this._Generator;
   }
 
+  /**
+   * Retrieve a specific Model class
+   * @param {string} name
+   * @returns {typeof import('./lib/model')}
+   */
   Model (name) {
     this.__checkConnection__();
     this.__checkSchema__();
     return this._Schema.getModel(name);
   }
 
+  /**
+   * Retrieve a specific ModelFactory to generate multiple models at once
+   * @param {string} name 
+   * @returns {import('./lib/model_factory')}
+   */
   ModelFactory (name) {
     const Model = this.Model(name);
     const modelFactory = new this.constructor.Core.ModelFactory(Model);

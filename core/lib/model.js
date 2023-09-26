@@ -13,15 +13,15 @@ const RelationshipGraph = require('./relationship_graph.js');
 const Relationships = new RelationshipGraph();
 
 /**
-* Basic Model implementation. Optionally interfaces with database.
+* Instant ORM Model Instance
 * @class
 */
 class Model {
 
   /**
-  * @param {Object} modelData Data to load into the object
-  * @param {optional boolean} fromStorage Is this model being loaded from storage? Defaults to false.
-  * @param {option boolean} fromSeed Is this model being seeded?
+  * @param {object} modelData Data to load into the object
+  * @param {?boolean} fromStorage Is this model being loaded from storage? Defaults to false.
+  * @param {?boolean} fromSeed Is this model being seeded?
   */
   constructor (modelData, fromStorage, fromSeed) {
 
@@ -35,7 +35,8 @@ class Model {
   /**
   * Finds a model with a provided id, otherwise returns a notFound error.
   * @param {number} id The id of the model you're looking for
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @returns {Promise<Model>}
   */
   static async find (id, txn) {
     let db = this.prototype.db;
@@ -55,6 +56,7 @@ class Model {
   * Finds a model with a provided field, value pair. Returns the first found.
   * @param {string} field Name of the field
   * @param {any} value Value of the named field to compare against
+  * @returns {Promise<Model>}
   */
   static async findBy (field, value, txn) {
     let db = this.prototype.db;
@@ -75,7 +77,8 @@ class Model {
   /**
   * Creates a new model instance using the provided data.
   * @param {object} data The data to load into the object.
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @returns {Promise<Model>}
   */
   static async create (data, txn) {
     let model = new this(data);
@@ -86,16 +89,17 @@ class Model {
   * Updates or creates a model with a provided field, value pair. Returns the first found.
   * @param {string} field Name of the field
   * @param {object} data Key-value pairs of Model creation data. Will use appropriate value to query for based on "field" parametere.
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @returns {Promise<Model>}
   */
   static async updateOrCreateBy (field, data, txn) {
     try {
       let model = await this.findBy(field, data[field], txn);
       model.read(data);
-      return await model.save(txn);
+      return model.save(txn);
     } catch (e) {
       if (e.notFound) {
-        return await this.create(data, txn);
+        return this.create(data, txn);
       } else {
         throw e;
       }
@@ -106,7 +110,8 @@ class Model {
   * Finds and updates a model with a specified id. Return a notFound error if model does not exist.
   * @param {number} id The id of the model you're looking for
   * @param {object} data The data to load into the object.
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @returns {Promise<Model>}
   */
   static async update (id, data, txn) {
     let model = await this.find(id, txn);
@@ -117,7 +122,8 @@ class Model {
   /**
   * Finds and destroys a model with a specified id. Return a notFound error if model does not exist.
   * @param {number} id The id of the model you're looking for
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @returns {Promise<Model>}
   */
   static async destroy (id, txn) {
     let model = await this.find(id, txn);
@@ -127,7 +133,7 @@ class Model {
   /**
   * Creates a new Composer (ORM) instance to begin a new query.
   * @param {optional Nodal.Database} readonlyDb Provide a readonly database to query from
-  * @return {Nodal.Composer}
+  * @returns {import('./composer')}
   */
   static query (readonlyDb) {
     return new Composer(this, null, readonlyDb);
@@ -135,7 +141,7 @@ class Model {
 
   /**
   * Get the model's name
-  * @return {string}
+  * @returns {string}
   */
   static getName () {
     return this.name;
@@ -143,7 +149,7 @@ class Model {
 
   /**
   * Get the model's table name
-  * @return {string}
+  * @returns {string}
   */
   static table () {
     return this.schema.name;
@@ -151,7 +157,7 @@ class Model {
 
   /**
   * Get the model's column data
-  * @return {Array}
+  * @returns {array}
   */
   static columns () {
     return this.schema.columns;
@@ -159,7 +165,7 @@ class Model {
 
   /**
   * Get the model's column names (fields)
-  * @return {Array}
+  * @returns {array}
   */
   static columnNames () {
     return this.columns().map(v => v.name);
@@ -167,7 +173,7 @@ class Model {
 
   /**
   * Get the model's column names with additional data for querying
-  * @return {Array}
+  * @returns {array}
   */
   static columnQueryInfo (columnList) {
     let columns = columnList
@@ -188,7 +194,7 @@ class Model {
 
   /**
   * Get the model's column lookup data
-  * @return {Object}
+  * @returns {object}
   */
   static columnLookup () {
     return this.columns().reduce((p, c) => {
@@ -200,14 +206,16 @@ class Model {
   /**
   * Check if the model has a column name in its schema
   * @param {string} columnName
+  * @returns {boolean}
   */
   static hasColumn (columnName) {
     return !!this.column(columnName);
   }
 
   /**
-  * Return the column schema data for a given name
+  * Get the column schema data for a given name
   * @param {string} columnName
+  * @returns {object}
   */
   static column (columnName) {
     return this.columnLookup()[columnName];
@@ -216,7 +224,7 @@ class Model {
   /**
   * Get resource data for a model, for API responses and debug information
   * @param {Array} arrInterface Array of strings representing output columns, or singularly-keyed objects representing relationships and their interface.
-  * @return {Object} Resource object for the model
+  * @returns {object} Resource object for the model
   * @deprecated
   */
   static toResource (arrInterface) {
@@ -281,15 +289,18 @@ class Model {
 
   /**
   * Set the database to be used for this model
-  * @param {Nodal.Database} db
+  * @param {import('../db/database.js')} db
+  * @returns {import('../db/database.js')}
   */
   static setDatabase (db) {
     this.prototype.db = db;
+    return db;
   }
 
   /**
   * Set the schema to be used for this model
-  * @param {Object} schema
+  * @param {object} schema
+  * @returns {object}
   */
   static setTableSchema (schema) {
 
@@ -300,17 +311,19 @@ class Model {
       ].join('\n'));
     }
 
-    this.schema = schema;
+    return this.schema = schema;
 
   }
 
   /**
   * Sets the static and normal .getModel method
   * @param {function} referenceFn
+  * @returns {boolean}
   */
   static setModelReference (referenceFn) {
     this.prototype.getModel = referenceFn;
     this.getModel = referenceFn;
+    return true;
   }
 
   static getColumnProperties (field) {
@@ -362,8 +375,8 @@ class Model {
 
   /**
   * Sets a joins relationship for the Model. Sets joinedBy relationship for parent.
-  * @param {class Nodal.Model} Model The Model class which your current model belongs to
-  * @param {Object} [options={}]
+  * @param {Model} Model The Model class which your current model belongs to
+  * @param {object} [options={}]
   *   "name": The string name of the parent in the relationship (default to camelCase of Model name)
   *   "via": Which field in current model represents this relationship, defaults to `${name}_id`
   *   "as": What to display the name of the child as when joined to the parent (default to camelCase of child name)
@@ -379,7 +392,7 @@ class Model {
   * Create a validator. These run synchronously and check every time a field is set / cleared.
   * @param {string} field The field you'd like to validate
   * @param {string} message The error message shown if a validation fails.
-  * @param {function({any} value)} fnAction the validation to run - first parameter is the value you're testing.
+  * @param {function} fnAction the validation to run - first parameter is the value you're testing.
   */
   static validates (field, message, fnAction) {
 
@@ -766,7 +779,7 @@ class Model {
   /**
   * Gives us an error object with each errored field as a key, and each value
   * being an array of failure messages from the validators
-  * @return {Object}
+  * @return {object}
   */
   getErrors () {
     let obj = {};
@@ -780,7 +793,7 @@ class Model {
   /**
   * Reads new data into the model.
   * @param {Object} data Data to inject into the model
-  * @return {this}
+  * @returns {Model}
   */
   read (data) {
 
@@ -1012,7 +1025,8 @@ class Model {
 
   /**
   * Creates a plain object from the Model, with properties matching an optional interface
-  * @param {Array} arrInterface Interface to use for object creation
+  * @param {?array} arrInterface Interface to use for object creation
+  * @returns {object}
   */
   toJSON (arrInterface) {
 
@@ -1052,7 +1066,7 @@ class Model {
 
   /**
   * Get the table name for the model.
-  * @return {string}
+  * @returns {string}
   */
   tableName () {
     return this.constructor.table();
@@ -1061,7 +1075,7 @@ class Model {
   /**
   * Determine if the model has a specified field.
   * @param {string} field
-  * @return {boolean}
+  * @returns {boolean}
   */
   hasField (field) {
     return !!this.constructor.columnLookup()[field];
@@ -1070,7 +1084,7 @@ class Model {
   /**
   * Retrieve the schema field data for the specified field
   * @param {string} field
-  * @return {Object}
+  * @returns {Object}
   */
   getFieldData (field) {
     return this.constructor.columnLookup()[field];
@@ -1079,7 +1093,7 @@ class Model {
   /**
   * Retrieve the schema data type for the specified field
   * @param {string} field
-  * @return {string}
+  * @returns {string}
   */
   getDataTypeOf (field) {
     let type = this.constructor.columnLookup()[field].type;
@@ -1093,7 +1107,7 @@ class Model {
   /**
   * Determine whether or not this field is an Array (PostgreSQL supports this)
   * @param {string} field
-  * @return {boolean}
+  * @returns {boolean}
   */
   isFieldArray (field) {
     let properties = this.constructor.getColumnProperties(field);
@@ -1103,7 +1117,7 @@ class Model {
   /**
   * Determine whether or not this field is a primary key in our schema
   * @param {string} field
-  * @return {boolean}
+  * @returns {boolean}
   */
   isFieldPrimaryKey (field) {
     let properties = this.constructor.getColumnProperties(field);
@@ -1113,7 +1127,7 @@ class Model {
   /**
   * Retrieve the defaultValue for this field from our schema
   * @param {string} field
-  * @return {any}
+  * @returns {any}
   */
   fieldDefaultValue (field) {
     let properties = this.constructor.getColumnProperties(field);
@@ -1122,7 +1136,7 @@ class Model {
 
   /**
   * Retrieve an array of fields for our model
-  * @return {Array}
+  * @returns {array}
   */
   fieldList () {
     return this.constructor.columnNames().slice();
@@ -1130,7 +1144,7 @@ class Model {
 
   /**
   * Retrieve our field schema definitions
-  * @return {Array}
+  * @returns {array}
   */
   fieldDefinitions () {
     return this.constructor.columns().slice();
@@ -1140,7 +1154,7 @@ class Model {
   * Set an error for a specified field (supports multiple errors)
   * @param {string} key The specified field for which to create the error (or '*' for generic)
   * @param {string} message The error message
-  * @return {boolean}
+  * @returns {boolean}
   */
   setError (key, message, code) {
     this._errors[key] = this._errors[key] || [];
@@ -1154,7 +1168,7 @@ class Model {
   /**
   * Clears all errors for a specified field
   * @param {string} key The specified field for which to create the error (or '*' for generic)
-  * @return {boolean}
+  * @returns {boolean}
   */
   clearError (key) {
     delete this._errors[key];
@@ -1162,6 +1176,9 @@ class Model {
     return true;
   }
 
+  /**
+   * @private
+   */
   __generateSaveQuery__ () {
 
     let query, columns;
@@ -1235,11 +1252,11 @@ class Model {
   * @param {Object} fields Key-value pairs of fields to update
   * @param {Function} callback Callback to execute upon completion
   */
-  update (fields, callback) {
+  async update (fields, callback) {
 
     callback = callback || (() => {});
 
-    this.constructor.query()
+    return this.constructor.query()
       .where({id: this.get('id')})
       .update(fields, (err, models) => callback(err, models && models[0]));
 
@@ -1274,8 +1291,8 @@ class Model {
 
   /**
   * Saves model to database
-  * @param {Transaction} txn OPTIONAL: SQL transaction to use for save
   * @private
+  * @param {Transaction} txn OPTIONAL: SQL transaction to use for save
   */
   async __save__ (txn) {
     let db = this.db;
@@ -1303,7 +1320,7 @@ class Model {
 
   /**
   * Destroys model and cascades all deletes.
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
   */
   async destroyCascade (txn) {
     let models = ModelArray.from([this])
@@ -1313,19 +1330,19 @@ class Model {
 
   /**
   * Logic to execute before a model gets destroyed. Intended to be overwritten when inherited.
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
   */
   async beforeDestroy (txn) {}
 
   /**
   * Logic to execute after a model is destroyed. Intended to be overwritten when inherited.
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
   */
   async afterDestroy (txn) {}
 
   /**
   * Destroys model reference in database.
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
   */
   async destroy (txn) {
     await this.beforeDestroy(txn);
@@ -1336,8 +1353,8 @@ class Model {
 
   /**
   * Destroys model reference in database
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
   * @private
+  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
   */
   async __destroy__ (txn) {
     let db = this.db;
@@ -1370,31 +1387,56 @@ class Model {
 
 }
 
+/**
+ * @private
+ */
 Model.schema = {
   table: '',
   columns: []
 };
-
+/**
+ * @private
+ */
 Model.prototype._validations = {};
+/**
+ * @private
+ */
 Model.prototype._validationsList = [];
-
+/**
+ * @private
+ */
 Model.prototype._calculations = {};
+/**
+ * @private
+ */
 Model.prototype._calculationsList = [];
-
+/**
+ * @private
+ */
 Model.prototype._verificationsList = [];
-
+/**
+ * @private
+ */
 Model.prototype._hides = {};
-
+/**
+ * @private
+ */
 Model.prototype.data = null;
-
+/**
+ * @private
+ */
 Model.prototype.db = null;
-
+/**
+ * @private
+ */
 Model.prototype.externalInterface = [
   'id',
   'created_at',
   'updated_at'
 ];
-
+/**
+ * @private
+ */
 Model.prototype.aggregateBy = {
   'id': 'count',
   'created_at': 'min',

@@ -872,7 +872,7 @@ class Composer {
   /**
   * Join in a relationship.
   * @param {string} joinName The name of the joined relationship
-  * @param {array} comparisonsArray comparisons to perform on this join (can be overloaded)
+  * @param {array} comparisonsArray comparisons to perform on this join
   */
   join (joinName, comparisonsArray, orderBy, count, offset) {
 

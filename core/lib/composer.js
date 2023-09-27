@@ -13,9 +13,9 @@ class Composer {
 
   /**
   * Created by Model#query, used for composing SQL queries based on Models
-  * @param {Nodal.Model} Model The model class the composer is querying from
-  * @param {Nodal.Composer} [parent=null] The composer's parent (another composer instance)
-  * @param {optional Nodal.Database} readonlyDb Provide a readonly database to query from
+  * @param {import('./model')} Model The model class the composer is querying from
+  * @param {?Composer} parent Composer parent (another composer instance)
+  * @param {?Database} readonlyDb Provide a readonly database to query from
   */
   constructor (Model, parent, readonlyDb) {
 
@@ -35,10 +35,10 @@ class Composer {
 
   /**
   * Given rows with repeated data (due to joining in multiple children), return only parent models (but include references to their children)
-  * @param {Array} rows Rows from sql result
-  * @param {Boolean} grouped Are these models grouped, if so, different procedure
-  * @return {Nodal.ModelArray}
   * @private
+  * @param {Array} rows Rows from sql result
+  * @param {boolean} grouped Are these models grouped, if so, different procedure
+  * @returns {ModelArray}
   */
   __parseModelsFromRows__ (rows, grouped) {
 
@@ -174,8 +174,8 @@ class Composer {
 
   /**
   * Collapses linked list of queries into an array (for .reduce, .map etc)
-  * @return {Array}
   * @private
+  * @returns {Array}
   */
   __collapse__ () {
 
@@ -193,9 +193,9 @@ class Composer {
 
   /**
   * Removes last limit command from a collapsed array of composer commands
-  * @param {Array} [composerArray] Array of composer commands
-  * @return {Array}
   * @private
+  * @param {Array} composerArray Array of composer commands
+  * @returns {Array}
   */
   __removeLastLimitCommand__ (composerArray) {
 
@@ -207,9 +207,9 @@ class Composer {
 
   /**
   * Gets last limit command from a collapsed array of composer commands
-  * @param {Array} [composerArray] Array of composer commands
-  * @return {Array}
   * @private
+  * @param {Array} composerArray Array of composer commands
+  * @returns {Array}
   */
   __getLastLimitCommand__ (composerArray) {
 
@@ -220,8 +220,8 @@ class Composer {
 
   /**
   * Determines whether this composer query represents a grouped query or not
-  * @return {Boolean}
   * @private
+  * @returns {boolean}
   */
   __isGrouped__ () {
     return this.__collapse__().filter(c => c._command && c._command.type === 'groupBy').length > 0;
@@ -229,9 +229,9 @@ class Composer {
 
   /**
   * Adds shortened aliases to joins
-  * @param {Object} [joinData] Information about a join
-  * @return {Object} The input join data with an added short alias
   * @private
+  * @param {object} joinData Information about a join
+  * @returns {object} The input join data with an added short alias
   */
   __addShortAliasToJoinData__ (joinData) {
 
@@ -261,9 +261,9 @@ class Composer {
 
   /**
   * Reduces an array of composer queries to a single query information object
-  * @param {Array} [composerArray]
-  * @return {Object} Looks like {commands: [], joins: []}
   * @private
+  * @param {array} composerArray
+  * @returns {object} Looks like {commands: [], joins: []}
   */
   __reduceToQueryInformation__ (composerArray) {
 
@@ -349,10 +349,10 @@ class Composer {
 
   /**
   * Reduces an array of commands from query informtion to a SQL query
-  * @param {Array} [commandArray]
-  * @param {Array} [includeColumns=*] Which columns to include, includes all by default
-  * @return {Object} Looks like {sql: [], params: []}
   * @private
+  * @param {Array} commandArray
+  * @param {Array} includeColumns Which columns to include, includes all by default
+  * @returns {object} Looks like {sql: [], params: []}
   */
   __reduceCommandsToQuery__ (commandArray, includeColumns) {
 
@@ -402,9 +402,9 @@ class Composer {
 
   /**
   * Retrieve all joined column data for a given join
+  * @private
   * @param {string} joinName The name of the join relationship
   * @param {string} shortAlias The shortened name of the join relationship
-  * @private
   */
   __joinedColumns__ (joinName, shortAlias) {
     let relationship = this.Model.relationships().findExplicit(joinName);
@@ -420,10 +420,10 @@ class Composer {
 
   /**
   * Generate a SQL query and its associated parameters from the current composer instance
+  * @private
   * @param {Array} [includeColumns=*] Which columns to include, includes all by default
   * @param {boolean} [disableJoins=false] Disable joins if you just want a subset of data
-  * @return {Object} Has "params" and "sql" properties.
-  * @private
+  * @returns {object} Has "params" and "sql" properties.
   */
   __generateQuery__ (includeColumns, disableJoins) {
 
@@ -442,11 +442,11 @@ class Composer {
 
   /**
   * Generate a SQL count query
-  * @param {boolean} [useLimit=false] Generates COUNT using limit command as well
-  * @return {Object} Has "params" and "sql" properties.
   * @private
+  * @param {boolean} useLimit Generates COUNT using limit command as well
+  * @returns {object} Has "params" and "sql" properties.
   */
-  __generateCountQuery__ (useLimit) {
+  __generateCountQuery__ (useLimit = false) {
 
     let collapsed = this.__collapse__();
     collapsed = useLimit ? collapsed : this.__removeLastLimitCommand__(collapsed);
@@ -459,9 +459,9 @@ class Composer {
 
   /**
   * Generate a SQL update query
-  * @param {Object} [fields] A list of field / value pairs to set
-  * @return {Object} has "params" and "sql" properties
   * @private
+  * @param {object} fields A list of field / value pairs to set
+  * @returns {Object} has "params" and "sql" properties
   */
   __generateUpdateQuery__ (fields) {
 
@@ -499,11 +499,11 @@ class Composer {
 
   /**
   * Add Joins to a query from queryInfo
-  * @param {Object} query Must be format {sql: '', params: []}
-  * @param {Object} queryInfo Must be format {commands: [], joins: []}
-  * @param {Array} [includeColumns=*] Which columns to include, includes all by default
-  * @return {Object} Has "params" and "sql" properties.
   * @private
+  * @param {object} query Must be format {sql: '', params: []}
+  * @param {object} queryInfo Must be format {commands: [], joins: []}
+  * @param {Array} [includeColumns=*] Which columns to include, includes all by default
+  * @returns {object} Has "params" and "sql" properties.
   */
   __addJoinsToQuery__ (query, queryInfo, includeColumns) {
 
@@ -563,10 +563,10 @@ class Composer {
 
   /**
   * When using Composer#where, format all provided comparisons
-  * @param {Object} comparisons Comparisons object. {age__lte: 27}, for example.
-  * @param {Nodal.Model} Model the model to use as the basis for comparison. Default to current model.
-  * @return {Array}
   * @private
+  * @param {object} comparisons Comparisons object. {age__lte: 27}, for example.
+  * @param {import('./model)} Model the model to use as the basis for comparison. Default to current model.
+  * @returns {Array}
   */
   __parseComparisons__ (comparisons, Model) {
 
@@ -663,6 +663,10 @@ class Composer {
 
   }
 
+  /**
+   * Filters hidden models
+   * @private
+   */
   __filterHidden__ (Model, comparisonsArray) {
 
     comparisonsArray = (comparisonsArray || []).filter(c => c);
@@ -706,8 +710,8 @@ class Composer {
 
   /**
   * Add comparisons to SQL WHERE clause. Does not allow filtering if Model.hides() has been called.
-  * @param {Object} comparisons Comparisons object. {age__lte: 27}, for example.
-  * @return {Nodal.Composer} new Composer instance
+  * @param {object} comparisons Comparisons object. {age__lte: 27}, for example.
+  * @returns {Composer} new Composer instance
   */
   safeWhere (comparisonsArray) {
 
@@ -728,6 +732,7 @@ class Composer {
   * Join in a relationship. Filters out hidden fields from comparisons.
   * @param {string} joinName The name of the joined relationship
   * @param {array} comparisonsArray comparisons to perform on this join (can be overloaded)
+  * @returns {Composer} new Composer instance
   */
   safeJoin (joinName, comparisonsArray) {
 
@@ -752,11 +757,12 @@ class Composer {
 
   /**
   * Add comparisons to SQL WHERE clause.
-  * @param {Object} comparisons Comparisons object. {age__lte: 27}, for example.
-  * @return {Nodal.Composer} new Composer instance
+  * @param {object} comparisons Comparisons object. {age__lte: 27}, for example.
+  * @returns {Composer} new Composer instance
   */
-  where (comparisonsArray) {
+  where (comparisons) {
 
+    let comparisonsArray = comparisons;
     if (!(comparisonsArray instanceof Array)) {
       comparisonsArray = [].slice.call(arguments);
     }
@@ -808,10 +814,10 @@ class Composer {
   /**
   * Order by field belonging to the current Composer instance's model.
   * @param {string} field Field to order by
-  * @param {string} direction Must be 'ASC' or 'DESC'
-  * @return {Nodal.Composer} new Composer instance
+  * @param {?string} direction Must be 'ASC' or 'DESC'
+  * @returns {Composer} new Composer instance
   */
-  orderBy (field, direction) {
+  orderBy (field, direction = 'ASC') {
 
     let transformation;
     let fields = [];
@@ -840,8 +846,8 @@ class Composer {
   /**
   * Limit to an offset and count
   * @param {number} offset The offset at which to set the limit. If this is the only argument provided, it will be the count instead.
-  * @param {number} count The number of results to be returned. Can be omitted, and if omitted, first argument is used for count.
-  * @return {Nodal.Composer} new Composer instance
+  * @param {?number} count The number of results to be returned. Can be omitted, and if omitted, first argument is used for count.
+  * @returns {Composer} new Composer instance
   */
   limit (offset, count) {
 
@@ -872,15 +878,16 @@ class Composer {
   /**
   * Join in a relationship.
   * @param {string} joinName The name of the joined relationship
-  * @param {array} comparisonsArray comparisons to perform on this join
+  * @param {object|array} comparisons comparisons to perform on this join
   */
-  join (joinName, comparisonsArray, orderBy, count, offset) {
+  join (joinName, comparisons, orderBy, count, offset) {
 
-    // FIXME: validate orderBy
+    // TODO: Add in support
     orderBy = orderBy || '';
     count = Math.max(0, count | 0);
     offset = Math.max(0, offset | 0);
 
+    let comparisonsArray = comparisons;
     if (!(comparisonsArray instanceof Array)) {
       comparisonsArray = [].slice.call(arguments, 1);
     }
@@ -932,7 +939,8 @@ class Composer {
 
   /**
   * Groups by a specific field, or a transformation on a field
-  * @param {String} column The column to group by
+  * @param {string} column The column to group by
+  * @returns {Composer} new Composer instance
   */
   groupBy (column) {
 
@@ -961,8 +969,9 @@ class Composer {
 
   /**
   * Aggregates a field
-  * @param {String} alias The alias for the new aggregate field
-  * @param {Function} transformation The transformation to apply to create the aggregate
+  * @param {string} alias The alias for the new aggregate field
+  * @param {function} transformation The transformation to apply to create the aggregate
+  * @returns {Composer} new Composer instance
   */
   aggregate (alias, transformation) {
 
@@ -993,25 +1002,6 @@ class Composer {
   }
 
   /**
-  * Counts the results in the query
-  * @param {Transaction} txn Optional: the transaction to use for the count query
-  */
-  async count (txn) {
-    if (txn) {
-      if (!(txn instanceof Transaction)) {
-        throw new Error('Must provide valid transaction to Composer#transact');
-      }
-      if (txn.adapter.db !== this.db) {
-        throw new Error('Transaction must belong to Model Database');
-      }
-    }
-    let countQuery = this.__generateCountQuery__(true);
-    let source = txn ? txn : this.db;
-    let result = await source.query(countQuery.sql, countQuery.params);
-    return (((result && result.rows) || [])[0] || {}).__total__ || 0;
-  }
-
-  /**
   * Processes results and errors from a terminal call
   * @private
   */
@@ -1039,8 +1029,29 @@ class Composer {
   }
 
   /**
+  * Counts the results in the query
+  * @param {Transaction} txn Optional: the transaction to use for the count query
+  * @returns {Promise<number>}
+  */
+  async count (txn) {
+    if (txn) {
+      if (!(txn instanceof Transaction)) {
+        throw new Error('Must provide valid transaction to Composer#transact');
+      }
+      if (txn.adapter.db !== this.db) {
+        throw new Error('Transaction must belong to Model Database');
+      }
+    }
+    let countQuery = this.__generateCountQuery__(true);
+    let source = txn ? txn : this.db;
+    let result = await source.query(countQuery.sql, countQuery.params);
+    return (((result && result.rows) || [])[0] || {}).__total__ || 0;
+  }
+
+  /**
   * Run a SELECT query you've been composing
   * @param {Transaction} txn Optional: the transaction to use for the count query
+  * @returns {Promise<ModelArray>}
   */
   async select (txn) {
     if (txn) {
@@ -1062,6 +1073,7 @@ class Composer {
   /**
   * Shortcut for .limit(1).select() that only returns a model object or error if not found
   * @param {Transaction} txn Optional: the transaction to use for the count query
+  * @returns {Promise<import('./model')>}
   */
   async first (txn) {
     let models = await this.limit(1).select(txn);
@@ -1073,8 +1085,9 @@ class Composer {
 
   /**
   * Execute query as an update query, changed all fields specified.
-  * @param {Object} fields The object containing columns (keys) and associated values you'd like to update
+  * @param {object} fields The object containing columns (keys) and associated values you'd like to update
   * @param {Transaction} txn Optional: the transaction to use for the count query
+  * @returns {Promise<ModelArray>}
   */
   async update (fields, txn) {
     if (txn) {

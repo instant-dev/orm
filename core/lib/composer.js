@@ -19,16 +19,36 @@ class Composer {
   */
   constructor (Model, parent, readonlyDb) {
 
+    /**
+     * @private
+     */
     this.db = readonlyDb || (parent && parent.db) || Model.prototype.db;
     if (!(this.db instanceof Database)) {
       throw new Error(`Composer must have a valid Database`);
     }
+    /**
+     * @private
+     */
     this.Model = Model;
-
+    /**
+     * @private
+     */
     this._parent = parent || null;
+    /**
+     * @private
+     */
     this._readonly = !!(readonlyDb || (parent && parent._readonly));
+    /**
+     * @private
+     */
     this._command = null;
+    /**
+     * @private
+     */
     this._shortAliasMap = {};
+    /**
+     * @private
+     */
     this._joinCount = 0;
 
   }

@@ -202,8 +202,8 @@ class Database extends Logger {
    * @param {Array} parameters Parameters to assign to the query: $1, $2, $3
    * @returns {Promise<object>}
    */
-  async query () {
-    return this.adapter.query.apply(this.adapter, arguments);
+  async query (sql, parameters) {
+    return this.adapter.query(sql, parameters);
   }
 
   /**
@@ -211,8 +211,8 @@ class Database extends Logger {
    * @param {Array<string|[string,Array<object>]>} statements
    * @returns {Promise<Array<object>>}
    */
-  async transact () {
-    return this.adapter.transact.apply(this.adapter, arguments);
+  async transact (statements) {
+    return this.adapter.transact(statements);
   }
 
   /**

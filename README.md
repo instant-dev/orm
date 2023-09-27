@@ -1087,7 +1087,7 @@ Migrations, seeds and code generation can be managed via the
 ## Acknowledgements
 
 Special thank you to [Scott Gamble](https://x.com/threesided) who helps run all
-of the front-of-house work for instant.dev!
+of the front-of-house work for instant.dev 💜!
 
 | Destination | Link |
 | ----------- | ---- |

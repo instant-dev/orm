@@ -291,6 +291,8 @@ class RelationshipEdge {
 
 class RelationshipGraph {
 
+  static RelationshipPath = RelationshipPath;
+
   constructor() {
     this.nodes = [];
     this.edges = [];
@@ -310,4 +312,9 @@ class RelationshipGraph {
 
 }
 
-module.exports = RelationshipGraph;
+module.exports = {
+  RelationshipNode,
+  RelationshipEdge,
+  RelationshipPath,
+  RelationshipGraph
+};

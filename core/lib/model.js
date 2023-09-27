@@ -9,7 +9,7 @@ const utilities = require('./utilities.js');
 const inflect = require('i')();
 const deepEqual = require('deep-equal');
 
-const RelationshipGraph = require('./relationship_graph.js');
+const { RelationshipGraph, RelationshipNode, RelationshipPath, RelationshipEdge } = require('./relationship_graph.js');
 const Relationships = new RelationshipGraph();
 
 /**
@@ -35,7 +35,7 @@ class Model {
   /**
   * Finds a model with a provided id, otherwise returns a notFound error.
   * @param {number} id The id of the model you're looking for
-  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @param {?Transaction} txn SQL transaction to use for this method
   * @returns {Promise<Model>}
   */
   static async find (id, txn) {
@@ -77,7 +77,7 @@ class Model {
   /**
   * Creates a new model instance using the provided data.
   * @param {object} data The data to load into the object.
-  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @param {?Transaction} txn SQL transaction to use for this method
   * @returns {Promise<Model>}
   */
   static async create (data, txn) {
@@ -89,7 +89,7 @@ class Model {
   * Updates or creates a model with a provided field, value pair. Returns the first found.
   * @param {string} field Name of the field
   * @param {object} data Key-value pairs of Model creation data. Will use appropriate value to query for based on "field" parametere.
-  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @param {?Transaction} txn SQL transaction to use for this method
   * @returns {Promise<Model>}
   */
   static async updateOrCreateBy (field, data, txn) {
@@ -110,7 +110,7 @@ class Model {
   * Finds and updates a model with a specified id. Return a notFound error if model does not exist.
   * @param {number} id The id of the model you're looking for
   * @param {object} data The data to load into the object.
-  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @param {?Transaction} txn SQL transaction to use for this method
   * @returns {Promise<Model>}
   */
   static async update (id, data, txn) {
@@ -122,7 +122,7 @@ class Model {
   /**
   * Finds and destroys a model with a specified id. Return a notFound error if model does not exist.
   * @param {number} id The id of the model you're looking for
-  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @param {?Transaction} txn SQL transaction to use for this method
   * @returns {Promise<Model>}
   */
   static async destroy (id, txn) {
@@ -132,7 +132,7 @@ class Model {
 
   /**
   * Creates a new Composer (ORM) instance to begin a new query.
-  * @param {optional Nodal.Database} readonlyDb Provide a readonly database to query from
+  * @param {?Nodal.Database} readonlyDb Provide a readonly database to query from
   * @returns {import('./composer')}
   */
   static query (readonlyDb) {
@@ -157,7 +157,7 @@ class Model {
 
   /**
   * Get the model's column data
-  * @returns {array}
+  * @returns {Array}
   */
   static columns () {
     return this.schema.columns;
@@ -165,7 +165,7 @@ class Model {
 
   /**
   * Get the model's column names (fields)
-  * @returns {array}
+  * @returns {Array}
   */
   static columnNames () {
     return this.columns().map(v => v.name);
@@ -173,7 +173,7 @@ class Model {
 
   /**
   * Get the model's column names with additional data for querying
-  * @returns {array}
+  * @returns {Array}
   */
   static columnQueryInfo (columnList) {
     let columns = columnList
@@ -326,6 +326,11 @@ class Model {
     return true;
   }
 
+  /**
+   * Gets column properties defaultValue nullable, unique, primary_key, auto_increment, array
+   * @param {string} field The field on the model
+   * @returns {object}
+   */
   static getColumnProperties (field) {
     let column = this.column(field);
     if (!column) {
@@ -354,38 +359,35 @@ class Model {
   }
 
   /**
-  * FIXME
+  * Returns all valid relationships of the model
+  * @returns {RelationshipNode}
   */
   static relationships () {
-
     return Relationships.of(this);
-
   }
 
   /**
-  * FIXME
+  * Returns details on how Models are related to each other
+  * @returns {RelationshipPath}
   */
   static relationship (name) {
-
     this._relationshipCache = this._relationshipCache || {};
     this._relationshipCache[name] = (this._relationshipCache[name] || this.relationships().findExplicit(name));
     return this._relationshipCache[name];
-
   }
 
   /**
   * Sets a joins relationship for the Model. Sets joinedBy relationship for parent.
   * @param {Model} Model The Model class which your current model belongs to
-  * @param {object} [options={}]
-  *   "name": The string name of the parent in the relationship (default to camelCase of Model name)
-  *   "via": Which field in current model represents this relationship, defaults to `${name}_id`
-  *   "as": What to display the name of the child as when joined to the parent (default to camelCase of child name)
-  *   "multiple": Whether the child exists in multiples for the parent (defaults to false)
+  * @param {object} options
+  * @param {?string} options.name The string name of the parent in the relationship (default to camelCase of Model name)
+  * @param {?string} options.via Which field in current model represents this relationship, defaults to `${name}_id`
+  * @param {?string} options.as What to display the name of the child as when joined to the parent (default to camelCase of child name)
+  * @param {?string} options.multiple Whether the child exists in multiples for the parent (defaults to false)
+  * @returns {RelationshipEdge}
   */
   static joinsTo (Model, options) {
-
     return this.relationships().joinsTo(Model, options);
-
   }
 
   /**
@@ -393,6 +395,7 @@ class Model {
   * @param {string} field The field you'd like to validate
   * @param {string} message The error message shown if a validation fails.
   * @param {function} fnAction the validation to run - first parameter is the value you're testing.
+  * @returns {boolean}
   */
   static validates (field, message, fnAction) {
 
@@ -415,6 +418,7 @@ class Model {
 
     this.prototype._validations[field] = this.prototype._validations[field] || [];
     this.prototype._validations[field].push({message: message, action: fnAction});
+    return true;
 
   }
 
@@ -422,6 +426,7 @@ class Model {
   * Checks a validator synchronously.
   * @param {string} field The field you'd like to validate
   * @param {any} value The value of the field to validate
+  * @returns {Array<string>}
   */
   static validationCheck (field, value) {
     return (this.prototype._validations[field] || []).map(validation => {
@@ -434,6 +439,7 @@ class Model {
   * @param {string} field The field applied to the verification.
   * @param {string} message The error message shown if a verification fails.
   * @param {function} fnAction The asynchronous verification method. The last argument passed is always a callback, and field names are determined by the argument names.
+  * @returns {boolean}
   */
   static verifies (field, message, fnAction) {
 
@@ -475,6 +481,8 @@ class Model {
       });
     }
 
+    return true;
+
   }
 
   /**
@@ -482,6 +490,7 @@ class Model {
   * @param {string} field The field you'd like to verify
   * @param {any} value The value of the field you'd like to verify
   * @param {object} data Any additional field data, in key-value pairs
+  * @returns {Promise<Array<string>>}
   */
   static async verificationCheck (field, value, data) {
     data = data || {};
@@ -504,10 +513,11 @@ class Model {
   }
 
   /**
-  * Create a calculated field (in JavaScript). Must be synchronous.
+  * Create a calculated field that is processed in JavaScript (not SQL). Must be synchronous.
   * @param {string} calcField The name of the calculated field
   * @param {function} fnCalculate The synchronous method to perform a calculation for.
   *   Pass the names of the (non-computed) fields you'd like to use as parameters.
+  * @returns {boolean}
   */
   static calculates (calcField, fnCompute) {
 
@@ -542,11 +552,14 @@ class Model {
 
     this.prototype._calculationsList.push(calcField);
 
+    return true;
+
   }
 
   /**
   * Hides fields from being output in .toJSON() (i.e. API responses), even if asked for
-  * @param {String} field
+  * @param {string} field
+  * @returns {boolean}
   */
   static hides (field) {
 
@@ -561,12 +574,11 @@ class Model {
 
   /**
   * Tells us if a field is hidden (i.e. from API queries)
-  * @param {String} field
+  * @param {string} field
+  * @returns {boolean}
   */
   static isHidden (field) {
-
     return this.prototype._hides[field] || false;
-
   }
 
   /**
@@ -601,9 +613,10 @@ class Model {
   /**
   * Loads data into the model
   * @private
-  * @param {Object} data Data to load into the model
-  * @param {optional boolean} fromStorage Specify if the model was loaded from storage. Defaults to false.
-  * @param {optional boolean} fromSeed Specify if the model was generated from a seed. Defaults to false.
+  * @param {object} data Data to load into the model
+  * @param {?boolean} fromStorage Specify if the model was loaded from storage. Defaults to false.
+  * @param {?boolean} fromSeed Specify if the model was generated from a seed. Defaults to false.
+  * @returns {Model}
   */
   __load__ (data, fromStorage, fromSeed) {
 
@@ -643,7 +656,8 @@ class Model {
   /**
   * Validates provided fieldList (or all fields if not provided)
   * @private
-  * @param {optional Array} fieldList fields to validate
+  * @param {?Array} fieldList fields to validate
+  * @returns {boolean}
   */
   __validate__ (field) {
 
@@ -674,30 +688,24 @@ class Model {
 
   /**
   * Sets specified field data for the model, assuming data is safe and does not log changes
+  * @private
   * @param {string} field Field to set
   * @param {any} value Value for the field
+  * @returns {Model|any}
   */
   __safeSet__ (field, value) {
-
     if (this.relationship(field)) {
-
       return this.setJoined(field, value);
-
+    } else if (!this.hasField(field)) {
+      return null;
+    } else {
+      return this._data[field] = this.convert(field, value);
     }
-
-    if (!this.hasField(field)) {
-
-      return;
-
-    }
-
-    this._data[field] = this.convert(field, value);
-
   }
 
   /**
   * Indicates whethere or not the model is currently represented in hard storage (db).
-  * @return {boolean}
+  * @returns {boolean}
   */
   inStorage () {
     return this._inStorage;
@@ -705,7 +713,7 @@ class Model {
 
   /**
   * Indicates whethere or not the model is currently being created, handled by the save() method.
-  * @return {boolean}
+  * @returns {boolean}
   */
   isCreating () {
     return !!this._isCreating;
@@ -713,7 +721,7 @@ class Model {
 
   /**
   * Indicates whethere or not the model is being generated from a seed.
-  * @return {boolean}
+  * @returns {boolean}
   */
   isSeeding () {
     return this._isSeeding;
@@ -722,7 +730,7 @@ class Model {
   /**
   * Tells us whether a model field has changed since we created it or loaded it from storage.
   * @param {string} field The model field
-  * @return {boolean}
+  * @returns {boolean}
   */
   hasChanged (field) {
     return field === undefined ? this.changedFields().length > 0 : !!this._changed[field];
@@ -730,7 +738,7 @@ class Model {
 
   /**
   * Provides an array of all changed fields since model was created / loaded from storage
-  * @return {Array}
+  * @returns {Array}
   */
   changedFields () {
     let changed = this._changed;
@@ -739,7 +747,7 @@ class Model {
 
   /**
   * Creates an error object for the model if any validations have failed, returns null otherwise
-  * @return {Error}
+  * @returns {Error}
   */
   errorObject () {
 
@@ -768,7 +776,7 @@ class Model {
 
   /**
   * Tells us whether or not the model has errors (failed validations)
-  * @return {boolean}
+  * @returns {boolean}
   */
   hasErrors () {
 
@@ -779,7 +787,7 @@ class Model {
   /**
   * Gives us an error object with each errored field as a key, and each value
   * being an array of failure messages from the validators
-  * @return {object}
+  * @returns {object}
   */
   getErrors () {
     let obj = {};
@@ -792,7 +800,7 @@ class Model {
 
   /**
   * Reads new data into the model.
-  * @param {Object} data Data to inject into the model
+  * @param {object} data Data to inject into the model
   * @returns {Model}
   */
   read (data) {
@@ -810,6 +818,7 @@ class Model {
   * Converts a value to its intended format based on its field. Returns null if field not found.
   * @param {string} field The field to use for conversion data
   * @param {any} value The value to convert
+  * @returns {any}
   */
   convert (field, value) {
     if (!this.hasField(field) || value === null || value === undefined) {
@@ -825,6 +834,7 @@ class Model {
   /**
   * Grabs the path of the given relationship from the RelationshipGraph
   * @param {string} name the name of the relationship
+  * @returns {RelationshipPath}
   */
   relationship (name) {
     return this.constructor.relationship(name);
@@ -834,6 +844,7 @@ class Model {
   * Sets specified field data for the model. Logs and validates the change.
   * @param {string} field Field to set
   * @param {any} value Value for the field
+  * @returns {any}
   */
   set (field, value) {
 
@@ -856,10 +867,8 @@ class Model {
         curValue instanceof Array &&
         value.length === curValue.length
       ) {
-
         changed = false;
         // If we have two equal length arrays, we must compare every value
-
         for (let i = 0; i < value.length; i++) {
           if (value[i] !== curValue[i]) {
             changed = true;
@@ -868,11 +877,9 @@ class Model {
         }
       }
 
-      // If we have an object value (json), do a deterministic diff using
-      // node-deep-equals
-      // NOTE: Lets do an extra deep object test
+      // If we have an object value (json), do a deterministic diff
       if ( utilities.isObject(value) ) {
-        changed = !deepEqual( curValue, value, { strict: true});
+        changed = !deepEqual(curValue, value, {strict: true});
       }
 
     }
@@ -889,6 +896,7 @@ class Model {
   * Set a joined object (Model or ModelArray)
   * @param {string} field The field (name of the join relationship)
   * @param {Model|ModelArray} value The joined model or array of models
+  * @returns {Model|ModelArray}
   */
   setJoined (field, value) {
 
@@ -931,6 +939,7 @@ class Model {
   /**
   * Clear a joined object (Model or ModelArray)
   * @param {string} field The field (name of the join relationship)
+  * @returns {Model|ModelArray}
   */
   clearJoined (field) {
 
@@ -956,7 +965,8 @@ class Model {
 
   /**
   * Calculate field from calculations (assumes it exists)
-  *  @param {string} field Name of the calculated field
+  * @param {string} field Name of the calculated field
+  * @returns {any}
   */
   calculate (field) {
     let calc = this._calculations[field];
@@ -969,6 +979,7 @@ class Model {
   /**
   * Retrieve field data for the model.
   * @param {string} field Field for which you'd like to retrieve data.
+  * @returns {any}
   */
   get (field, defaultValue) {
     if (this._calculations[field]) {
@@ -979,7 +990,8 @@ class Model {
 
   /**
   * Retrieves joined Model or ModelArray
-  * @param {String} joinName the name of the join (list of connectors separated by __)
+  * @param {string} joinName the name of the join (list of connectors separated by __)
+  * @returns {Model|ModelArray}
   */
   joined (joinName) {
     return this._joinsCache[joinName];
@@ -988,7 +1000,8 @@ class Model {
   /**
   * Retrieve associated models joined this model from the database.
   * @param {Array} joinNames The joines model names to return
-  * @param {Transaction} txn The SQL transaction used to execute this save method
+  * @param {?Transaction} txn SQL transaction used to execute this save method
+  * @returns {Promise<Array<Model|ModelArray>>}
   */
   async include (joinNames, txn) {
 
@@ -1084,7 +1097,7 @@ class Model {
   /**
   * Retrieve the schema field data for the specified field
   * @param {string} field
-  * @returns {Object}
+  * @returns {object}
   */
   getFieldData (field) {
     return this.constructor.columnLookup()[field];
@@ -1136,7 +1149,7 @@ class Model {
 
   /**
   * Retrieve an array of fields for our model
-  * @returns {array}
+  * @returns {Array}
   */
   fieldList () {
     return this.constructor.columnNames().slice();
@@ -1144,7 +1157,7 @@ class Model {
 
   /**
   * Retrieve our field schema definitions
-  * @returns {array}
+  * @returns {Array}
   */
   fieldDefinitions () {
     return this.constructor.columns().slice();
@@ -1205,17 +1218,20 @@ class Model {
 
   /**
   * Logic to execute before a model saves. Intended to be overwritten when inherited.
+  * @private
   */
   async beforeSave () {}
 
   /**
   * Logic to execute after a model saves. Intended to be overwritten when inherited.
+  * @private
   */
   async afterSave () {}
 
   /**
   * Save a model (execute beforeSave and afterSave)
-  * @param {Transaction} txn The SQL transaction used to execute this save method
+  * @param {?Transaction} txn SQL transaction used to execute this save method
+  * @returns {Model}
   */
   async save (txn) {
     if (this.hasErrors()) {
@@ -1249,17 +1265,13 @@ class Model {
 
   /**
   * Runs an update query for this specific model instance
-  * @param {Object} fields Key-value pairs of fields to update
-  * @param {Function} callback Callback to execute upon completion
+  * @param {object} fields Key-value pairs of fields to update
+  * @returns {ModelArray}
   */
-  async update (fields, callback) {
-
-    callback = callback || (() => {});
-
+  async update (fields) {
     return this.constructor.query()
       .where({id: this.get('id')})
-      .update(fields, (err, models) => callback(err, models && models[0]));
-
+      .update(fields);
   }
 
   /**
@@ -1292,7 +1304,7 @@ class Model {
   /**
   * Saves model to database
   * @private
-  * @param {Transaction} txn OPTIONAL: SQL transaction to use for save
+  * @param {?Transaction} txn SQL transaction to use for save
   */
   async __save__ (txn) {
     let db = this.db;
@@ -1320,7 +1332,8 @@ class Model {
 
   /**
   * Destroys model and cascades all deletes.
-  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @param {?Transaction} txn SQL transaction to use for this method
+  * @returns {Promise<Model>}
   */
   async destroyCascade (txn) {
     let models = ModelArray.from([this])
@@ -1330,19 +1343,22 @@ class Model {
 
   /**
   * Logic to execute before a model gets destroyed. Intended to be overwritten when inherited.
-  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @private
+  * @param {?Transaction} txn SQL transaction to use for this method
   */
   async beforeDestroy (txn) {}
 
   /**
   * Logic to execute after a model is destroyed. Intended to be overwritten when inherited.
-  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @private
+  * @param {?Transaction} txn SQL transaction to use for this method
   */
   async afterDestroy (txn) {}
 
   /**
   * Destroys model reference in database.
-  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @param {?Transaction} txn SQL transaction to use for this method
+  * @returns {Promise<Model>}
   */
   async destroy (txn) {
     await this.beforeDestroy(txn);
@@ -1354,7 +1370,7 @@ class Model {
   /**
   * Destroys model reference in database
   * @private
-  * @param {?import('../db/transaction')} txn SQL transaction to use for this method
+  * @param {?Transaction} txn SQL transaction to use for this method
   */
   async __destroy__ (txn) {
     let db = this.db;

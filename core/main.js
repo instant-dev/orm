@@ -25,7 +25,7 @@ class InstantORM extends Logger {
     ModelArray: require('./lib/model_array.js'),
     ModelFactory: require('./lib/model_factory.js'),
     ModelGenerator: require('./lib/model_generator.js'),
-    RelationshipGraph: require('./lib/relationship_graph.js')
+    RelationshipGraph: require('./lib/relationship_graph.js').RelationshipGraph
   };
 
   /**

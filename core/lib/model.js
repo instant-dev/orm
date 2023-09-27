@@ -587,23 +587,41 @@ class Model {
   */
   __initialize__ () {
 
+    /**
+     * @private
+     */
     this._relationshipCache = {};
-
+    /**
+     * @private
+     */
     this._joinsCache = {};
+    /**
+     * @private
+     */
     this._joinsList = [];
-
+    /**
+     * @private
+     */
     this._data = this.constructor.columnNames()
       .reduce((p, c) => {
         p[c] = null;
         return p;
       }, {});
+    /**
+     * @private
+     */
     this._changed = this.constructor.columnNames()
       .reduce((p, c) => {
         p[c] = false;
         return p;
       }, {});
-
+    /**
+     * @private
+     */
     this._errors = {};
+    /**
+     * @private
+     */
     this._errorDetails = {};
 
     return true;
@@ -622,8 +640,18 @@ class Model {
 
     data = data || {};
 
+    /**
+     * @private
+     */
     this._inStorage = !!fromStorage;
+    /**
+     * @private
+     */
     this._isSeeding = !!fromSeed;
+    /**
+     * @private
+     */
+    this._isCreating = false;
 
     if (!fromStorage) {
       if (

@@ -10,6 +10,9 @@ class ItemArray extends Array {
   constructor () {
 
     super();
+    /**
+     * @private
+     */
     this._meta = {
       total: 0,
       offset: 0
@@ -20,6 +23,7 @@ class ItemArray extends Array {
   /**
   * Convert a normal Array into a ItemArray
   * @param {Array} arr The array of child objects
+  * @returns {ItemArray}
   */
   static from (arr) {
 
@@ -31,8 +35,9 @@ class ItemArray extends Array {
   }
 
   /**
-  * Sets metadata for the modelArray
-  * @param {Object} data values to set
+  * Sets metadata about how the ItemArray was created
+  * @param {object} data values to set
+  * @returns {object}
   */
   setMeta (data) {
 
@@ -44,6 +49,7 @@ class ItemArray extends Array {
   /**
   * Creates an Array of plain objects from the ModelArray, with properties matching an optional interface
   * @param {Array} arrInterface Interface to use for object creation for each model
+  * @returns {Array<object>}
   */
   toJSON (arrInterface) {
 

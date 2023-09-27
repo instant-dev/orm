@@ -8,7 +8,7 @@ class ModelArray extends ItemArray {
 
   /**
   * Create the ModelArray with a provided Model to use as a reference.
-  * @param {Array|class Nodal.Model} modelConstructor Must pass the constructor for the type of ModelArray you wish to create.
+  * @param {import('./model')} modelConstructor Must pass the constructor for the type of ModelArray you wish to create.
   */
   constructor (modelConstructor) {
 
@@ -20,6 +20,7 @@ class ModelArray extends ItemArray {
   /**
   * Convert a normal Array into a ModelArray
   * @param {Array} arr The array of child objects
+  * @returns {ModelArray}
   */
   static from (arr) {
 
@@ -37,6 +38,7 @@ class ModelArray extends ItemArray {
   /**
   * Creates an Array of plain objects from the ModelArray, with properties matching an optional interface
   * @param {Array} arrInterface Interface to use for object creation for each model
+  * @returns {Array}
   */
   toJSON (arrInterface) {
     return Array.from(this).map(m => m.toJSON(arrInterface));
@@ -44,7 +46,8 @@ class ModelArray extends ItemArray {
 
   /**
   * Checks if ModelArray has a model in it
-  * @param {Nodal.Model} model
+  * @param {import('./model')} model
+  * @returns {boolean}
   */
   has (model) {
     return this.filter(m => m.get('id') === model.get('id')).length > 0;
@@ -52,7 +55,8 @@ class ModelArray extends ItemArray {
 
   /**
   * Calls Model#read on each Model in the ModelArray
-  * @param {Object}
+  * @param {object}
+  * @returns {boolean}
   */
   readAll (data) {
     this.forEach(model => model.read(data));
@@ -63,6 +67,7 @@ class ModelArray extends ItemArray {
   * Calls Model#set on each Model in the ModelArray
   * @param {string} field Field to set
   * @param {any} value Value for the field
+  * @returns {boolean}
   */
   setAll (field, value) {
     this.forEach(model => model.set(field, value));
@@ -71,7 +76,8 @@ class ModelArray extends ItemArray {
 
   /**
   * Destroys (deletes) all models in the ModelArray from the database
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {import('../db/transaction')} txn SQL transaction to use for this method
+  * @returns {Promise<ModelArray>}
   */
   async destroyAll (txn) {
     if (this.filter(m => !m.inStorage()).length) {
@@ -88,7 +94,8 @@ class ModelArray extends ItemArray {
 
   /**
   * Destroys model and cascades all deletes.
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {import('../db/transaction')} txn SQL transaction to use for this method
+  * @returns {Promise<ModelArray>}
   */
   async destroyCascade (txn) {
     if (this.filter(m => !m.inStorage()).length) {
@@ -119,7 +126,8 @@ class ModelArray extends ItemArray {
 
   /**
   * Saves / updates all models in the ModelArray.
-  * @param {Transaction} txn OPTIONAL: The SQL transaction to use for this method
+  * @param {import('../db/transaction')} txn SQL transaction to use for this method
+  * @returns {Promise<ModelArray>}
   */
   async saveAll (txn) {
     if (!this.length) {

@@ -732,6 +732,17 @@ class Model {
   }
 
   /**
+   * Retrieves another Model; used to import other models in lifecycle callbacks:
+   * beforeSave(), afterSave(), beforeDestroy(), afterDestroy()
+   * @param {string} name
+   * @returns {typeof Model}
+   */
+  getModel (name) {
+    // Gets written over
+    return new this.constructor({});
+  }
+
+  /**
   * Indicates whethere or not the model is currently represented in hard storage (db).
   * @returns {boolean}
   */

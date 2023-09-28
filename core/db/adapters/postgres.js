@@ -439,6 +439,57 @@ class PostgresAdapter extends SQLAdapter {
     return schema;
   }
 
+  async createExtension (name) {
+    const extension = await this.getExtension(name);
+    if (!extension) {
+      throw new Error(`Extension "${name}" is not available to create. Are you sure it is set up correctly?`);
+    } else if (extension.installed_version) {
+      return extension;
+    } else {
+      await this.query(`CREATE EXTENSION ${extension.name}`, []);
+      return this.getExtension(name);
+    }
+  }
+
+  async dropExtension (name) {
+    const extension = await this.getExtension(name);
+    if (!extension) {
+      throw new Error(`Extension "${name}" is not available to drop. Are you sure it is set up correctly?`);
+    } else if (!extension.installed_version) {
+      return extension;
+    } else {
+      await this.query(`DROP EXTENSION ${extension.name}`, []);
+      return this.getExtension(name);
+    }
+  }
+
+  async listExtensions () {
+    const result = await this.query(`
+      SELECT
+        "name",
+        "default_version",
+        "installed_version",
+        "comment"
+      FROM
+        "pg_available_extensions"
+    `, []);
+    const extensions = result.rows.map(row => {
+      return {
+        name: row.name,
+        description: row.comment,
+        default_version: row.default_version,
+        installed_version: row.installed_version || null
+      };
+    });
+    return extensions;
+  }
+
+  async getExtension (name) {
+    const extensions = await this.listExtensions();
+    const extension = extensions.find(ext => ext.name === name);
+    return extension;
+  }
+
   /* generate functions */
 
   generateArray (arr) {

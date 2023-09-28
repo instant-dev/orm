@@ -584,6 +584,26 @@ class MigrationManagerDangerous {
     return this.rollbackTo(migrationId);
   }
 
+  /**
+   * Extensions
+   */
+
+  async enableExtension (name) {
+    return this.parent._Schema.db.adapter.createExtension(name);
+  }
+
+  async disableExtension (name) {
+    return this.parent._Schema.db.adapter.dropExtension(name);
+  }
+
+  async listExtensions () {
+    return this.parent._Schema.db.adapter.listExtensions();
+  }
+
+  async getExtension (name) {
+    return this.parent._Schema.db.adapter.getExtension(name);
+  }
+
 };
 
 module.exports = MigrationManagerDangerous;

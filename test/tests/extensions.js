@@ -3,7 +3,7 @@ module.exports = (InstantORM, Databases) => {
   const expect = require('chai').expect;
 
   const Instant = new InstantORM();
-  Instant.enableLogs(2);
+  // Instant.enableLogs(2);
 
   describe('InstantORM.Core.RelationshipGraph', async () => {
 

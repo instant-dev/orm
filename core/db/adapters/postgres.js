@@ -463,6 +463,12 @@ class PostgresAdapter extends SQLAdapter {
     }
   }
 
+  async getExtension (name) {
+    const extensions = await this.listExtensions();
+    const extension = extensions.find(ext => ext.name === name);
+    return extension;
+  }
+
   async listExtensions () {
     const result = await this.query(`
       SELECT
@@ -482,12 +488,6 @@ class PostgresAdapter extends SQLAdapter {
       };
     });
     return extensions;
-  }
-
-  async getExtension (name) {
-    const extensions = await this.listExtensions();
-    const extension = extensions.find(ext => ext.name === name);
-    return extension;
   }
 
   /* generate functions */

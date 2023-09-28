@@ -26,6 +26,7 @@ class SQLAdapter {
   async introspect () {} // retrieves schema
   async createExtension () {} // creates an extension
   async dropExtension () {} // drops an extension
+  async getExtension () {} // get extension
   async listExtensions () {} // retrieves extensions
 
   generateConnectionString (host, port, database, user, password) {}

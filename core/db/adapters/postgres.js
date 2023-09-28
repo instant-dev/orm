@@ -1123,12 +1123,12 @@ PostgresAdapter.prototype.allTypes = [
 // extension-specific types
 PostgresAdapter.prototype.extensionTypesMap = {
   'vector': [
-    'embedding vector'
+    'vector'
   ]
 };
 
 PostgresAdapter.prototype.typePropertyRequirements = {
-  'embedding vector': {
+  'vector': {
     length: v => {
       if (!v || parseInt(v) !== v || v <= 0) {
         return 'must be an integer greater than 0'

@@ -140,7 +140,7 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('should fail when embedding vector not provided a length value', async () => {
+    it('should fail when vector not provided a length value', async () => {
 
       Instant.Migrator.enableDangerous();
       await Instant.Migrator.Dangerous.reset();
@@ -151,17 +151,17 @@ module.exports = (InstantORM, Databases) => {
       let error;
 
       try {
-        await migration.createTable('blog_comments', [{name: 'embedding', type: 'embedding vector'}]);
+        await migration.createTable('blog_comments', [{name: 'embedding', type: 'vector'}]);
       } catch (e) {
         error = e;
       }
 
       expect(error).to.exist;
-      expect(error.message).to.contain('Invalid column["properties"]["length"] for column type "embedding vector": must be an integer greater than 0');
+      expect(error.message).to.contain('Invalid column["properties"]["length"] for column type "vector": must be an integer greater than 0');
 
     });
 
-    it('should succeed when embedding vector is provided a length value', async () => {
+    it('should succeed when vector is provided a length value', async () => {
 
       Instant.Migrator.enableDangerous();
       await Instant.Migrator.Dangerous.reset();
@@ -172,7 +172,7 @@ module.exports = (InstantORM, Databases) => {
       let error;
 
       try {
-        await migration.createTable('blog_comments', [{name: 'embedding', type: 'embedding vector', properties: {length: 1536}}]);
+        await migration.createTable('blog_comments', [{name: 'embedding', type: 'vector', properties: {length: 1536}}]);
       } catch (e) {
         error = e;
       }

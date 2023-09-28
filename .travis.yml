@@ -1,13 +1,13 @@
-dist: focal
+dist: jammy
 language: node_js
 node_js:
   - "20.6.1"
+services:
+  - postgres
 before_install:
   - sudo apt install -y postgresql-common
   - yes "" | sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
-  - sudo apt install postgresql-15
-  - sudo apt install postgresql-15-pgvector
-  - sudo systemctl start postgresql
+  - sudo apt install postgresql-14-pgvector
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - psql -c 'create database travis_ci_test_readonly;' -U postgres

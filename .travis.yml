@@ -9,6 +9,7 @@ addons:
   postgresql: "14"
 before_install:
   - docker pull ankane/pgvector
+  - docker run ankane/pgvector
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - psql -c 'create database travis_ci_test_readonly;' -U postgres

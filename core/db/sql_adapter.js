@@ -703,7 +703,8 @@ SQLAdapter.prototype.typePropertyDefaults = {
   unique: false,
   primary_key: false,
   auto_increment: false,
-  array: false
+  array: false,
+  length: null
 };
 
 SQLAdapter.prototype.foreignKeyBehaviorDefaults = {
@@ -792,6 +793,8 @@ SQLAdapter.prototype.allTypes = [
   'timestamp with time zone',
   'xml'
 ];
+SQLAdapter.prototype.extensionTypesMap = {};
+SQLAdapter.prototype.typePropertyRequirements = {};
 SQLAdapter.prototype.sanitizeType = {};
 SQLAdapter.prototype.escapeFieldCharacter = '';
 SQLAdapter.prototype.columnDepthDelimiter = '';

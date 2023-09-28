@@ -325,10 +325,15 @@ class Migration extends Logger {
     },
     'columnType': function (v, db) {
       if (!(v in db.adapter.simpleTypes)) {
-        if (db.adapter.allTypes.indexOf(v) === -1) {
+        let types = [];
+        for (const ext in db.adapter.extensionTypesMap) {
+          types = types.concat(db.adapter.extensionTypesMap[ext]);
+        }
+        types = types.concat(db.adapter.allTypes);
+        if (!types.find(type => type === v)) {
           throw new Error(
             `Must be a string representing an aliased type: "${Object.keys(db.adapter.simpleTypes).join('", "')}"\n` +
-            `Or a ${db.adapter.name} type: "${db.adapter.allTypes.join('", "')}"`
+            `Or a ${db.adapter.name} type: "${types.join('", "')}"`
           )
         }
       }
@@ -387,6 +392,16 @@ class Migration extends Logger {
         if (keyLength === 0) {
           delete column['properties'];
         }
+      }
+      const requirements = db.adapter.typePropertyRequirements[column['type']];
+      if (requirements) {
+        const properties = column['properties'] || {};
+        Object.keys(requirements).forEach(property => {
+          const valid = requirements[property](properties[property]);
+          if (valid !== true) {
+            throw new Error(`Invalid property "${property}" on "${column['name']}" type "${column['type']}": ${valid}`);
+          }
+        });
       }
       return column;
     },

@@ -46,9 +46,20 @@ class Database extends Logger {
   listTypes () {
     let simpleTypes = Object.keys(this.adapter.simpleTypes);
     let allTypes = this.adapter.allTypes.filter(type => simpleTypes.indexOf(type) === -1);
+    let extensionTypesSummary = Object.keys(this.adapter.extensionTypesMap).reduce((arr, ext) => {
+      return arr.concat(
+        this.adapter.extensionTypesMap[ext].map(type => {
+          return {
+            name: type,
+            source: `${this.adapter.name} extension ${ext}`
+          };
+        })
+      );
+    }, []);
     return [].concat(
       simpleTypes.map(name => ({name, source: `alias`})),
-      allTypes.map(name => ({name, source: `${this.adapter.name} built-in`}))
+      allTypes.map(name => ({name, source: `${this.adapter.name} built-in`})),
+      extensionTypesSummary
     );
   }
 

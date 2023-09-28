@@ -601,7 +601,7 @@ class PostgresAdapter extends SQLAdapter {
 
     return [
       this.escapeField(columnName),
-      columnType,
+      columnType + (columnProperties.length !== null ? `(${columnProperties.length})` : ''),
       columnProperties.array ? 'ARRAY' : '',
       (columnProperties.primary_key || !columnProperties.nullable) ? 'NOT NULL' : ''
     ].filter(function(v) { return !!v; }).join(' ');
@@ -1119,6 +1119,25 @@ PostgresAdapter.prototype.allTypes = [
   'uuid',
   'xml'
 ];
+
+// extension-specific types
+PostgresAdapter.prototype.extensionTypesMap = {
+  'vector': [
+    'embedding vector'
+  ]
+};
+
+PostgresAdapter.prototype.typePropertyRequirements = {
+  'embedding vector': {
+    length: v => {
+      if (!v || parseInt(v) !== v || v <= 0) {
+        return 'must be an integer greater than 0'
+      } else {
+        return true;
+      }
+    }
+  }
+};
 
 // When introspecting a database, convert to simple types for legibility
 PostgresAdapter.prototype.databaseToSimpleTypes = {

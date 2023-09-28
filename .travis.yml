@@ -3,13 +3,10 @@ language: node_js
 node_js:
   - "20.6.1"
 services:
-  - postgresql
   - docker
-addons:
-  postgresql: "14"
 before_install:
-  - docker pull ankane/pgvector
-  - docker run ankane/pgvector
+  - docker pull ankane/pgvector:14.9
+  - docker run ankane/pgvector:14.9 -e POSTGRES_PASSWORD=mysecretpassword -d postgres
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - psql -c 'create database travis_ci_test_readonly;' -U postgres

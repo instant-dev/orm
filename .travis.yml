@@ -4,6 +4,7 @@ node_js:
   - "20.6.1"
 services:
   - postgresql
+  - docker
 addons:
   postgresql: "14"
 before_install:

@@ -9,6 +9,8 @@ addons:
   apt:
     packages:
     - postgresql-14-pgvector
+before_install:
+  - sudo apt update
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - psql -c 'create database travis_ci_test_readonly;' -U postgres

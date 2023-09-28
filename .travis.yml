@@ -3,7 +3,8 @@ language: node_js
 node_js:
   - "20.6.1"
 before_install:
-  - sudo apt install postgresql-12-pgvector
+  - sudo apt install postgresql-15
+  - sudo apt install postgresql-15-pgvector
   - sudo systemctl start postgresql
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres

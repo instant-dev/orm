@@ -1,11 +1,9 @@
-dist: focal
+dist: jammy
 language: node_js
 node_js:
   - "20.6.1"
 services:
   - postgresql
-addons:
-  postgresql: "14"
 before_install:
   - sudo apt install postgresql-server-dev-14
   - cd /tmp

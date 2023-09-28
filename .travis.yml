@@ -3,7 +3,7 @@ language: node_js
 node_js:
   - "20.6.1"
 services:
-  - postgres
+  - postgresql
 before_install:
   - sudo apt install -y postgresql-common
   - yes "" | sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh

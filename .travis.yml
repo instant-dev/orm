@@ -5,8 +5,8 @@ node_js:
 services:
   - docker
 before_install:
-  - docker pull ankane/pgvector:14.9
-  - docker run ankane/pgvector:14.9 -e POSTGRES_PASSWORD=mysecretpassword -d postgres
+  - docker pull ankane/pgvector
+  - docker run ankane/pgvector -e POSTGRES_PASSWORD=mysecretpassword -d postgres
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - psql -c 'create database travis_ci_test_readonly;' -U postgres

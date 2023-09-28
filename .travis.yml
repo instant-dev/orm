@@ -6,6 +6,12 @@ services:
   - postgresql
 addons:
   postgresql: "14"
+before_install:
+  - cd /tmp
+  - git clone --branch v0.5.0 https://github.com/pgvector/pgvector.git
+  - cd pgvector
+  - make
+  - make install
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - psql -c 'create database travis_ci_test_readonly;' -U postgres

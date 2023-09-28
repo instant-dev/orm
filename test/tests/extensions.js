@@ -5,7 +5,7 @@ module.exports = (InstantORM, Databases) => {
   const Instant = new InstantORM();
   // Instant.enableLogs(2);
 
-  describe('InstantORM.Core.RelationshipGraph', async () => {
+  describe('InstantORM.Core.DB.Database Extensions', async () => {
 
     before(async () => {
       Instant.disconnect();

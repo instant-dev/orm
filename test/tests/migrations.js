@@ -140,6 +140,47 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('should fail when embedding vector not provided a length value', async () => {
+
+      Instant.Migrator.enableDangerous();
+      await Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.prepare();
+      await Instant.Migrator.Dangerous.initialize();
+      const migration = await Instant.Migrator.create();
+
+      let error;
+
+      try {
+        await migration.createTable('blog_comments', [{name: 'embedding', type: 'embedding vector'}]);
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).to.exist;
+      expect(error.message).to.contain('Invalid column["properties"]["length"] for column type "embedding vector": must be an integer greater than 0');
+
+    });
+
+    it('should succeed when embedding vector is provided a length value', async () => {
+
+      Instant.Migrator.enableDangerous();
+      await Instant.Migrator.Dangerous.reset();
+      await Instant.Migrator.Dangerous.prepare();
+      await Instant.Migrator.Dangerous.initialize();
+      const migration = await Instant.Migrator.create();
+
+      let error;
+
+      try {
+        await migration.createTable('blog_comments', [{name: 'embedding', type: 'embedding vector', properties: {length: 1536}}]);
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).to.not.exist;
+
+    });
+
     it('should initialize database migrations and create first named migration, and run it', async () => {
 
       Instant.Migrator.enableDangerous();

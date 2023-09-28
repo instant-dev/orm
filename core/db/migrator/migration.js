@@ -399,7 +399,7 @@ class Migration extends Logger {
         Object.keys(requirements).forEach(property => {
           const valid = requirements[property](properties[property]);
           if (valid !== true) {
-            throw new Error(`Invalid property "${property}" on "${column['name']}" type "${column['type']}": ${valid}`);
+            throw new Error(`Invalid column["properties"]["${property}"] for column type "${column['type']}": ${valid}`);
           }
         });
       }

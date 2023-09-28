@@ -6,13 +6,11 @@ services:
   - postgresql
 addons:
   postgresql: "14"
-  apt:
-    packages:
-    - postgresql-14-pgvector
 before_install:
   - sudo apt install -y postgresql-common
   - sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
   - sudo apt update
+  - sudo apt install postgresql-14-pgvector
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
   - psql -c 'create database travis_ci_test_readonly;' -U postgres

@@ -129,6 +129,7 @@ module.exports = (InstantORM, Databases) => {
 
       const BlogComment = Instant.Model('BlogComment');
       BlogComment.vectorizes('embedding', body => body);
+      BlogComment.hides('embedding');
 
       let error;
 
@@ -219,6 +220,30 @@ module.exports = (InstantORM, Databases) => {
       for (const blogComment of blogComments) {
         expect(blogComment.get('embedding')).to.deep.equal(vectorMap[blogComment.get('body')]);
       }
+
+    });
+
+    it('Should perform a vector search for related entries', async () => {
+
+      const query = `i am having tons of fun!`;
+      const expectedResults = [
+        `I am extremely happy`,
+        `I am feeling pretty good`,
+        `I am so-so`,
+        `I am feeling awful`,
+        `I am in extreme distress`
+      ];
+
+      const BlogComment = Instant.Model('BlogComment');
+      const blogComments = await BlogComment.query()
+        .similarity('embedding', 'i am having tons of fun!')
+        .select();
+
+      expect(blogComments).to.exist;
+      expect(blogComments.length).to.equal(5);
+      blogComments.forEach((blogComment, i) => {
+        expect(blogComment.get('body')).to.equal(expectedResults[i]);
+      });
 
     });
 

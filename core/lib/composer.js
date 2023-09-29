@@ -193,22 +193,35 @@ class Composer {
   }
 
   /**
+  * If commands are provided as functions because they have dynamically generated data, like
+  * vectorizing a search term, execute them
+  * @private
+  * @returns {Array}
+  */
+  async __cacheCommands__ () {
+    let composer = this;
+    while (composer) {
+      if (typeof composer._command === 'function') {
+        composer._command = await composer._command();
+      }
+      composer = composer._parent;
+    }
+    return this;
+  }
+
+  /**
   * Collapses linked list of queries into an array (for .reduce, .map etc)
   * @private
   * @returns {Array}
   */
   __collapse__ () {
-
     let composerArray = [];
     let composer = this;
-
     while (composer) {
       composerArray.unshift(composer);
       composer = composer._parent;
     }
-
     return composerArray;
-
   }
 
   /**
@@ -832,6 +845,41 @@ class Composer {
   }
 
   /**
+  * Search a vector field by similarity to a string or object
+  * @param {string} field Field to search
+  * @param {string} value Value to search for
+  * @param {?string} direction Orders by similarity, default is DESC (most to least similar)
+  * @returns {Composer} new Composer instance
+  */
+  similarity (field, value, direction = 'DESC') {
+
+    const vectorManager = this.Model.prototype._vectorManager;
+
+    if (!vectorManager) {
+      throw new Error(`Could not similarity search "${field}" for "${this.Model.name}": no VectorManager instance set`);
+    }
+    const fieldData = this.Model.columnLookup()[field];
+    if (!fieldData || fieldData.type !== 'vector') {
+      throw new Error(`Could not similarity search "${field}" for "${this.Model.name}": not a valid vector`);
+    }
+
+    this._command = async () => {
+      let vector = await vectorManager.create(value);
+      return {
+        type: 'orderBy',
+        data: {
+          columnNames: [field],
+          transformation: v => `1 - (${v} <=> '[${vector.join(',')}]')`,
+          direction: ({'asc': 'ASC', 'desc': 'DESC'}[(direction + '').toLowerCase()] || 'DESC')
+        }
+      }
+    };
+
+    return new Composer(this.Model, this);
+
+  }
+
+  /**
   * Order by field belonging to the current Composer instance's model.
   * @param {string} field Field to order by
   * @param {?string} direction Must be 'ASC' or 'DESC'
@@ -1062,6 +1110,7 @@ class Composer {
         throw new Error('Transaction must belong to Model Database');
       }
     }
+    await this.__cacheCommands__();
     let countQuery = this.__generateCountQuery__(true);
     let source = txn ? txn : this.db;
     let result = await source.query(countQuery.sql, countQuery.params);
@@ -1082,6 +1131,7 @@ class Composer {
         throw new Error('Transaction must belong to Model Database');
       }
     }
+    await this.__cacheCommands__();
     let query = this.__generateQuery__();
     let countQuery = this.__generateCountQuery__();
     let source = txn ? txn : this.db;
@@ -1118,6 +1168,7 @@ class Composer {
         throw new Error('Transaction must belong to Model Database');
       }
     }
+    await this.__cacheCommands__();
     if (this._readonly) {
       return callback(new Error('Cannot use update in a readonly query.'));
     }

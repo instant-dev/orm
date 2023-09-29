@@ -59,14 +59,7 @@ class VectorManager {
    * @private
    */
   async batchVectorize (queue) {
-    const strValues = queue.map(item => {
-      let value = item.value;
-      return (value === null || value === void 0)
-        ? ''
-        : typeof value === 'object'
-          ? JSON.stringify(value)
-          : (value + '');
-    });
+    const strValues = queue.map(item => this.convertToString(item.value));
     const batches = [[]];
     let curBatchSize = 0;
     while (strValues.length) {
@@ -99,6 +92,19 @@ class VectorManager {
       });
     }
     return true;
+  }
+
+  /**
+   * Converts the provided value to a string for easy vectorization
+   * @param {any} value 
+   * @returns {string}
+   */
+  convertToString (value) {
+    return (value === null || value === void 0)
+      ? ''
+      : typeof value === 'object'
+        ? JSON.stringify(value)
+        : (value + '');
   }
 
   /**

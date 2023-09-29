@@ -142,7 +142,7 @@ class ModelArray extends ItemArray {
     try {
       for (let i = 0; i < this.length; i++) {
         let model = this[i];
-        await model.save(txn);
+        promises.push(model.save(txn));
       }
       await Promise.all(promises);
     } catch (e) {

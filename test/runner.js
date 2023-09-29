@@ -1,3 +1,4 @@
+require('dotenv').config({path: '.test.env'});
 const child_process = require('child_process');
 const os = require('os');
 const fs = require('fs');

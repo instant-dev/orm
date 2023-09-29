@@ -38,6 +38,22 @@ const JSON_CONVERTER = {
   }
 };
 
+const VECTOR_CONVERTER = {
+  convert: v => {
+    if (Array.isArray(v)) {
+      return v.map(v => parseFloat(v) || 0);
+    } else if (typeof v === 'string') {
+      try {
+        return JSON.parse(v);
+      } catch (e) {
+        return [];
+      }
+    } else {
+      return [];
+    }
+  }
+};
+
 module.exports = {
 
   /* aliased types */
@@ -106,6 +122,8 @@ module.exports = {
   'tsvector': NOOP_CONVERTER,
   'txid_snapshot': NOOP_CONVERTER,
   'uuid': STRING_CONVERTER,
-  'xml': STRING_CONVERTER
+  'xml': STRING_CONVERTER,
+
+  'vector': VECTOR_CONVERTER
 
 };

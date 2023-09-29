@@ -2,3 +2,5 @@
 node_modules/
 _instant/
 _instant/db.json
+.env
+.*.env

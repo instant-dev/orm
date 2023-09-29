@@ -317,12 +317,27 @@ class Model {
 
   /**
   * Sets the static and normal .getModel method
+  * @private
   * @param {function} referenceFn
   * @returns {boolean}
   */
   static setModelReference (referenceFn) {
     this.prototype.getModel = referenceFn;
     this.getModel = referenceFn;
+    return true;
+  }
+
+  /**
+  * Sets the vector manager
+  * @private
+  * @param {import('./vector_manager')} vectorManager
+  * @returns {boolean}
+  */
+  static setVectorManager (vectorManager) {
+    /**
+     * @private
+     */
+    this.prototype._vectorManager = vectorManager;
     return true;
   }
 
@@ -402,7 +417,7 @@ class Model {
     if (typeof fnAction !== 'function') {
       throw new Error(`.validates expects a valid function`);
     } else if (fnAction.constructor.name === 'AsyncFunction') {
-      throw new Error(`.validates expects a synchronous function, use .verifies to validate asynchronously on save`);
+      throw new Error(`.validates expects synchronous function, use .verifies to validate asynchronously on save`);
     } else if (fnAction.constructor.name !== 'Function') {
       throw new Error(`.validates expects a valid function: generators are not allowed`);
     }
@@ -579,6 +594,38 @@ class Model {
   */
   static isHidden (field) {
     return this.prototype._hides[field] || false;
+  }
+
+  /**
+  * Automatically vectorizes model information on model creation and save
+  * @param {string} field The vector field to store the data in
+  * @param {function} fnConvert Synchronous function that composes one or more fields into a string to convert into a vector
+  * @returns {boolean}
+  */
+  static vectorizes (field, fnConvert) {
+
+    if (typeof fnConvert !== 'function') {
+      throw new Error(`.vectorizes "fnConvert" expects a valid function`);
+    } else if (fnConvert.constructor.name === 'AsyncFunction') {
+      throw new Error(`.vectorizes "fnConvert" expects synchronous function`);
+    } else if (fnConvert.constructor.name !== 'Function') {
+      throw new Error(`.vectorizes "fnConvert" expects a valid function: generators are not allowed`);
+    }
+
+    if (!this.prototype.hasOwnProperty('_vectorizationsList')) {
+      this.prototype._vectorizationsList = [];
+    };
+
+    const fields = utilities.getFunctionParameters(fnConvert).slice(0);
+
+    this.prototype._vectorizationsList.push({
+      field: field,
+      fields: fields,
+      convert: fnConvert
+    });
+
+    return true;
+
   }
 
   /**
@@ -1278,7 +1325,7 @@ class Model {
     }
     let isNewTransaction = !txn;
     if (isNewTransaction) {
-      txn = await this.db.createTransaction();
+      txn = this.db.createTransaction();
     }
     if (!this.inStorage()) {
       this._isCreating = true;
@@ -1286,6 +1333,7 @@ class Model {
     try {
       await this.__verify__(txn);
       await this.beforeSave(txn);
+      await this.__vectorize__(txn);
       await this.__save__(txn);
       await this.afterSave(txn);
     } catch (e) {
@@ -1341,12 +1389,39 @@ class Model {
   }
 
   /**
+  * Runs all vectorizations before saving
+  * @private
+  */
+  async __vectorize__ () {
+    const promises = [];
+    for (let i = 0; i < this._vectorizationsList.length; i++) {
+      const v = this._vectorizationsList[i];
+      if (!this._vectorManager) {
+        throw new Error(`Could not vectorize "${v.field}" for "${this.constructor.name}": no VectorManager instance set`);
+      }
+      const fieldData = this.getFieldData(v.field);
+      if (fieldData.type !== 'vector') {
+        throw new Error(`Could not vectorize "${v.field}" for "${this.constructor.name}": not a valid vector`);
+      }
+      const fn = (async () => {
+        const str = v.convert.apply(null, v.fields.map(field => this.get(field)));
+        const vector = await this._vectorManager.create(str);
+        this.__safeSet__(v.field, vector);
+      })();
+      promises.push(fn);
+    }
+    if (promises.length) {
+      await Promise.all(promises);
+    }
+    return true;
+  }
+
+  /**
   * Saves model to database
   * @private
   * @param {?Transaction} txn SQL transaction to use for save
   */
   async __save__ (txn) {
-    let db = this.db;
     if (
       this.constructor.hasColumn('updated_at') &&
       this.constructor.column('updated_at').type === 'datetime'
@@ -1469,6 +1544,10 @@ Model.prototype._calculationsList = [];
  * @private
  */
 Model.prototype._verificationsList = [];
+/**
+ * @private
+ */
+Model.prototype._vectorizationsList = [];
 /**
  * @private
  */

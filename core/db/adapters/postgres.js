@@ -986,13 +986,16 @@ class PostgresAdapter extends SQLAdapter {
 }
 
 PostgresAdapter.prototype.sanitizeType = {
-  boolean: function(v) {
+  boolean: v => {
     return ['f', 't'][v | 0];
   },
-  json: function(v) {
+  json: v => {
+    return JSON.stringify(v);
+  },
+  vector: v => {
     return JSON.stringify(v);
   }
-}
+};
 
 PostgresAdapter.prototype.escapeFieldCharacter = '"';
 PostgresAdapter.prototype.columnDepthDelimiter = '->';

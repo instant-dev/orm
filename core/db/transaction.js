@@ -2,9 +2,10 @@ const uuid = require('uuid');
 
 const TXN_STATUS = {
   READY: 0,
-  IN_PROGRESS: 1,
-  COMPLETE: 2,
-  ERROR: 3
+  CONNECTING: 1,
+  IN_PROGRESS: 2,
+  COMPLETE: 3,
+  ERROR: 4
 };
 
 /**
@@ -60,7 +61,11 @@ class Transaction {
         throw new Error(`Can not perform after Transaction in state "${statusName}" (${maxStatus})`);
       }
     }
+    while (this._status === TXN_STATUS.CONNECTING) {
+      await new Promise(r => setTimeout(() => r(), 1));
+    }
     if (this._status === TXN_STATUS.READY) {
+      this._status = TXN_STATUS.CONNECTING;
       this._client = await this.adapter.createClient();
       try {
         if (!this._serializable) {

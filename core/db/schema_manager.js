@@ -205,13 +205,14 @@ class SchemaManager {
     return this.validate(json);
   }
 
-  constructor (db) {
+  constructor (db, vectorManager = null) {
     if (!(db instanceof Database)) {
       throw new Error('Migrator requires valid database instance');
     }
     this.db = db;
     this.schema = this.constructor.emptySchema();
     this.Models = {};
+    this.vectorManager = vectorManager;
   }
 
   getCacheFilename () {
@@ -269,6 +270,7 @@ class SchemaManager {
       _Model.setDatabase(this.db);
       _Model.setTableSchema(this.schema.tables[name]);
       _Model.setModelReference(this.getModel.bind(this));
+      _Model.setVectorManager(this.vectorManager);
       this.Models[name] = _Model;
     });
     this.schema.foreign_keys.forEach(foreignKey => {

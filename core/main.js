@@ -25,7 +25,8 @@ class InstantORM extends Logger {
     ModelArray: require('./lib/model_array.js'),
     ModelFactory: require('./lib/model_factory.js'),
     ModelGenerator: require('./lib/model_generator.js'),
-    RelationshipGraph: require('./lib/relationship_graph.js').RelationshipGraph
+    RelationshipGraph: require('./lib/relationship_graph.js').RelationshipGraph,
+    VectorManager: require('./lib/vector_manager.js')
   };
 
   /**
@@ -42,6 +43,7 @@ class InstantORM extends Logger {
       'readonly': null
     };
     this.Config = new this.constructor.Core.DB.ConfigManager();
+    this._Vectors = null;
     this._Schema = null;
     this._Migrator = null;
     this._Generator = null;
@@ -268,7 +270,8 @@ class InstantORM extends Logger {
     } else {
       throw new Error(`Invalid schema provided: ${src}`);
     }
-    this._Schema = new this.constructor.Core.DB.SchemaManager(db);
+    this._Vectors = new this.constructor.Core.VectorManager();
+    this._Schema = new this.constructor.Core.DB.SchemaManager(db, this._Vectors);
     await this._Schema.setSchema(json);
     this._Migrator = new this.constructor.Core.DB.MigrationManager(this._Schema);
     this._Migrator.enableLogs(this._logLevel); // Pass through logging
@@ -302,6 +305,15 @@ class InstantORM extends Logger {
     this.__checkConnection__();
     this.__checkSchema__();
     return this._Generator;
+  }
+
+  /**
+   * @returns {import('./lib/vector_manager')}
+   */
+  get Vectors () {
+    this.__checkConnection__();
+    this.__checkSchema__();
+    return this._Vectors;
   }
 
   /**

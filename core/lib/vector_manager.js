@@ -1,12 +1,13 @@
 /**
  * Convert strings and other objects to vectors, while automatically batching
  * requests to minimize network and / or processor IO
+ * Defaults are set to work best with OpenAI's text-embedding-ada-002 model
  */
 class VectorManager {
 
   constructor () {
     this.maximumBatchSize = 7168 * 4; // 4 tokens per word, estimated
-    this.maximumParallelRequests = 10; // 2 requests simultaneously max
+    this.maximumParallelRequests = 10; // 10 requests simultaneously max
     this.fastQueueTime = 10; // time to wait if no other entries are added
     this.waitQueueTime = 100; // time to wait to collect entries if 1+ entries are added
     /**

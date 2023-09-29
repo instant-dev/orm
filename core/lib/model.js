@@ -1317,9 +1317,10 @@ class Model {
   /**
   * Save a model (execute beforeSave and afterSave)
   * @param {?Transaction} txn SQL transaction used to execute this save method
+  * @param {Model} waitForModel Must wait for this model to save before continuing
   * @returns {Model}
   */
-  async save (txn) {
+  async save (txn, waitForModel = null) {
     if (this.hasErrors()) {
       throw this.errorObject();
     }
@@ -1334,6 +1335,9 @@ class Model {
       await this.__verify__(txn);
       await this.beforeSave(txn);
       await this.__vectorize__(txn);
+      while (waitForModel && waitForModel._isCreating) {
+        await new Promise(r => setTimeout(() => r(1), 1));
+      }
       await this.__save__(txn);
       await this.afterSave(txn);
     } catch (e) {

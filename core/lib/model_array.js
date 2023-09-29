@@ -141,8 +141,9 @@ class ModelArray extends ItemArray {
     const promises = [];
     try {
       for (let i = 0; i < this.length; i++) {
+        let waitForModel = this[i - 1] || null;
         let model = this[i];
-        promises.push(model.save(txn));
+        promises.push(model.save(txn, waitForModel));
       }
       await Promise.all(promises);
     } catch (e) {

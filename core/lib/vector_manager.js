@@ -6,7 +6,7 @@ class VectorManager {
 
   constructor () {
     this.maximumBatchSize = 7168 * 4; // 4 tokens per word, estimated
-    this.maximumParallelRequests = 10; // 10 requests simultaneously max
+    this.maximumParallelRequests = 10; // 2 requests simultaneously max
     this.fastQueueTime = 10; // time to wait if no other entries are added
     this.waitQueueTime = 100; // time to wait to collect entries if 1+ entries are added
     /**
@@ -80,34 +80,24 @@ class VectorManager {
         batches[n].push(str);
       }
     }
-    // console.log(`Batches?`, batches);
-    // console.log(`Queue  ?`, queue);
-    const batchedVectors = [];
     let i = 0;
     while (batches.length) {
       const parallelBatches = batches.splice(0, this.maximumParallelRequests);
       const parallelVectors = await Promise.all(parallelBatches.map(strValues => this.vectorizeValues(strValues)));
-      // console.log(`parallel batches ...`, parallelBatches);
-      // console.log(`parallel vectors ...`, parallelVectors);
       parallelVectors.forEach((vectors, j) => {
         vectors = Array.isArray(vectors)
           ? vectors
           : [];
         parallelBatches[j].forEach((str, k) => {
-          // console.log('finding k = ', k);
           if (vectors[k]) {
-            // console.log('found!', vectors[k]);
             this._results.set(queue[i++], vectors[k]);
           } else {
-            // console.log('not found!');
             this._results.set(queue[i++], -1);
           }
         });
       });
-      batchedVectors = batchedVectors.concat(parallelVectors);
     }
-    const vectors = [].concat.apply([], batchedVectors);
-    return vectors;
+    return true;
   }
 
   /**
@@ -131,7 +121,6 @@ class VectorManager {
    * @returns 
    */
   async create (value) {
-    // console.log(`vector::create`, value);
     if (!this._vectorize) {
       throw new Error(
         `Could not vectorize: no vector engine has been set.\n` +
@@ -154,7 +143,6 @@ class VectorManager {
     }
     let result = null;
     while (!(result = this._results.get(item))) {
-      // console.log(`... no result yet`, Date.now());
       await this.__sleep__(10);
     }
     this._results.delete(item);

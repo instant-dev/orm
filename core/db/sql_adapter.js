@@ -591,18 +591,23 @@ class SQLAdapter {
   generateOrderByClause (table, orderByArray, groupByArray, joinArray) {
 
     let columnEscapedOrderByArray = orderByArray.map(v => {
+      let paramOffset = v.offset;
       v.escapedColumns = v.columnNames.map((columnName) => {
-        let columnNameComponents = columnName.split('__');
-        if (columnNameComponents.length === 1) {
-          return `${this.escapeField(table)}.${this.escapeField(columnName)}`;
-        } else if (joinArray) {
-          let join = joinArray.find((join) => join.joinAlias === columnNameComponents.slice(0, -1).join('__'));
-          if (!join) {
-            return `${this.escapeField(table)}.${this.escapeField(columnName)}`;
-          }
-          return `${this.escapeField(join.shortAlias)}.${this.escapeField(columnNameComponents[columnNameComponents.length - 1])}`
+        if (columnName.startsWith('$')) {
+          return `$${(paramOffset++) + 1}`;
         } else {
-          return null;
+          let columnNameComponents = columnName.split('__');
+          if (columnNameComponents.length === 1) {
+            return `${this.escapeField(table)}.${this.escapeField(columnName)}`;
+          } else if (joinArray) {
+            let join = joinArray.find((join) => join.joinAlias === columnNameComponents.slice(0, -1).join('__'));
+            if (!join) {
+              return `${this.escapeField(table)}.${this.escapeField(columnName)}`;
+            }
+            return `${this.escapeField(join.shortAlias)}.${this.escapeField(columnNameComponents[columnNameComponents.length - 1])}`
+          } else {
+            return null;
+          }
         }
       }).filter((columnName) => {
         return !!columnName;

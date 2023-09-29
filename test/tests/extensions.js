@@ -223,7 +223,7 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('Should perform a vector search for related entries', async () => {
+    it('Should perform a vector search (cosine similarity) for related entries', async () => {
 
       const query = `i am having tons of fun!`;
       const expectedResults = [
@@ -235,6 +235,7 @@ module.exports = (InstantORM, Databases) => {
       ];
 
       const BlogComment = Instant.Model('BlogComment');
+      
       const blogComments = await BlogComment.query()
         .similarity('embedding', 'i am having tons of fun!')
         .select();
@@ -247,7 +248,32 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('Should create many more vectorized entries', async function () {
+    it('Should perform a vector search (dot product similarity) for related entries', async () => {
+
+      const query = `i am having tons of fun!`;
+      const expectedResults = [
+        `I am extremely happy`,
+        `I am feeling pretty good`,
+        `I am so-so`,
+        `I am feeling awful`,
+        `I am in extreme distress`
+      ];
+
+      const BlogComment = Instant.Model('BlogComment');
+
+      const blogComments = await BlogComment.query()
+        .search('embedding', 'i am having tons of fun!')
+        .select();
+
+      expect(blogComments).to.exist;
+      expect(blogComments.length).to.equal(5);
+      blogComments.forEach((blogComment, i) => {
+        expect(blogComment.get('body')).to.equal(expectedResults[i]);
+      });
+
+    });
+
+    it('Should create many more vectorized entries (50 vectors, ~4 per batch)', async function () {
 
       this.timeout(10000);
 

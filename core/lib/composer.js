@@ -391,7 +391,7 @@ class Composer {
 
     let lastAggregate = null;
 
-    return commandArray.reduce((prev, command, i) => {
+    const query = commandArray.reduce((prev, command, i) => {
 
       if (command.aggregate.length && command.groupBy.length) {
         lastAggregate = command.aggregate;
@@ -414,6 +414,14 @@ class Composer {
         c.columnNames = [c.alias];
       });
 
+      command.orderBy.forEach(orderBy => {
+        let offset = (prev ? prev.params.length : 0) + params.length;
+        orderBy.offset = offset;
+        if (orderBy.params) {
+          params = params.concat(orderBy.params);
+        }
+      });
+
       return {
         sql: this.db.adapter.generateSelectQuery(
           prev.sql || {table: this.Model.table()},
@@ -430,6 +438,8 @@ class Composer {
       }
 
     }, {sql: null, params: []});
+
+    return query;
 
   }
 
@@ -845,7 +855,46 @@ class Composer {
   }
 
   /**
-  * Search a vector field by similarity to a string or object
+  * Search a vector field by dot product similarity to a string or object
+  * This method is ideal when using normalized vectors, eg using OpenAI embeddings
+  * This is an alias for an orderBy function that orders by dot product similarity
+  * @param {string} field Field to search
+  * @param {string} value Value to search for
+  * @param {?string} direction Orders by dot product, default is ASC (least to most distance)
+  * @returns {Composer} new Composer instance
+  */
+  search (field, value, direction = 'ASC') {
+
+    const vectorManager = this.Model.prototype._vectorManager;
+
+    if (!vectorManager) {
+      throw new Error(`Could not dot product search "${field}" for "${this.Model.name}": no VectorManager instance set`);
+    }
+    const fieldData = this.Model.columnLookup()[field];
+    if (!fieldData || fieldData.type !== 'vector') {
+      throw new Error(`Could not dot product search "${field}" for "${this.Model.name}": not a valid vector`);
+    }
+
+    this._command = async () => {
+      let vector = await vectorManager.create(value);
+      return {
+        type: 'orderBy',
+        data: {
+          columnNames: [field, '$1'],
+          transformation: (v, $1) => `${v} <#> ${$1}`,
+          params: [`[${vector.join(',')}]`],
+          direction: ({'asc': 'ASC', 'desc': 'DESC'}[(direction + '').toLowerCase()] || 'ASC')
+        }
+      }
+    };
+
+    return new Composer(this.Model, this);
+
+  }
+
+  /**
+  * Search a vector field by cosine similarity to a string or object
+  * This is an alias for an orderBy function that orders by cosine similarity
   * @param {string} field Field to search
   * @param {string} value Value to search for
   * @param {?string} direction Orders by similarity, default is DESC (most to least similar)
@@ -868,8 +917,9 @@ class Composer {
       return {
         type: 'orderBy',
         data: {
-          columnNames: [field],
-          transformation: v => `1 - (${v} <=> '[${vector.join(',')}]')`,
+          columnNames: [field, '$1'],
+          transformation: (v, $1) => `1 - (${v} <=> ${$1})`,
+          params: [`[${vector.join(',')}]`],
           direction: ({'asc': 'ASC', 'desc': 'DESC'}[(direction + '').toLowerCase()] || 'DESC')
         }
       }
@@ -882,10 +932,11 @@ class Composer {
   /**
   * Order by field belonging to the current Composer instance's model.
   * @param {string} field Field to order by
-  * @param {?string} direction Must be 'ASC' or 'DESC'
+  * @param {?string} direction Must be 'ASC' or 'DESC',
+  * @param {?array} params params to query for transformation function: specify with ($0, $1, $2, ...) in function arguments
   * @returns {Composer} new Composer instance
   */
-  orderBy (field, direction = 'ASC') {
+  orderBy (field, direction = 'ASC', params = []) {
 
     let transformation;
     let fields = [];
@@ -898,11 +949,35 @@ class Composer {
       transformation = v => `${v}`;
     }
 
+    if (!Array.isArray(params)) {
+      throw new Error(`orderBy expected params to be an array`);
+    }
+
+    if (params.length) {
+      let paramFieldIndex = fields.findIndex(field => field.startsWith('$'));
+      if (paramFieldIndex > -1) {
+        let paramFields = fields.slice(paramFieldIndex);
+        if (paramFields.length > params.length) {
+          throw new Error(`orderBy function has ${paramFields.length} parameters, but only ${params.length} parameters supplied.`);
+        }
+        paramFields.forEach((field, i) => {
+          const value = parseInt(field.slice(1));
+          if (value !== (i + 1)) {
+            throw new Error(
+              `orderBy function with parameters expected: ${paramsFields.map((_, i) => `$${i + 1}`).join(', ')}\n` +
+              `but received: ${paramsFields.map((field) => field).join(', ')}`
+            );
+          }
+        });
+      }
+    }
+
     this._command = {
       type: 'orderBy',
       data: {
         columnNames: fields,
         transformation: transformation,
+        params: params,
         direction: ({'asc': 'ASC', 'desc': 'DESC'}[(direction + '').toLowerCase()] || 'ASC')
       }
     };

@@ -176,10 +176,11 @@ module.exports = (InstantORM, Databases) => {
           input: values,
         });
         const vectors = embedding.data.map((entry, i) => {
+          let embedding = entry.embedding.map(v => v || 0); // +0 / -0 issue...
           if (values[i] === testPhrase) {
-            testVector = entry.embedding;
+            testVector = embedding;
           }
-          return entry.embedding;
+          return embedding;
         });
         return vectors;
       });
@@ -202,8 +203,8 @@ module.exports = (InstantORM, Databases) => {
           input: values,
         });
         return embedding.data.map((entry, i) => {
-          vectorMap[values[i]] = entry.embedding;
-          return entry.embedding;
+          vectorMap[values[i]] = entry.embedding.map(v => v || 0); // +0 / -0 issue...
+          return vectorMap[values[i]];
         });
       });
 
@@ -290,8 +291,8 @@ module.exports = (InstantORM, Databases) => {
           input: values,
         });
         return embedding.data.map((entry, i) => {
-          vectorMap[values[i]] = entry.embedding;
-          return entry.embedding;
+          vectorMap[values[i]] = entry.embedding.map(v => v || 0); // +0 / -0 issue...
+          return vectorMap[values[i]];
         });
       });
 

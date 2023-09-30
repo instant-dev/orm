@@ -58,8 +58,8 @@ class Database extends Logger {
     }, []);
     return [].concat(
       simpleTypes.map(name => ({name, source: `alias`})),
-      allTypes.map(name => ({name, source: `${this.adapter.name} built-in`})),
-      extensionTypesSummary
+      extensionTypesSummary,
+      allTypes.map(name => ({name, source: `${this.adapter.name} built-in`}))
     );
   }
 

@@ -443,7 +443,7 @@ Instant ORM comes with built-in support for [pgvector](https://github.com/pgvect
 `vector` field type. To install `pgvector` locally, follow the instructions in the GitHub repo above.
 
 **Note:** In order to use vector fields, `pgvector` will need to be enabled on every database
-you're working with. To enabled `pgvector`, assuming it is installed and you are using the
+you're working with. To enable `pgvector`, assuming it is installed and you are using the
 [instant.dev CLI](https://github.com/instant-dev/instant), run:
 
 ```shell

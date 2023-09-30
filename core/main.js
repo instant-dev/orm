@@ -27,6 +27,7 @@ class InstantORM extends Logger {
     ModelFactory: require('./lib/model_factory.js'),
     ModelGenerator: require('./lib/model_generator.js'),
     RelationshipGraph: require('./lib/relationship_graph.js').RelationshipGraph,
+    PluginManager: require('./lib/plugin_manager.js'),
     VectorManager: VectorManager
   };
 
@@ -44,7 +45,8 @@ class InstantORM extends Logger {
       'readonly': null
     };
     this.Config = new this.constructor.Core.DB.ConfigManager();
-    this._Vectors = null;
+    this.Plugins = new this.constructor.Core.PluginManager();
+    this.Vectors = new this.constructor.Core.VectorManager();
     this._Schema = null;
     this._Migrator = null;
     this._Generator = null;
@@ -90,10 +92,15 @@ class InstantORM extends Logger {
    * @returns {Promise<import('./db/database')>}
    */
   async connect (cfg, schema) {
+    // Reset vectors and plugins...
+    this.Vectors.__initialize__();
+    await this.Plugins.load();
     if (cfg === void 0 && schema === void 0 && this._databases['main']) {
+      await this.Plugins.execute('afterConnect', this);
       return this._databases['main'];
     } else {
       let db = await this.addDatabase('main', cfg);
+      await this.Plugins.execute('afterConnect', this);
       if (schema === null) {
         // Load an empty schema if it's null
         await this.setSchema(this.constructor.Core.DB.SchemaManager.emptySchema());
@@ -271,8 +278,7 @@ class InstantORM extends Logger {
     } else {
       throw new Error(`Invalid schema provided: ${src}`);
     }
-    this._Vectors = new this.constructor.Core.VectorManager();
-    this._Schema = new this.constructor.Core.DB.SchemaManager(db, this._Vectors);
+    this._Schema = new this.constructor.Core.DB.SchemaManager(db, this.Vectors);
     await this._Schema.setSchema(json);
     this._Migrator = new this.constructor.Core.DB.MigrationManager(this._Schema);
     this._Migrator.enableLogs(this._logLevel); // Pass through logging
@@ -306,15 +312,6 @@ class InstantORM extends Logger {
     this.__checkConnection__();
     this.__checkSchema__();
     return this._Generator;
-  }
-
-  /**
-   * @returns {import('./lib/vector_manager')}
-   */
-  get Vectors () {
-    this.__checkConnection__();
-    this.__checkSchema__();
-    return this._Vectors;
   }
 
   /**

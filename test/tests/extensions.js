@@ -1,3 +1,4 @@
+const fs = require('fs');
 const OpenAI = require('openai');
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
@@ -123,7 +124,7 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('Should fail to vectorize the body field on BlogComment without vectorizer', async () => {
+    it('Should fail to vectorize the body field on BlogComment without vector engine', async () => {
 
       const testPhrase = `I am extremely happy`;
 
@@ -274,7 +275,78 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('Should make vector engine defunct again', async () => {
+
+      Instant.Vectors.setEngine(async (values) => {
+        // do nothing
+      });
+      
+      try {
+        await Instant.Vectors.create(`I am extremely happy`);
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).to.exist;
+      expect(error.message).to.contain('Could not vectorize: vector engine did not return a valid vector for input "I am extremely happy"');
+
+    });
+
+    it('Should make vector engine defunct again', async () => {
+
+      Instant.Vectors.setEngine(async (values) => {
+        // do nothing
+      });
+      
+      try {
+        await Instant.Vectors.create(`I am extremely happy`);
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).to.exist;
+      expect(error.message).to.contain('Could not vectorize: vector engine did not return a valid vector for input "I am extremely happy"');
+
+    });
+
+    it ('Should set vector engine via plugin', async () => {
+
+      Instant.disconnect();
+      Instant.Plugins.__createDirectory__();
+
+      let filename = Instant.Plugins.pathname(`000_set_vector_engine.mjs`);
+      const filedata = [
+        `import OpenAI from 'openai';`,
+        `const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});`,
+        ``,
+        `export const event = 'afterConnect';`,
+        `export const plugin = async (Instant) => {`,
+        `  Instant.Vectors.setEngine(async (values) => {`,
+        `    const embedding = await openai.embeddings.create({`,
+        `      model: 'text-embedding-ada-002',`,
+        `      input: values,`,
+        `    });`,
+        `    return embedding.data.map((entry, i) => entry.embedding);`,
+        `  });`,
+        `};`
+      ].join('\n');
+
+      // write file
+      fs.writeFileSync(filename, filedata);
+
+      await Instant.connect(Databases['main'], null);
+      const vector = await Instant.Vectors.create(`I am extremely happy`);
+
+      expect(vector.length).to.equal(1536);
+
+      // cleanup
+      fs.unlinkSync(filename);
+      
+    });
+
     it('Should fail to disable "vector" extension when there are dependencies', async () => {
+
+      Instant.Migrator.enableDangerous();
 
       let extension;
       let error;

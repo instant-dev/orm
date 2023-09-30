@@ -9,7 +9,7 @@
   "author": "Keith Horwood",
   "license": "MIT",
   "dependencies": {
-    "@instant.dev/vectors": "^0.1.0",
+    "@instant.dev/vectors": "^0.1.3",
     "colors": "^1.4.0",
     "deep-equal": "^2.2.2",
     "i": "^0.3.7",

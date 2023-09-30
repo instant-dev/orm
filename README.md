@@ -503,7 +503,7 @@ File `_instant/plugins.json`:
 }
 ```
 
-File `_instant/scripts/set_vector_engine.mjs`:
+File `_instant/plugins/set_vector_engine.mjs`:
 
 ```javascript
 import OpenAI from 'openai';

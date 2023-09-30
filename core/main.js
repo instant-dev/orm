@@ -43,10 +43,10 @@ class InstantORM extends Logger {
    * @private
    */
   __initialize__ () {
-    this.__loadEnv__();
     this.Config = new this.constructor.Core.DB.ConfigManager();
     this.Plugins = new this.constructor.Core.PluginsManager();
     this.Vectors = new this.constructor.Core.VectorManager();
+    this.__loadEnv__();
     /**
      * @private
      */
@@ -77,7 +77,7 @@ class InstantORM extends Logger {
    */
   __loadEnv__ () {
     const cwd = process.cwd();
-    this.envFile = `.${process.env.NODE_ENV}.env`;
+    this.envFile = `.${this.Config.getProcessEnv()}.env`;
     if (fs.existsSync(this.envFile)) {
       require('dotenv').config({path: this.envFile});
       this.log(`Loaded process.env from "${this.envFile}"`);
@@ -90,7 +90,7 @@ class InstantORM extends Logger {
    */
   readEnv () {
     if (fs.existsSync(this.envFile)) {
-      let lines = fs.readFileSync(this.envFile).split('\n');
+      let lines = fs.readFileSync(this.envFile).toString().split('\n');
       return lines
         .filter(line => !!line.trim())
         .map(line => {
@@ -111,13 +111,15 @@ class InstantORM extends Logger {
   writeEnv (key, value) {
     value = ((value || '') + '');
     let entries = this.readEnv();
-    let entry = entries.find(line => line.key === key);
+    let entry = entries.find(entry => entry.key === key);
     if (entry) {
       entry.value = value;
     } else {
-      lines.push({key, value});
+      entries.push({key, value});
     }
-    fs.writeFileSync(this.envFile, lines.map(entry => `${entry.key}=${entry.value}`).join('\n'));
+    this.log(`Writing "${key}=${value}" to "${this.envFile}" ...`);
+    fs.writeFileSync(this.envFile, entries.map(entry => `${entry.key}=${entry.value}`).join('\n') + '\n');
+    this.Config.appendGitIgnore(this.envFile);
   }
 
   /**

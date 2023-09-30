@@ -292,23 +292,6 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('Should make vector engine defunct again', async () => {
-
-      Instant.Vectors.setEngine(async (values) => {
-        // do nothing
-      });
-      
-      try {
-        await Instant.Vectors.create(`I am extremely happy`);
-      } catch (e) {
-        error = e;
-      }
-
-      expect(error).to.exist;
-      expect(error.message).to.contain('Could not vectorize: vector engine did not return a valid vector for input "I am extremely happy"');
-
-    });
-
     it ('Should set vector engine via plugin', async () => {
 
       Instant.disconnect();

@@ -487,38 +487,31 @@ Instant.Vectors.setEngine(async (values) => {
 #### Setting a vector engine globally
 
 **Quickstart:** If you are using the [instant.dev CLI](https://github.com/instant-dev/instant),
-you can simply run `instant kit vectors`. It will set up the following files automatically.
+you can simply run `instant kit vector`. It will set up a plugin automatically.
 
-To automatically load a vector engine, we will run **plugins**. These are executed
-as part of lifecycle events when using the Instant ORM. You'll need to change two files:
-`_instant/plugins.json` and `_instant/plugins/set_vector_engine.js`:
+To automatically load a vector engine, we will need to add a **plugin**. These are executed
+as part of lifecycle events when using the Instant ORM. You'll need to create a file:
 
-File `_instant/plugins.json`:
-
-```json
-{
-  "afterConnect": [
-    "_instant/plugins/set_vector_engine.mjs"
-  ]
-}
-```
-
-File `_instant/plugins/set_vector_engine.mjs`:
+File `_instant/plugins/000_set_vector_engine.mjs`:
 
 ```javascript
 import OpenAI from 'openai';
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
-export default async (Instant) => {
+export const event = 'afterConnect';
+export const plugin = async (Instant) => {
   Instant.Vectors.setEngine(async (values) => {
-    const embeddingResult = await openai.embeddings.create({
+    const embedding = await openai.embeddings.create({
       model: 'text-embedding-ada-002',
-      input: values,
+      input: values
     });
-    return embeddingResult.data.map(entry => entry.embedding);
+    return embedding.data.map((entry, i) => entry.embedding);
   });
 };
 ```
+
+Plugins **must** export an `event` string and a `plugin` function. Plugins are executed in the
+order they exist in the filesystem, according to their appropriate event.
 
 #### Using vector fields
 

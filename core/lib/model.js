@@ -945,29 +945,7 @@ class Model {
     value = this.convert(field, value);
 
     if (value !== curValue) {
-
       changed = true;
-
-      if (
-        value instanceof Array &&
-        curValue instanceof Array &&
-        value.length === curValue.length
-      ) {
-        changed = false;
-        // If we have two equal length arrays, we must compare every value
-        for (let i = 0; i < value.length; i++) {
-          if (value[i] !== curValue[i]) {
-            changed = true;
-            break;
-          }
-        }
-      }
-
-      // If we have an object value (json), do a deterministic diff
-      if ( utilities.isObject(value) ) {
-        changed = !deepEqual(curValue, value, {strict: true});
-      }
-
     }
 
     this._data[field] = value;

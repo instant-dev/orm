@@ -66,7 +66,16 @@ class PluginsManager {
       const filenames = this.readdir(pathname);
       for (const filename of filenames) {
         let filepath = path.join(cwd, filename);
-        let pluginModule = await import(filepath);
+        let pluginModule;
+        try {
+          pluginModule = await import(filepath);
+        } catch (e) {
+          console.error(e);
+          throw new Error(
+            `Error loading plugin "${filepath}":\n` +
+            e.message
+          );
+        }
         if (pluginModule.default) {
           pluginModule = pluginModule.default;
         }

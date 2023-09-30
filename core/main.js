@@ -39,20 +39,90 @@ class InstantORM extends Logger {
     this.__initialize__();
   }
 
+  /**
+   * @private
+   */
   __initialize__ () {
+    this.__loadEnv__();
+    this.Config = new this.constructor.Core.DB.ConfigManager();
+    this.Plugins = new this.constructor.Core.PluginsManager();
+    this.Vectors = new this.constructor.Core.VectorManager();
+    /**
+     * @private
+     */
     this._databases = {
       'main': null,
       'readonly': null
     };
-    this.Config = new this.constructor.Core.DB.ConfigManager();
-    this.Plugins = new this.constructor.Core.PluginsManager();
-    this.Vectors = new this.constructor.Core.VectorManager();
+    /**
+     * @private
+     */
     this._Schema = null;
+    /**
+     * @private
+     */
     this._Migrator = null;
+    /**
+     * @private
+     */
     this._Generator = null;
+    /**
+     * @private
+     */
     this._Models = {};
   }
 
+  /**
+   * @private
+   */
+  __loadEnv__ () {
+    const cwd = process.cwd();
+    this.envFile = `.${process.env.NODE_ENV}.env`;
+    if (fs.existsSync(this.envFile)) {
+      require('dotenv').config({path: this.envFile});
+      this.log(`Loaded process.env from "${this.envFile}"`);
+    }
+  }
+
+  /**
+   * Reads environment variables from appropriate .[environment].env file
+   * @returns {array} entries
+   */
+  readEnv () {
+    if (fs.existsSync(this.envFile)) {
+      let lines = fs.readFileSync(this.envFile).split('\n');
+      return lines
+        .filter(line => !!line.trim())
+        .map(line => {
+          let values = line.split('=');
+          let key = values.shift();
+          return {key, value: values.join('')};
+        });
+    } else {
+      return [];
+    }
+  }
+
+  /**
+   * Writes an environment variable to appropriate .[environment].env file
+   * @param {string} key 
+   * @param {string} value 
+   */
+  writeEnv (key, value) {
+    value = ((value || '') + '');
+    let entries = this.readEnv();
+    let entry = entries.find(line => line.key === key);
+    if (entry) {
+      entry.value = value;
+    } else {
+      lines.push({key, value});
+    }
+    fs.writeFileSync(this.envFile, lines.map(entry => `${entry.key}=${entry.value}`).join('\n'));
+  }
+
+  /**
+   * @private
+   */
   __checkConnection__ () {
     if (!this._databases['main']) {
       throw new Error(`You are not connected to a main database: use .connect()`);
@@ -60,6 +130,9 @@ class InstantORM extends Logger {
     return true;
   }
 
+  /**
+   * @private
+   */
   __checkSchema__ () {
     if (!this._Schema) {
       throw new Error(`You have not specified a schema: use .setSchema()`);

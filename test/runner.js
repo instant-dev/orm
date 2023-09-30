@@ -1,8 +1,9 @@
-require('dotenv').config({path: '.test.env'});
 const child_process = require('child_process');
 const os = require('os');
 const fs = require('fs');
 
+// load NODE_ENV
+process.env.NODE_ENV = process.env.NODE_ENV || 'test';
 // For importing models from SchemaUtilities
 process.env.__INSTANT_MODEL_IMPORT = '../../index.js';
 
@@ -17,7 +18,7 @@ try {
 describe('Test Suite', function() {
 
   const cfg = require('./config/db.json');
-  const NODE_ENV = process.env.NODE_ENV || 'development';
+  const NODE_ENV = process.env.NODE_ENV;
   if (!cfg[NODE_ENV]) {
     throw new Error(`No test environment data found for "${NODE_ENV}" in "./test/config/db.json"`);
   }
@@ -39,7 +40,7 @@ describe('Test Suite', function() {
 
     before((done) => {
       this.timeout(30000); // Set timeout to 30 seconds
-      if (NODE_ENV === 'development') {
+      if (NODE_ENV === 'test') {
         // Using async exec here to easily handler stderr
         // Errors are not thrown and instead are treated as warnings
         child_process.exec(`psql -q -c "drop database if exists ${Databases['main'].database};" -U postgres`, processOptions, function(error, stdout, stderr) {
@@ -68,7 +69,7 @@ describe('Test Suite', function() {
 
     after((done) => {
       this.timeout(30000); // Set timeout to 30 seconds
-      if (NODE_ENV === 'development') {
+      if (NODE_ENV === 'test') {
         // Don't remove the -q option, it will break the db connection pool
         child_process.exec(`psql -q -c "drop database if exists ${Databases['main'].database};" -U postgres`, processOptions, function(error, stdout, stderr) {
           if (error) {
@@ -87,7 +88,7 @@ describe('Test Suite', function() {
   } else {
 
     before(() => {
-      if (NODE_ENV === 'development') {
+      if (NODE_ENV === 'test') {
         this.timeout(30000);
         // child_process.execSync('createuser postgres -s -q');
         child_process.execSync(`psql -c \'drop database if exists ${Databases['main'].database};\' -U postgres`);
@@ -99,7 +100,7 @@ describe('Test Suite', function() {
 
     after(() => {
       this.timeout(30000);
-      if (NODE_ENV === 'development') {
+      if (NODE_ENV === 'test') {
         child_process.execSync(`psql -c \'drop database if exists ${Databases['main'].database};\' -U postgres`);
         child_process.execSync(`psql -c \'drop database if exists ${Databases['readonly'].database};\' -U postgres`);
       }

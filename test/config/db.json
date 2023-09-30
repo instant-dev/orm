@@ -1,6 +1,6 @@
 {
 
-  "development": {
+  "test": {
     "main": {
       "adapter": "postgres",
       "host": "localhost",
@@ -19,7 +19,7 @@
     }
   },
 
-  "test": {
+  "test_ci": {
     "main": {
       "adapter": "postgres",
       "host": "localhost",

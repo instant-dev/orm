@@ -34,25 +34,32 @@ class ConfigManager extends Logger {
   __create__ () {
     this.__check__();
     let pathname = this.pathname();
+    let entries = [
+      pathname,
+      `.env`,
+      `.*.env`
+    ];
     if (!this.exists()) {
       fs.writeFileSync(pathname, JSON.stringify({}, null, 2));
     }
     let gitignorePathname = '.gitignore';
     if (!fs.existsSync(gitignorePathname)) {
-      let gitignore = Buffer.from(pathname + '\n');
+      let gitignore = Buffer.from(entries.join('\n') + '\n');
       fs.writeFileSync(gitignorePathname, gitignore);
-      this.log(`Created ".gitignore" containing "${pathname}"`);
+      this.log(`Created ".gitignore" containing "${entries.join('", "')}"`);
     } else {
       let gitignore = fs.readFileSync(gitignorePathname);
       let lines = gitignore.toString()
         .split(/\r?\n/gi)
         .map(line => line.trim())
         .filter(line => !!line);
-      if (lines.indexOf(pathname) === -1) {
-        lines.push(pathname);
-        fs.writeFileSync(gitignorePathname, Buffer.from(lines.join('\n')) + '\n');
-        this.log(`Appended "${pathname}" to ".gitignore"`);
+      for (const entry of entries) {
+        if (lines.indexOf(entry) === -1) {
+          lines.push(entry);
+        }
       }
+      fs.writeFileSync(gitignorePathname, Buffer.from(lines.join('\n')) + '\n');
+      this.log(`Appended "${entries.join('", "')}" to ".gitignore"`);
     }
     return true;
   }

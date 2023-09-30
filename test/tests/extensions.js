@@ -1,12 +1,12 @@
 const fs = require('fs');
 const OpenAI = require('openai');
-const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
 module.exports = (InstantORM, Databases) => {
 
   const expect = require('chai').expect;
 
   const Instant = new InstantORM();
+  const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
   // Instant.enableLogs(4);
 
   describe('InstantORM.Core.DB.Database Extensions', async () => {

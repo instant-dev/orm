@@ -1,7 +1,7 @@
 # Instant ORM
 ![npm version](https://img.shields.io/npm/v/@instant.dev/orm?label=) ![Build Status](https://app.travis-ci.com/instant-dev/orm.svg?branch=main)
 
-## JavaScript ORM for Postgres
+## JavaScript ORM for Postgres with built-in Vector Support
 
 This is the core ORM package for [**`instant.dev`**](https://github.com/instant-dev/instant).
 It is recommended that you use it with the `instant` command line utility
@@ -26,6 +26,7 @@ Database schema and determine appropriate models and relationships.
       1. [Update](#update)
          1. [Incrementing values and custom SQL](#incrementing-values-and-custom-sql)
       1. [Destroy](#destroy)
+   1. [Vector fields](#vector-fields)
    1. [Query composition](#query-composition)
       1. [Composer instance methods](#composer-instance-methods)
          1. [Composer#safeWhere](#composer-safewhere)
@@ -431,6 +432,51 @@ let mutedUsers = await User.query().where({is_muted: true}).select();
 await mutedUsers.destroyCascade();
 ```
 
+### Vector fields
+
+Instant ORM comes with built-in support for [pgvector](https://github.com/pgvector/pgvector) and the
+`vector` field type. To install `pgvector` locally, follow the instructions in the GitHub repo above.
+
+Database providers with built-in `pgvector` support include:
+
+- AWS RDS for PostgreSQL (15+) ([announcement](https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-rds-postgresql-pgvector-ml-model-integration/))
+- [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres)
+- [Neon](https://neon.tech)
+- [Supabase](https://supabase.com)
+
+To use vector fields;
+
+
+File: `_instant/models/blog_post.mjs`
+
+```javascript
+import InstantORM from '@instant.dev/orm';
+
+class BlogPost extends InstantORM.Core.Model {
+
+  static tableName = 'blog_posts';
+
+}
+
+// Stores the `title` and `content` fields together as a vector
+// in the `content_embedding` vector field
+BlogPost.vectorizes('content_embedding', (title, content) => `Title: ${title}\n\nBody: ${content}`);
+
+export default BlogPost;
+```
+
+```javascript
+const blogPost = await BlogPost.create({title: `My first post`, content: `some content`});
+const vector = blogPost.get('content_embedding'); // length 1,536 array
+
+// Find the top 10 blog posts matching "blog posts about dogs"
+// Automatically converts query to a vector
+let searchBlogPosts = await BlogPost.query()
+  .search(`content_embedding`, `blog posts about dogs`)
+  .limit(10)
+  .select();
+```
+
 ### Query composition
 
 Instant ORM provides a query composer that enables you to construct complex
@@ -784,6 +830,44 @@ aggregate (alias, transformation) { ... }
 ```
 
 Use with `.groupBy()`, example is provided above.
+
+##### Composer#search
+
+```javascript
+/**
+  * Search a vector field by dot product similarity to a string or object
+  * This method is ideal when using normalized vectors, eg using OpenAI embeddings
+  * This is an alias for an orderBy function that orders by dot product similarity
+  * @param {string} field Field to search
+  * @param {string} value Value to search for
+  * @param {?string} direction Orders by dot product, default is ASC (least to most distance)
+  * @returns {Composer} new Composer instance
+  */
+  search (field, value, direction = 'ASC') { ... }
+```
+
+Performs a vector comparison (dot product) against the specified vector field.
+This is ideal to use when your vectors are normalized, like OpenAI embeddings.
+Order by distance (min: `0`, max: `Infinity`), ascending is default.
+
+##### Composer#similarity
+
+```javascript
+/**
+  * Search a vector field by cosine similarity to a string or object
+  * This is an alias for an orderBy function that orders by cosine similarity
+  * @param {string} field Field to search
+  * @param {string} value Value to search for
+  * @param {?string} direction Orders by similarity, default is DESC (most to least similar)
+  * @returns {Composer} new Composer instance
+  */
+  similarity (field, value, direction = 'DESC') { ... }
+```
+
+Performs a vector comparison (cosine similarity) against the specified vector field.
+This is ideal to use when your vectors are NOT normalized. For normalized vectors,
+like OpenAI embeddings, this will return the same result as `search()` but is slightly
+slower. Orders by similarity (min: `0`, max: `1.0`), defaults to `DESC` order (most similar = 1.0).
 
 ### Transactions
 

@@ -27,20 +27,25 @@ Database schema and determine appropriate models and relationships.
          1. [Incrementing values and custom SQL](#incrementing-values-and-custom-sql)
       1. [Destroy](#destroy)
    1. [Vector fields](#vector-fields)
+      1. [Setting a vector engine](#setting-a-vector-engine)
+      1. [Setting a vector engine globally](#setting-a-vector-engine-globally)
+      1. [Using vector fields](#using-vector-fields)
    1. [Query composition](#query-composition)
       1. [Composer instance methods](#composer-instance-methods)
-         1. [Composer#safeWhere](#composer-safewhere)
-         1. [Composer#safeJoin](#composer-safejoin)
-         1. [Composer#where](#composer-where)
+         1. [Composer#safeWhere](#composersafewhere)
+         1. [Composer#safeJoin](#composersafejoin)
+         1. [Composer#where](#composerwhere)
             1. [Custom SQL](#custom-sql)
-         1. [Composer#join](#composer-join)
+         1. [Composer#join](#composerjoin)
             1. [One-to-many](#one-to-many)
             1. [One-to-one](#one-to-one)
             1. [Naming conventions](#naming-conventions)
-         1. [Composer#orderBy](#composer-orderby)
-         1. [Composer#limit](#composer-limit)
-         1. [Composer#groupBy](#composer-groupby)
-         1. [Composer#aggregate](#composer-aggregate)
+         1. [Composer#orderBy](#composerorderby)
+         1. [Composer#limit](#composerlimit)
+         1. [Composer#groupBy](#composergroupby)
+         1. [Composer#aggregate](#composeraggregate)
+         1. [Composer#search](#composersearch)
+         1. [Composer#similarity](#composersimilarity)
    1. [Transactions](#transactions)
    1. [Input validation](#input-validation)
    1. [Relationship verification](#relationship-verification)
@@ -437,6 +442,22 @@ await mutedUsers.destroyCascade();
 Instant ORM comes with built-in support for [pgvector](https://github.com/pgvector/pgvector) and the
 `vector` field type. To install `pgvector` locally, follow the instructions in the GitHub repo above.
 
+**Note:** In order to use vector fields, `pgvector` will need to be enabled on every database
+you're working with. To enabled `pgvector`, assuming it is installed and you are using the
+[instant.dev CLI](https://github.com/instant-dev/instant), run:
+
+```shell
+instant db:ext --enable vector # enable for local
+instant db:ext --enable vector --env staging # enable for staging
+instant db:ext --enable vector --env production # enable for production ... and so on
+```
+
+Or you can also simple `psql` into your database and run:
+
+```sql
+CREATE EXTENSION vector;
+```
+
 Database providers with built-in `pgvector` support include:
 
 - AWS RDS for PostgreSQL (15+) ([announcement](https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-rds-postgresql-pgvector-ml-model-integration/))
@@ -444,8 +465,67 @@ Database providers with built-in `pgvector` support include:
 - [Neon](https://neon.tech)
 - [Supabase](https://supabase.com)
 
-To use vector fields;
+#### Setting a vector engine
 
+Instant ORM uses the [@instant.dev/vectors](https://github.com/instant-dev/vectors) package to
+make creating vectors a breeze. It will automatically handle batching requests to OpenAI or
+any other third party vector service.
+
+To set a vector engine, you can use `Instant.Vectors.setEngine()` like so:
+
+```javascript
+// values will automatically be batched appropriately
+Instant.Vectors.setEngine(async (values) => {
+  const embeddingResult = await openai.embeddings.create({
+    model: 'text-embedding-ada-002',
+    input: values,
+  });
+  return embeddingResult.data.map(entry => entry.embedding);
+});
+```
+
+#### Setting a vector engine globally
+
+If you are using the [instant.dev CLI](https://github.com/instant-dev/instant),
+you can simply run `instant kit vectors`. It will set up the following files automatically.
+
+To automatically load a vector engine, we will run **plugins**. These are executed
+as part of lifecycle events when using the Instant ORM. You'll need to change two files:
+`_instant/plugins.json` and `_instant/plugins/set_vector_engine.js`:
+
+File `_instant/plugins.json`:
+
+```json
+{
+  "afterConnect": [
+    "_instant/plugins/set_vector_engine.mjs"
+  ]
+}
+```
+
+File `_instant/scripts/set_vector_engine.mjs`:
+
+```javascript
+import OpenAI from 'openai';
+const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
+
+export default async (Instant) => {
+  Instant.Vectors.setEngine(async (values) => {
+    const embeddingResult = await openai.embeddings.create({
+      model: 'text-embedding-ada-002',
+      input: values,
+    });
+    return embeddingResult.data.map(entry => entry.embedding);
+  });
+};
+```
+
+#### Using vector fields
+
+Using vector fields is easy. The vector engine, specified above, will do all the heavy lifting
+of converting strings to vectors and `pgvector` will handle comparisons automatically.
+
+To automatically populate vector fields when models are saved:
 
 File: `_instant/models/blog_post.mjs`
 
@@ -460,10 +540,15 @@ class BlogPost extends InstantORM.Core.Model {
 
 // Stores the `title` and `content` fields together as a vector
 // in the `content_embedding` vector field
-BlogPost.vectorizes('content_embedding', (title, content) => `Title: ${title}\n\nBody: ${content}`);
+BlogPost.vectorizes(
+  'content_embedding',
+  (title, content) => `Title: ${title}\n\nBody: ${content}`
+);
 
 export default BlogPost;
 ```
+
+And then to query vector fields:
 
 ```javascript
 const blogPost = await BlogPost.create({title: `My first post`, content: `some content`});
@@ -476,6 +561,9 @@ let searchBlogPosts = await BlogPost.query()
   .limit(10)
   .select();
 ```
+
+You can read more on vector queries at
+[Composer#search](#composersearch) and [Composer#similarity](#composersimilarity).
 
 ### Query composition
 

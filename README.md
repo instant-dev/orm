@@ -486,7 +486,7 @@ Instant.Vectors.setEngine(async (values) => {
 
 #### Setting a vector engine globally
 
-If you are using the [instant.dev CLI](https://github.com/instant-dev/instant),
+**Quickstart:** If you are using the [instant.dev CLI](https://github.com/instant-dev/instant),
 you can simply run `instant kit vectors`. It will set up the following files automatically.
 
 To automatically load a vector engine, we will run **plugins**. These are executed
@@ -557,7 +557,7 @@ const vector = blogPost.get('content_embedding'); // length 1,536 array
 // Find the top 10 blog posts matching "blog posts about dogs"
 // Automatically converts query to a vector
 let searchBlogPosts = await BlogPost.query()
-  .search(`content_embedding`, `blog posts about dogs`)
+  .search('content_embedding', 'blog posts about dogs')
   .limit(10)
   .select();
 ```

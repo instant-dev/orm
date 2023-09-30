@@ -10,7 +10,7 @@ class PluginsManager {
   static supportedEvents = ['afterConnect'];
 
   constructor () {
-    this.events = {};
+    this.plugins = [];
   }
 
   /**
@@ -54,7 +54,7 @@ class PluginsManager {
   }
 
   async load () {
-    this.events = {};
+    this.plugins = [];
     const cwd = process.cwd();
     const pathname = this.pathname();
     if (fs.existsSync(pathname)) {
@@ -66,36 +66,23 @@ class PluginsManager {
       const filenames = this.readdir(pathname);
       for (const filename of filenames) {
         let filepath = path.join(cwd, filename);
-        let plugin = await import(filepath);
-        if (plugin.default) {
-          plugin = plugin.default;
+        let pluginModule = await import(filepath);
+        if (pluginModule.default) {
+          pluginModule = pluginModule.default;
         }
-        if (!plugin.event) {
-          throw new Error(`Plugin "${pathname}" missing export "event"`);
-        } else if (!this.constructor.supportedEvents.includes(plugin.event)) {
-          throw new Error(
-            `Plugin "${pathname}" export "event" invalid:\n` +
-            `must be one of "${this.constructor.supportedEvents.join('", "')}"`
-          );
-        } else if (!plugin.plugin) {
+        if (!pluginModule.plugin) {
           throw new Error(`Plugin "${pathname}" missing export "plugin"`);
-        } else if (typeof plugin.plugin !== 'function') {
+        } else if (typeof pluginModule.plugin !== 'function') {
           throw new Error(`Plugin "${pathname}" export "plugin" invalid: must be a function`);
         }
-        this.events[plugin.event] = this.events[plugin.event] || [];
-        this.events[plugin.event].push(plugin.plugin);
+        this.plugins.push(pluginModule.plugin);
       }
     }
   }
 
-  async execute (event, Instant) {
-    if (!this.constructor.supportedEvents.includes(event)) {
-      throw new Error(`Could not execute plugins for "${event}": not a supported event type`);
-    }
-    if  (this.events[event]) {
-      for (const plugin of this.events[event]) {
-        await plugin(Instant);
-      }
+  async execute (Instant) {
+    for (const plugin of this.plugins) {
+      await plugin(Instant);
     }
   }
 

@@ -27,7 +27,7 @@ class InstantORM extends Logger {
     ModelFactory: require('./lib/model_factory.js'),
     ModelGenerator: require('./lib/model_generator.js'),
     RelationshipGraph: require('./lib/relationship_graph.js').RelationshipGraph,
-    PluginManager: require('./lib/plugin_manager.js'),
+    PluginsManager: require('./lib/plugins_manager.js'),
     VectorManager: VectorManager
   };
 
@@ -45,7 +45,7 @@ class InstantORM extends Logger {
       'readonly': null
     };
     this.Config = new this.constructor.Core.DB.ConfigManager();
-    this.Plugins = new this.constructor.Core.PluginManager();
+    this.Plugins = new this.constructor.Core.PluginsManager();
     this.Vectors = new this.constructor.Core.VectorManager();
     this._Schema = null;
     this._Migrator = null;
@@ -96,11 +96,11 @@ class InstantORM extends Logger {
     this.Vectors.__initialize__();
     await this.Plugins.load();
     if (cfg === void 0 && schema === void 0 && this._databases['main']) {
-      await this.Plugins.execute('afterConnect', this);
+      await this.Plugins.execute(this);
       return this._databases['main'];
     } else {
       let db = await this.addDatabase('main', cfg);
-      await this.Plugins.execute('afterConnect', this);
+      await this.Plugins.execute(this);
       if (schema === null) {
         // Load an empty schema if it's null
         await this.setSchema(this.constructor.Core.DB.SchemaManager.emptySchema());

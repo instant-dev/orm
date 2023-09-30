@@ -322,14 +322,13 @@ module.exports = (InstantORM, Databases) => {
     it ('Should set vector engine via plugin', async () => {
 
       Instant.disconnect();
-      Instant.Plugins.__createDirectory__('after_connect');
+      Instant.Plugins.__createDirectory__();
 
-      let filename = Instant.Plugins.pathname(`after_connect/000_set_vector_engine.mjs`);
+      let filename = Instant.Plugins.pathname(`000_set_vector_engine.mjs`);
       const filedata = [
         `import OpenAI from 'openai';`,
         `const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});`,
         ``,
-        `export const event = 'afterConnect';`,
         `export const plugin = async (Instant) => {`,
         `  Instant.Vectors.setEngine(async (values) => {`,
         `    const embedding = await openai.embeddings.create({`,

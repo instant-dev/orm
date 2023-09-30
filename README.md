@@ -492,13 +492,12 @@ you can simply run `instant kit vector`. It will set up a plugin automatically.
 To automatically load a vector engine, we will need to add a **plugin**. These are executed
 as part of lifecycle events when using the Instant ORM. You'll need to create a file:
 
-File `_instant/plugins/000_set_vector_engine.mjs`:
+File `_instant/000_set_vector_engine.mjs`:
 
 ```javascript
 import OpenAI from 'openai';
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
-export const event = 'afterConnect';
 export const plugin = async (Instant) => {
   Instant.Vectors.setEngine(async (values) => {
     const embedding = await openai.embeddings.create({
@@ -510,8 +509,8 @@ export const plugin = async (Instant) => {
 };
 ```
 
-Plugins **must** export an `event` string and a `plugin` function. Plugins are executed in the
-order they exist in the filesystem, according to their appropriate event.
+Plugins **must** export a `plugin` function. Plugins are executed in the
+alphabetized order they exist in the filesystem, with directories being loaded first.
 
 #### Using vector fields
 

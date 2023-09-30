@@ -1,6 +1,7 @@
 const fs = require('fs');
 
 const inflect = require('i')();
+const { VectorManager } = require('@instant.dev/vectors');
 
 const Logger = require('./logger.js');
 
@@ -26,7 +27,7 @@ class InstantORM extends Logger {
     ModelFactory: require('./lib/model_factory.js'),
     ModelGenerator: require('./lib/model_generator.js'),
     RelationshipGraph: require('./lib/relationship_graph.js').RelationshipGraph,
-    VectorManager: require('./lib/vector_manager.js')
+    VectorManager: VectorManager
   };
 
   /**

@@ -274,46 +274,6 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('Should create many more vectorized entries (50 vectors, ~4 per batch)', async function () {
-
-      this.timeout(10000);
-
-      const BlogComment = Instant.Model('BlogComment');
-      let existing = await BlogComment.query().select();
-      await existing.destroyAll();
-
-      const vectorMap = {};
-
-      Instant.Vectors.maximumBatchSize = 1000;
-      Instant.Vectors.setEngine(async (values) => {
-        const embedding = await openai.embeddings.create({
-          model: 'text-embedding-ada-002',
-          input: values,
-        });
-        return embedding.data.map((entry, i) => {
-          vectorMap[values[i]] = entry.embedding.map(v => v || 0); // +0 / -0 issue...
-          return vectorMap[values[i]];
-        });
-      });
-
-      const BlogCommentFactory = Instant.ModelFactory('BlogComment');
-      let blogComments = await BlogCommentFactory.create(
-        Array(50).fill(0).map((_, i) => {
-          return {
-            body: i + '_ ' + Array(50).fill(0).map(() => {
-              return ['alpha', 'beta', 'gamma'][(Math.random() * 3) | 0]
-            }).join(' ')}
-        })
-      );
-
-      expect(blogComments).to.exist;
-      expect(blogComments.length).to.equal(50);
-      for (const blogComment of blogComments) {
-        expect(blogComment.get('embedding')).to.deep.equal(vectorMap[blogComment.get('body')]);
-      }
-
-    });
-
     it('Should fail to disable "vector" extension when there are dependencies', async () => {
 
       let extension;

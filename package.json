@@ -1,7 +1,7 @@
 {
   "name": "@instant.dev/orm",
   "version": "0.1.0",
-  "description": "",
+  "description": "JavaScript ORM for Postgres",
   "main": "index.js",
   "scripts": {
     "test": "mocha ./test/runner.js"
@@ -9,6 +9,7 @@
   "author": "Keith Horwood",
   "license": "MIT",
   "dependencies": {
+    "@instant.dev/vectors": "^0.1.0",
     "colors": "^1.4.0",
     "deep-equal": "^2.2.2",
     "i": "^0.3.7",

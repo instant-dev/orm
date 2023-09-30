@@ -108,6 +108,7 @@ module.exports = (InstantORM, Databases) => {
       await migration.createTable(
         'blog_comments',
         [
+          {name: 'title', type: 'string'},
           {name: 'body', type: 'string'},
           {name: 'embedding', type: 'vector', properties: {length: 1536}}
         ]
@@ -118,7 +119,7 @@ module.exports = (InstantORM, Databases) => {
       expect(migration.toJSON().name).to.equal('my_first_migration');
 
       expect(Instant.Model('BlogComment')).to.exist;
-      expect(Instant.Model('BlogComment').columnNames()).to.deep.equal(['id', 'body', 'embedding', 'created_at', 'updated_at']);
+      expect(Instant.Model('BlogComment').columnNames()).to.deep.equal(['id', 'title', 'body', 'embedding', 'created_at', 'updated_at']);
       expect(Instant.Model('BlogComment').columnLookup()['embedding'].type).to.equal('vector');
       expect(Instant.Model('BlogComment').columnLookup()['embedding'].properties.length).to.equal(1536);
 
@@ -194,6 +195,32 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('Should not change vector if a field not related to the vector is changed', async () => {
+      
+      const BlogComment = Instant.Model('BlogComment');
+      const blogComment = await BlogComment.query().first();
+
+      const embedding = blogComment.get('embedding');
+      blogComment.set('title', 'Some other title');
+      await blogComment.save();
+      
+      expect(blogComment.get('embedding')).to.deep.equal(embedding);
+
+    });
+
+    it('Should change vector if a field related to the vector is changed', async () => {
+      
+      const BlogComment = Instant.Model('BlogComment');
+      const blogComment = await BlogComment.query().first();
+
+      const embedding = blogComment.get('embedding');
+      blogComment.set('body', 'I am extremely happy!');
+      await blogComment.save();
+      
+      expect(blogComment.get('embedding')).to.not.deep.equal(embedding);
+
+    });
+
     it('Should create more vectorized entries', async () => {
 
       const vectorMap = {};
@@ -229,7 +256,7 @@ module.exports = (InstantORM, Databases) => {
 
       const query = `i am having tons of fun!`;
       const expectedResults = [
-        `I am extremely happy`,
+        `I am extremely happy!`,
         `I am feeling pretty good`,
         `I am so-so`,
         `I am feeling awful`,
@@ -254,7 +281,7 @@ module.exports = (InstantORM, Databases) => {
 
       const query = `i am having tons of fun!`;
       const expectedResults = [
-        `I am extremely happy`,
+        `I am extremely happy!`,
         `I am feeling pretty good`,
         `I am so-so`,
         `I am feeling awful`,

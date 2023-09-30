@@ -1400,19 +1400,22 @@ class Model {
     const promises = [];
     for (let i = 0; i < this._vectorizationsList.length; i++) {
       const v = this._vectorizationsList[i];
-      if (!this._vectorManager) {
-        throw new Error(`Could not vectorize "${v.field}" for "${this.constructor.name}": no VectorManager instance set`);
+      const hasChanged = v.fields.find(field => this.hasChanged(field));
+      if (hasChanged) {
+        if (!this._vectorManager) {
+          throw new Error(`Could not vectorize "${v.field}" for "${this.constructor.name}": no VectorManager instance set`);
+        }
+        const fieldData = this.getFieldData(v.field);
+        if (fieldData.type !== 'vector') {
+          throw new Error(`Could not vectorize "${v.field}" for "${this.constructor.name}": not a valid vector`);
+        }
+        const fn = (async () => {
+          const str = v.convert.apply(null, v.fields.map(field => this.get(field)));
+          const vector = await this._vectorManager.create(str);
+          this.set(v.field, vector);
+        })();
+        promises.push(fn);
       }
-      const fieldData = this.getFieldData(v.field);
-      if (fieldData.type !== 'vector') {
-        throw new Error(`Could not vectorize "${v.field}" for "${this.constructor.name}": not a valid vector`);
-      }
-      const fn = (async () => {
-        const str = v.convert.apply(null, v.fields.map(field => this.get(field)));
-        const vector = await this._vectorManager.create(str);
-        this.__safeSet__(v.field, vector);
-      })();
-      promises.push(fn);
     }
     if (promises.length) {
       await Promise.all(promises);

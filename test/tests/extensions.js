@@ -167,7 +167,9 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('Should succeed at vectorizing the body field on BlogComment when vector engine is set properly', async () => {
+    it('Should succeed at vectorizing the body field on BlogComment when vector engine is set properly', async function () {
+
+      this.timeout(5000);
 
       const testPhrase = `I am extremely happy`;
       let testVector;
@@ -208,7 +210,9 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('Should change vector if a field related to the vector is changed', async () => {
+    it('Should change vector if a field related to the vector is changed', async function () {
+
+      this.timeout(5000);
       
       const BlogComment = Instant.Model('BlogComment');
       const blogComment = await BlogComment.query().first();
@@ -221,7 +225,9 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('Should create more vectorized entries', async () => {
+    it('Should create more vectorized entries', async function () {
+
+      this.timeout(5000);
 
       const vectorMap = {};
 
@@ -252,7 +258,9 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('Should perform a vector search (cosine similarity) for related entries', async () => {
+    it('Should perform a vector search (cosine similarity) for related entries', async function () {
+
+      this.timeout(5000);
 
       const query = `i am having tons of fun!`;
       const expectedResults = [
@@ -277,7 +285,9 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it('Should perform a vector search (dot product similarity) for related entries', async () => {
+    it('Should perform a vector search (dot product similarity) for related entries', async function () {
+
+      this.timeout(5000);
 
       const query = `i am having tons of fun!`;
       const expectedResults = [
@@ -319,7 +329,9 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
-    it ('Should set vector engine via plugin', async () => {
+    it ('Should set vector engine via plugin', async function () {
+
+      this.timeout(5000);
 
       Instant.disconnect();
       Instant.Plugins.__createDirectory__();

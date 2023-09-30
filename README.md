@@ -447,9 +447,9 @@ you're working with. To enabled `pgvector`, assuming it is installed and you are
 [instant.dev CLI](https://github.com/instant-dev/instant), run:
 
 ```shell
-instant db:ext --enable vector # enable for local
-instant db:ext --enable vector --env staging # enable for staging
-instant db:ext --enable vector --env production # enable for production ... and so on
+instant db:ext vector --enable # enable for local
+instant db:ext vector --enable --env staging # enable for staging
+instant db:ext vector --enable --env production # enable for production ... and so on
 ```
 
 Or you can also simple `psql` into your database and run:

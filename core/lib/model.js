@@ -657,6 +657,10 @@ class Model {
     /**
      * @private
      */
+    this._metafields = {};
+    /**
+     * @private
+     */
     this._changed = this.constructor.columnNames()
       .reduce((p, c) => {
         p[c] = false;
@@ -769,7 +773,10 @@ class Model {
   * @returns {Model|any}
   */
   __safeSet__ (field, value) {
-    if (this.relationship(field)) {
+    if (field.startsWith('__')) {
+      field = field.slice(2);
+      this._metafields[field] = value;
+    } else if (this.relationship(field)) {
       return this.setJoined(field, value);
     } else if (!this.hasField(field)) {
       return null;
@@ -1053,6 +1060,15 @@ class Model {
   }
 
   /**
+  * Retrieve metafield data for the model: this data is populated via search, similarity queries
+  * @param {string} field Field for which you'd like to retrieve metadata
+  * @returns {any}
+  */
+  getMetafield (field, defaultValue) {
+    return this._metafields.hasOwnProperty(field) ? this._metafields[field] : defaultValue;
+  }
+
+  /**
   * Retrieves joined Model or ModelArray
   * @param {string} joinName the name of the join (list of connectors separated by __)
   * @returns {Model|ModelArray}
@@ -1136,6 +1152,10 @@ class Model {
       }
 
     });
+
+    if (Object.keys(this._metafields).length) {
+      obj['_metafields'] = this._metafields;
+    }
 
     return obj;
 

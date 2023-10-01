@@ -189,6 +189,8 @@ class SQLAdapter {
 
   generateSelectQuery (subQuery, table, columns, multiFilter, joinArray, groupByArray, orderByArray, limitObj, paramOffset) {
 
+    columns = columns.slice(0);
+
     let formatTableField = (table, column) => `${this.escapeField(table)}.${this.escapeField(column)}`;
     let joinNames = joinArray ? joinArray.map(j => j.shortAlias) : null;
 
@@ -201,6 +203,18 @@ class SQLAdapter {
     groupByArray = groupByArray || [];
     orderByArray = orderByArray || [];
 
+    for (const orderBy of orderByArray) {
+      if (orderBy.alias) {
+        columns.push({
+          columnNames: orderBy.columnNames,
+          transformation: orderBy.transformation,
+          params: orderBy.params || [],
+          alias: `__${orderBy.alias}`,
+          offset: orderBy.offset
+        });
+      }
+    }
+
     return [
       'SELECT ',
         columns === '*'
@@ -209,9 +223,13 @@ class SQLAdapter {
             let defn;
             field = typeof field !== 'string' ? field : {columnNames: [field], alias: field, transformation: v => v};
             if (!joinNames || !field.joined || joinNames.indexOf(field.identifier) > -1) {
-              defn = field.transformation.apply(null, field.columnNames.map(columnName => {
+              let args = field.columnNames.map(columnName => {
                 return formatTableField(field.identifier || field.table || table, columnName);
-              }));
+              });
+              if (field.params) {
+                args = args.concat(field.params.map((_, i) => `$${i + field.offset + 1}`));
+              }
+              defn = field.transformation.apply(null, args);
             } else {
               defn = this.generateNullField(field.type);
             }
@@ -591,25 +609,25 @@ class SQLAdapter {
   generateOrderByClause (table, orderByArray, groupByArray, joinArray) {
 
     let columnEscapedOrderByArray = orderByArray.map(v => {
-      let paramOffset = v.offset;
-      v.escapedColumns = v.columnNames.map((columnName) => {
-        if (columnName.startsWith('$')) {
-          return `$${(paramOffset++) + 1}`;
-        } else {
-          let columnNameComponents = columnName.split('__');
-          if (columnNameComponents.length === 1) {
+      let paramOffset = v.offset || 0;
+      let escapedColumns = v.columnNames.map((columnName) => {
+        let columnNameComponents = columnName.split('__');
+        if (columnNameComponents.length === 1) {
+          return `${this.escapeField(table)}.${this.escapeField(columnName)}`;
+        } else if (joinArray) {
+          let join = joinArray.find((join) => join.joinAlias === columnNameComponents.slice(0, -1).join('__'));
+          if (!join) {
             return `${this.escapeField(table)}.${this.escapeField(columnName)}`;
-          } else if (joinArray) {
-            let join = joinArray.find((join) => join.joinAlias === columnNameComponents.slice(0, -1).join('__'));
-            if (!join) {
-              return `${this.escapeField(table)}.${this.escapeField(columnName)}`;
-            }
-            return `${this.escapeField(join.shortAlias)}.${this.escapeField(columnNameComponents[columnNameComponents.length - 1])}`
-          } else {
-            return null;
           }
+          return `${this.escapeField(join.shortAlias)}.${this.escapeField(columnNameComponents[columnNameComponents.length - 1])}`
+        } else {
+          return null;
         }
-      }).filter((columnName) => {
+      });
+      if (v.params) {
+        escapedColumns = escapedColumns.concat(v.params.map((_, i) => `$${paramOffset + i + 1}`));
+      }
+      v.escapedColumns = escapedColumns.filter((columnName) => {
         return !!columnName;
       });
       return v;

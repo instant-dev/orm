@@ -80,10 +80,8 @@ class Composer {
 
     let columnsObject = columns
       .reduce((columns, k) => {
-
         columns[k] = null;
         return columns;
-
       }, {});
 
     let shortAliasResolver = Object.keys(this._shortAliasMap).reduce((shortAliasResolver, alias) => {
@@ -860,10 +858,10 @@ class Composer {
   * This is an alias for an orderBy function that orders by dot product similarity
   * @param {string} field Field to search
   * @param {string} value Value to search for
-  * @param {?string} direction Orders by dot product, default is ASC (least to most distance)
+  * @param {?string} direction Orders by dot product, default is DESC (largest to smallest product)
   * @returns {Composer} new Composer instance
   */
-  search (field, value, direction = 'ASC') {
+  search (field, value, direction = 'DESC') {
 
     const vectorManager = this.Model.prototype._vectorManager;
 
@@ -880,10 +878,11 @@ class Composer {
       return {
         type: 'orderBy',
         data: {
-          columnNames: [field, '$1'],
-          transformation: (v, $1) => `${v} <#> ${$1}`,
+          columnNames: [field],
           params: [`[${vector.join(',')}]`],
-          direction: ({'asc': 'ASC', 'desc': 'DESC'}[(direction + '').toLowerCase()] || 'ASC')
+          transformation: (v, $1) => `-1 * (${v} <#> ${$1})`,
+          direction: ({'asc': 'ASC', 'desc': 'DESC'}[(direction + '').toLowerCase()] || 'DESC'),
+          alias: `${field}_product`
         }
       }
     };
@@ -917,10 +916,11 @@ class Composer {
       return {
         type: 'orderBy',
         data: {
-          columnNames: [field, '$1'],
-          transformation: (v, $1) => `1 - (${v} <=> ${$1})`,
+          columnNames: [field],
           params: [`[${vector.join(',')}]`],
-          direction: ({'asc': 'ASC', 'desc': 'DESC'}[(direction + '').toLowerCase()] || 'DESC')
+          transformation: (v, $1) => `1 - (${v} <=> ${$1})`,
+          direction: ({'asc': 'ASC', 'desc': 'DESC'}[(direction + '').toLowerCase()] || 'DESC'),
+          alias: `${field}_similarity`
         }
       }
     };

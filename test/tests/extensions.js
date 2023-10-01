@@ -281,6 +281,11 @@ module.exports = (InstantORM, Databases) => {
       expect(blogComments.length).to.equal(5);
       blogComments.forEach((blogComment, i) => {
         expect(blogComment.get('body')).to.equal(expectedResults[i]);
+        expect(blogComment.getMetafield('embedding_similarity')).to.exist;
+        expect(blogComment.getMetafield('embedding_similarity')).to.be.greaterThan(0.5);
+        let json = blogComment.toJSON();
+        expect(json['_metafields']).to.exist;
+        expect(json['_metafields']['embedding_similarity']).to.equal(blogComment.getMetafield('embedding_similarity'));
       });
 
     });
@@ -308,6 +313,11 @@ module.exports = (InstantORM, Databases) => {
       expect(blogComments.length).to.equal(5);
       blogComments.forEach((blogComment, i) => {
         expect(blogComment.get('body')).to.equal(expectedResults[i]);
+        expect(blogComment.getMetafield('embedding_product')).to.exist;
+        expect(blogComment.getMetafield('embedding_product')).to.be.greaterThan(0.5);
+        let json = blogComment.toJSON();
+        expect(json['_metafields']).to.exist;
+        expect(json['_metafields']['embedding_product']).to.equal(blogComment.getMetafield('embedding_product'));
       });
 
     });

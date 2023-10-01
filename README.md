@@ -555,7 +555,8 @@ let searchBlogPosts = await BlogPost.query()
 ```
 
 You can read more on vector queries at
-[Composer#search](#composersearch) and [Composer#similarity](#composersimilarity).
+[Composer#search](#composersearch), [Composer#similarity](#composersimilarity) and
+[Composer#classify](#composerclassify).
 
 ### Query composition
 
@@ -930,6 +931,9 @@ Performs a vector comparison (dot product) against the specified vector field.
 This is ideal to use when your vectors are normalized, like OpenAI embeddings.
 Order by distance (min: `0`, max: `Infinity`), ascending is default.
 
+This method creates an aliased field, accessible via `model.getMetafield('field_product')`
+representing the dot product where `field` is the vector field name you are searching for.
+
 ##### Composer#similarity
 
 ```javascript
@@ -948,6 +952,26 @@ Performs a vector comparison (cosine similarity) against the specified vector fi
 This is ideal to use when your vectors are NOT normalized. For normalized vectors,
 like OpenAI embeddings, this will return the same result as `search()` but is slightly
 slower. Orders by similarity (min: `0`, max: `1.0`), defaults to `DESC` order (most similar = 1.0).
+
+This method creates an aliased field, accessible via `model.getMetafield('field_similarity')`
+representing the cosine similarity where `field` is the vector field name you are searching for.
+
+##### Composer#classify
+
+```javascript
+/**
+  * Classifies results based on cosine similarity to provided terms
+  * @param {string} field Field to search
+  * @param {Array<string>} values Classification values
+  * @returns {Composer} new Composer instance
+  */
+  classify (field, values = []) { ... }
+```
+
+Classifies rows based on their cosine similarity to the terms provided. This method
+creates an aliased field, accessible via `model.getMetafield('field_classification')` where
+`field` is the vector field name that contains the classified term as well as a map of
+cosine similarity scores for each provided term.
 
 ### Transactions
 

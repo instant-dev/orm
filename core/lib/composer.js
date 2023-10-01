@@ -959,7 +959,7 @@ class Composer {
   }
 
   /**
-  * Classifies / clusters results based on cosine similarity
+  * Classifies results based on cosine similarity to provided terms
   * @param {string} field Field to search
   * @param {Array<string>} values Classification values
   * @returns {Composer} new Composer instance

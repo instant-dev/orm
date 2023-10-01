@@ -324,6 +324,7 @@ class Composer {
       let command = {
         where: null,
         limit: null,
+        alias: [],
         orderBy: [],
         groupBy: [],
         aggregate: []
@@ -399,6 +400,7 @@ class Composer {
 
       let multiFilter = this.db.adapter.createMultiFilter(table, command.where ? command.where.comparisons : []);
       let params = this.db.adapter.getParamsFromMultiFilter(multiFilter);
+      let aliases = [];
 
       let joins = null;
       let columns = includeColumns || lastAggregate || this.Model.columnNames();
@@ -412,11 +414,37 @@ class Composer {
         c.columnNames = [c.alias];
       });
 
+      command.alias.forEach(alias => {
+        let offset = (prev ? prev.params.length : 0) + params.length;
+        alias.offset = offset;
+        if (alias.params) {
+          params = params.concat(alias.params);
+        }
+        columns.push({
+          columnNames: alias.columnNames,
+          transformation: alias.transformation,
+          params: alias.params || [],
+          alias: `__${alias.alias}`,
+          offset: alias.offset
+        });
+        aliases.push(`__${alias.alias}`);
+      });
+
       command.orderBy.forEach(orderBy => {
         let offset = (prev ? prev.params.length : 0) + params.length;
         orderBy.offset = offset;
         if (orderBy.params) {
           params = params.concat(orderBy.params);
+        }
+        if (orderBy.alias) {
+          columns.push({
+            columnNames: orderBy.columnNames,
+            transformation: orderBy.transformation,
+            params: orderBy.params || [],
+            alias: `__${orderBy.alias}`,
+            offset: orderBy.offset
+          });
+          aliases.push(`__${orderBy.alias}`);
         }
       });
 
@@ -432,10 +460,11 @@ class Composer {
           command.limit,
           prev.params.length
         ),
-        params: prev.params.concat(params)
+        params: prev.params.concat(params),
+        aliases: prev.aliases.concat(aliases)
       }
 
-    }, {sql: null, params: []});
+    }, {sql: null, params: [], aliases: []});
 
     return query;
 
@@ -589,7 +618,7 @@ class Composer {
       sql: this.db.adapter.generateSelectQuery(
         joinSQL || query.sql,
         'm',
-        joinSQL ? '*' : columns,
+        joinSQL ? '*' : columns.concat(query.aliases),
         null,
         null,
         null,
@@ -922,6 +951,137 @@ class Composer {
           direction: ({'asc': 'ASC', 'desc': 'DESC'}[(direction + '').toLowerCase()] || 'DESC'),
           alias: `${field}_similarity`
         }
+      }
+    };
+
+    return new Composer(this.Model, this);
+
+  }
+
+  /**
+  * Classifies / clusters results based on cosine similarity
+  * @param {string} field Field to search
+  * @param {Array<string>} values Classification values
+  * @returns {Composer} new Composer instance
+  */
+  classify (field, values = []) {
+
+    const vectorManager = this.Model.prototype._vectorManager;
+
+    if (!vectorManager) {
+      throw new Error(`Could not classify "${field}" for "${this.Model.name}": no VectorManager instance set`);
+    }
+    const fieldData = this.Model.columnLookup()[field];
+    if (!fieldData || fieldData.type !== 'vector') {
+      throw new Error(`Could not classify "${field}" for "${this.Model.name}": not a valid vector`);
+    }
+    if (!Array.isArray(values) || values.length <= 1) {
+      throw new Error(`Could not classify "${field}" for "${this.Model.name}": values must be an array with more than one value`);
+    }
+    for (const value of values) {
+      if (typeof value !== 'string') {
+        throw new Error(`Could not classify "${field}" for "${this.Model.name}": values must be an array of strings`);
+      }
+    }
+
+    this._command = async () => {
+      let vectors = await vectorManager.batchCreate(values);
+      return {
+        type: 'alias',
+        data: {
+          columnNames: [field],
+          params: [vectors.map(vector => `[${vector.join(',')}]`)],
+          transformation: (v, $1) => {
+            const minStatement = [
+              `LEAST(`,
+                vectors.map((_, i) => {
+                  return `${v} <=> (${$1}::vector[])[${i + 1}]`;
+                }).join(', '),
+              `)`
+            ].join('');
+            return [
+              `JSON_BUILD_OBJECT(`,
+                `'value',`,
+                (
+                  values.length === 2
+                    ? [
+                        `(CASE`,
+                          `WHEN (${v} <=> (${$1}::vector[])[1]) - (${v} <=> (${$1}::vector[])[2]) < 0 THEN '${values[0]}'`,
+                          `ELSE '${values[1]}'`,
+                        `END),`
+                      ].join(' ')
+                    : [
+                        `(CASE`,
+                          values.map((value, i) => {
+                            return `WHEN ${v} <=> (${$1}::vector[])[${i + 1}] = ${minStatement} THEN '${value}'`
+                          }).join(' '),
+                          `ELSE NULL`,
+                        `END),`
+                      ].join(' ')
+                ),
+                `'similarity',`,
+                `JSON_BUILD_OBJECT(`,
+                  values.map((value, i) => {
+                    return `'${value}', 1 - (${v} <=> (${$1}::vector[])[${i + 1}])`;
+                  }).join(', '),
+                `)`,
+              `)`
+            ].join('');
+          },
+          alias: `${field}_classification`
+        }
+      }
+    };
+
+    return new Composer(this.Model, this);
+
+  }
+
+  /**
+  * Creates an aliased field that is returned in the model's metafields
+  * @param {string} name The name of the alias
+  * @param {function} transformation The transformation function to use
+  * @param {array} params The parameters to pass in to the transformation function
+  * @returns {Composer} new Composer instance
+  */
+  alias (name, transformation, params = []) {
+
+    if (typeof transformation !== 'function') {
+      throw new Error(`transformation must be a function`);
+    } else if (transformation.constructor.name !== 'Function') {
+      throw new Error(`transformation can not be an async function or a generator`);
+    }
+
+    let fields = utilities.getFunctionParameters(transformation);
+    let paramIndex = fields.findIndex(field => field.startsWith('$'));
+    if (paramIndex > -1) {
+      let paramFields = fields.slice(paramIndex);
+      fields = fields.slice(0, paramIndex);
+      if (paramFields.length !== params.length) {
+        throw new Error(
+          `Invalid arguments in transformation, mismatch in provided params vs. arguments used:\n` +
+          `Expecting arguments (${fields.concat(params.map((_, i) => `$${i + 1}`)).join(', ')})\n` +
+          `Received arguments (${fields.concat(paramFields).join(', ')})`
+        );
+      }
+      paramFields.forEach((paramField, i) => {
+        if (paramField !== `$${i + 1}`) {
+          throw new Error(
+            `Invalid arguments in transformation:\n` +
+            `Expecting arguments (${fields.concat(paramFields.map((_, i) => `$${i + 1}`)).join(', ')})\n` +
+            `Received arguments (${fields.concat(paramFields).join(', ')})`
+          );
+        }
+      });
+    }
+
+    this._command = {
+      type: 'alias',
+      data: {
+        columnNames: fields,
+        params: params,
+        transformation: transformation,
+        alias: name
       }
     };
 

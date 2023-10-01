@@ -262,6 +262,8 @@ module.exports = (InstantORM, Databases) => {
 
       this.timeout(5000);
 
+      // Instant.enableLogs(4);
+
       const query = `i am having tons of fun!`;
       const expectedResults = [
         `I am extremely happy!`,
@@ -276,7 +278,7 @@ module.exports = (InstantORM, Databases) => {
       const blogComments = await BlogComment.query()
         .similarity('embedding', 'i am having tons of fun!')
         .select();
-
+      
       expect(blogComments).to.exist;
       expect(blogComments.length).to.equal(5);
       blogComments.forEach((blogComment, i) => {
@@ -318,6 +320,73 @@ module.exports = (InstantORM, Databases) => {
         let json = blogComment.toJSON();
         expect(json['_metafields']).to.exist;
         expect(json['_metafields']['embedding_product']).to.equal(blogComment.getMetafield('embedding_product'));
+      });
+
+    });
+
+    it('Should perform two-way classification on vectors', async function () {
+
+      this.timeout(5000);
+
+      const clusters = ['positive', 'negative'];
+      const expectedResults = {
+        'I am extremely happy!': 'positive',
+        'I am feeling pretty good': 'positive',
+        'I am so-so': 'negative',
+        'I am feeling awful': 'negative',
+        'I am in extreme distress': 'negative'
+      };
+
+      const BlogComment = Instant.Model('BlogComment');
+
+      const blogComments = await BlogComment.query()
+        .classify('embedding', clusters)
+        .select();
+
+      expect(blogComments).to.exist;
+      expect(blogComments.length).to.equal(5);
+      blogComments.forEach((blogComment, i) => {
+        let json = blogComment.toJSON();
+        expect(blogComment.getMetafield('embedding_classification')).to.exist;
+        expect(blogComment.getMetafield('embedding_classification').value).to.equal(expectedResults[blogComment.get('body')]);
+        expect(json['_metafields']).to.exist;
+        expect(json['_metafields']['embedding_classification'].value).to.equal(blogComment.getMetafield('embedding_classification').value);
+        expect(json['_metafields']['embedding_classification'].similarity['positive']).to.exist;
+        expect(json['_metafields']['embedding_classification'].similarity['negative']).to.exist;
+      });
+
+    });
+
+    it('Should perform three-way classification on vectors', async function () {
+
+      this.timeout(5000);
+
+      const clusters = ['positive', 'neutral', 'negative'];
+      const expectedResults = {
+        'I am extremely happy!': 'positive',
+        'I am feeling pretty good': 'positive',
+        'I am so-so': 'negative',
+        'I am feeling awful': 'negative',
+        'I am in extreme distress': 'negative'
+      };
+
+      const BlogComment = Instant.Model('BlogComment');
+
+      const blogComments = await BlogComment.query()
+        .classify('embedding', clusters)
+        .select();
+
+      expect(blogComments).to.exist;
+      expect(blogComments.length).to.equal(5);
+      blogComments.forEach((blogComment, i) => {
+        let json = blogComment.toJSON();
+        expect(blogComment.getMetafield('embedding_classification')).to.exist;
+        expect(blogComment.getMetafield('embedding_classification').value).to.equal(expectedResults[blogComment.get('body')]);
+        expect(json['_metafields']).to.exist;
+        expect(json['_metafields']['embedding_classification'].value).to.equal(blogComment.getMetafield('embedding_classification').value);
+        expect(json['_metafields']['embedding_classification'].similarity['positive']).to.exist;
+        expect(json['_metafields']['embedding_classification'].similarity['negative']).to.exist;
+        expect(json['_metafields']['embedding_classification'].similarity['neutral']).to.exist;
       });
 
     });

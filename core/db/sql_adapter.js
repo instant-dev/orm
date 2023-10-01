@@ -203,18 +203,6 @@ class SQLAdapter {
     groupByArray = groupByArray || [];
     orderByArray = orderByArray || [];
 
-    for (const orderBy of orderByArray) {
-      if (orderBy.alias) {
-        columns.push({
-          columnNames: orderBy.columnNames,
-          transformation: orderBy.transformation,
-          params: orderBy.params || [],
-          alias: `__${orderBy.alias}`,
-          offset: orderBy.offset
-        });
-      }
-    }
-
     return [
       'SELECT ',
         columns === '*'

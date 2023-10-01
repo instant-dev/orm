@@ -1228,6 +1228,20 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('Should add an aliased field', async () => {
+
+      let pets = await Pet.query()
+        .alias('my_alias', (name, animal, $1) => `CONCAT(${name}, ' - ', ${animal}, ' - ', ${$1}::text)`, ['oops'])
+        .select();
+
+      expect(pets.length).to.equal(30);
+      for (const pet of pets) {
+        expect(pet.getMetafield('my_alias')).to.exist;
+        expect(pet.getMetafield('my_alias')).to.equal(`${pet.get('name')} - ${pet.get('animal')} - oops`);
+      }
+
+    });
+
     it('Should join multiple properties from a deeply joined property', async () => {
 
       let parent = await Parent.query()

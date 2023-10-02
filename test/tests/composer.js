@@ -343,6 +343,43 @@ module.exports = (InstantORM, Databases) => {
       expect(children[0].get('id')).to.equal(100);
     });
 
+    it('Should throw an error if a joined field is not found child -> parent', async () => {
+
+      let children;
+      let error;
+
+      try {
+        let children = await Child.query()
+          .join('parents')
+          .select();
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).to.exist;
+      expect(error.message).to.contain(`Valid relationships are: "parent"`);
+
+    });
+
+    it('Should throw an error if a joined field is not found parent -> child', async () => {
+
+      let parents;
+      let error;
+
+      try {
+        let parents = await Parent.query()
+          .join('child')
+          .select();
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).to.exist;
+      expect(error.message).to.contain(`Valid relationships are: `);
+      expect(error.message).to.contain(`"children"`);
+
+    });
+
     it('Should orderBy a joined property properly (DESC)', async () => {
 
       let children = await Child.query()

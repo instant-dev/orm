@@ -1,6 +1,6 @@
 {
   "name": "@instant.dev/orm",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "JavaScript ORM for Postgres",
   "main": "index.js",
   "scripts": {

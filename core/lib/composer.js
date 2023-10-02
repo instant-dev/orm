@@ -1195,9 +1195,23 @@ class Composer {
       comparisonsArray = [].slice.call(arguments, 1);
     }
 
-    let relationship = this.Model.relationships().findExplicit(joinName);
+    const Model = this.Model;
+    const relationships = this.Model.relationships();
+    const relationship = relationships.findExplicit(joinName);
     if (!relationship) {
-      throw new Error(`Model ${this.Model.name} does not have relationship "${joinName}".`);
+      const validNames = relationships.edges.map(edge => {
+        if (edge.parent.Model === Model) {
+          return edge.options.as;
+        } else if (edge.child.Model === Model) {
+          return edge.options.name;
+        } else {
+          return ''; // should never happen
+        }
+      });
+      throw new Error(
+        `Model ${this.Model.name} does not have relationship "${joinName}".\n` +
+        `Valid relationships are: "${validNames.join('", "')}"`
+      );
     }
 
     let composer = this;

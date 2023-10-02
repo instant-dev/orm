@@ -803,8 +803,23 @@ users[0].joined('profile'); // returns Model instance
 
 ###### Naming conventions
 
-The child table will join in the parent table based on the column name. So
-if, instead of user_id, an `Account` has an `owner_id`...
+Joined models will be automatically named in `lowerCamelCase` as either
+`lowerCamelCaseModels` (one-to-many, plural) or `lowerCamelCaseModel` (one-to-one, singular)
+when joined. For example;
+
+- `BlogPost` (model) / `blog_posts` (table) => `blogPosts` (when 1:many)
+- `BlogPost` (model) / `blog_posts` (table) => `blogPost` (when 1:1)
+- `CalendarEntryChild` (model) / `calendar_entry_children` (table) => `calendarEntryChildren` (when 1:many)
+- `CalendarEntryChild` (model) / `calendar_entry_children` (table) => `calendarEntryChild` (when 1:1)
+- `BigBox` (model) / `big_boxes` (table) => `bigBoxes` (when 1:many)
+- `BigBox` (model) / `big_boxes` (table) => `bigBox` (when 1:1)
+
+**Don't worry about using the wrong naming convention.** You will receive an error
+explaining what join relationships are possible if you get it wrong.
+
+Additionally, child models will primarily be joined in on parents based on the
+`parent_reference` column -- not the table name. So if an `Account` belongs to a
+`User` but uses the field `owner_id` instead of `user_id`:
 
 ```
 // pseudocode for SQL relationships

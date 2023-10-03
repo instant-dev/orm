@@ -43,7 +43,7 @@ class ConfigManager extends Logger {
   appendGitIgnore (pathname) {
     let gitignorePathname = '.gitignore';
     if (!fs.existsSync(gitignorePathname)) {
-      let gitignore = Buffer.from(entries.join('\n') + '\n');
+      let gitignore = Buffer.from([pathname].join('\n') + '\n');
       fs.writeFileSync(gitignorePathname, gitignore);
       this.log(`Created ".gitignore" containing "${pathname}"`);
     } else {

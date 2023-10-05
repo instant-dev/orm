@@ -95,11 +95,12 @@ class InstantORM extends Logger {
 
   /**
    * Reads environment variables from appropriate .[environment].env file
+   * @param {string} pathname
    * @returns {array} entries
    */
-  readEnv () {
-    if (fs.existsSync(this.envFile)) {
-      let lines = fs.readFileSync(this.envFile).toString().split('\n');
+  readEnv (pathname) {
+    if (fs.existsSync(pathname)) {
+      let lines = fs.readFileSync(pathname).toString().split('\n');
       return lines
         .filter(line => !!line.trim())
         .map(line => {
@@ -114,21 +115,22 @@ class InstantORM extends Logger {
 
   /**
    * Writes an environment variable to appropriate .[environment].env file
+   * @param {string} pathname
    * @param {string} key 
    * @param {string} value 
    */
-  writeEnv (key, value) {
+  writeEnv (pathname, key, value) {
     value = ((value || '') + '');
-    let entries = this.readEnv();
+    let entries = this.readEnv(pathname);
     let entry = entries.find(entry => entry.key === key);
     if (entry) {
       entry.value = value;
     } else {
       entries.push({key, value});
     }
-    this.log(`Writing "${key}=${value}" to "${this.envFile}" ...`);
-    fs.writeFileSync(this.envFile, entries.map(entry => `${entry.key}=${entry.value}`).join('\n') + '\n');
-    this.Config.appendGitIgnore(this.envFile);
+    this.log(`Writing "${key}=${value}" to "${pathname}" ...`);
+    fs.writeFileSync(pathname, entries.map(entry => `${entry.key}=${entry.value}`).join('\n') + '\n');
+    this.Config.appendGitIgnore(pathname);
   }
 
   /**

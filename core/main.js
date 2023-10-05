@@ -38,7 +38,7 @@ class InstantORM extends Logger {
    * @returns {InstantORM}
    */
   static async connectToPool () {
-    if (POOL_INSTANCE) {
+    if (POOL.instance) {
       const Instant = POOL.instance;
       await Instant.connect();
       return Instant;

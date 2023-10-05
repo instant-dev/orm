@@ -64,7 +64,6 @@ class InstantORM extends Logger {
     this.Config = new this.constructor.Core.DB.ConfigManager();
     this.Plugins = new this.constructor.Core.PluginsManager();
     this.Vectors = new this.constructor.Core.VectorManager();
-    this.__loadEnv__();
     /**
      * @private
      */
@@ -92,18 +91,6 @@ class InstantORM extends Logger {
      * @private
      */
     this._Models = {};
-  }
-
-  /**
-   * @private
-   */
-  __loadEnv__ () {
-    const cwd = process.cwd();
-    this.envFile = `.${this.Config.getProcessEnv()}.env`;
-    if (fs.existsSync(this.envFile)) {
-      require('dotenv').config({path: this.envFile});
-      this.log(`Loaded process.env from "${this.envFile}"`);
-    }
   }
 
   /**

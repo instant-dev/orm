@@ -7,6 +7,8 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'test';
 // For importing models from SchemaUtilities
 process.env.__INSTANT_MODEL_IMPORT = '../../index.js';
 
+require('dotenv').config({path: `.env.${process.env.NODE_ENV}`})
+
 let args = [];
 try {
   args = JSON.parse(process.env.npm_argv);

@@ -5,6 +5,8 @@ const { VectorManager } = require('@instant.dev/vectors');
 
 const Logger = require('./logger.js');
 
+const POOL = {instance: null};
+
 /**
 * Instant ORM
 * @class
@@ -32,6 +34,22 @@ class InstantORM extends Logger {
   };
 
   /**
+   * Connects to a pooled instance, shared within a process
+   * @returns {InstantORM}
+   */
+  static async connectToPool () {
+    if (POOL_INSTANCE) {
+      const Instant = POOL.instance;
+      await Instant.connect();
+      return Instant;
+    } else {
+      const Instant = POOL.instance = new InstantORM();
+      await Instant.connect();
+      return Instant;
+    }
+  }
+
+  /**
    * Create a new Instant ORM instance
    */
   constructor () {
@@ -47,6 +65,10 @@ class InstantORM extends Logger {
     this.Plugins = new this.constructor.Core.PluginsManager();
     this.Vectors = new this.constructor.Core.VectorManager();
     this.__loadEnv__();
+    /**
+     * @private
+     */
+    this._connecting = false;
     /**
      * @private
      */
@@ -168,24 +190,35 @@ class InstantORM extends Logger {
    */
   async connect (cfg, schema) {
     // Reset vectors and plugins...
-    this.Vectors.__initialize__();
-    await this.Plugins.load();
-    if (cfg === void 0 && schema === void 0 && this._databases['main']) {
-      await this.Plugins.execute(this);
-      return this._databases['main'];
-    } else {
-      let db = await this.addDatabase('main', cfg);
-      await this.Plugins.execute(this);
-      if (schema === null) {
-        // Load an empty schema if it's null
-        await this.setSchema(this.constructor.Core.DB.SchemaManager.emptySchema());
+    while (this._connecting) {
+      await new Promise(r => setTimeout(() => r(), 1));
+    }
+    this._connecting = true;
+    try {
+      this.Vectors.__initialize__();
+      await this.Plugins.load();
+      if (cfg === void 0 && schema === void 0 && this._databases['main']) {
+        await this.Plugins.execute(this);
+        this._connecting = false;
+        return this._databases['main'];
       } else {
-        // Otherwise load a schema automatically
-        // Do not fall back to the cache if a config is manually provided
-        const useCache = cfg === void 0;
-        await this.setSchema(schema, useCache);
+        let db = await this.addDatabase('main', cfg);
+        await this.Plugins.execute(this);
+        if (schema === null) {
+          // Load an empty schema if it's null
+          await this.setSchema(this.constructor.Core.DB.SchemaManager.emptySchema());
+        } else {
+          // Otherwise load a schema automatically
+          // Do not fall back to the cache if a config is manually provided
+          const useCache = cfg === void 0;
+          await this.setSchema(schema, useCache);
+        }
+        this._connecting = false;
+        return db;
       }
-      return db;
+    } catch (e) {
+      this._connecting = false;
+      throw e;
     }
   }
 

@@ -114,6 +114,18 @@ class InstantORM extends Logger {
   }
 
   /**
+   * Reads environment variables from appropriate .[environment].env file
+   * @param {string} pathname
+   * @param {string} key
+   * @returns {array} entries
+   */
+  readEnvKey (pathname, key) {
+    const lines = this.readEnv(pathname);
+    const line = lines.find(line => line.key === key);
+    return (line && line.value) || '';
+  }
+
+  /**
    * Writes an environment variable to appropriate .[environment].env file
    * @param {string} pathname
    * @param {string} key 

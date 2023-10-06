@@ -1,6 +1,6 @@
 {
   "name": "@instant.dev/orm",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "JavaScript ORM for Postgres",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "i": "^0.3.7",
     "pg": "^8.11.3",
     "tunnel-ssh": "^5.1.1",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "chai": "^4.3.7",

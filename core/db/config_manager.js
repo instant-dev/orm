@@ -122,9 +122,15 @@ class ConfigManager extends Logger {
     if (!env || !name) {
       throw new Error(`Must provide env and name`)
     } else if (!cfg[env]) {
-      throw new Error(`Environment "${env}" not found in Database config at "${pathname}"`);
+      throw new Error(
+        `Environment "${env}" not found in Database config at "${pathname}"\n` +
+        `If you are using the Instant CLI, this can be remedied with \`instant db:add --env ${env}\``
+      );
     } else if (!cfg[env][name]) {
-      throw new Error(`Environment "${env}" database "${name}" not found in Database config at "${pathname}"`);
+      throw new Error(
+        `Environment "${env}" database "${name}" not found in Database config at "${pathname}"\n` +
+        `If you are using the Instant CLI, this can be remedied with \`instant db:add --env ${env} --db ${name}\``
+      );
     }
     const config = this.constructor.validate(cfg[env][name]);
     // if tunnel.in_vpc is true it means that when deployed,

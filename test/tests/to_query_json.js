@@ -4,7 +4,7 @@ module.exports = (InstantORM, Databases) => {
 
   const Instant = new InstantORM();
 
-  describe('InstantORM.Core.APIResponse', function() {
+  describe('InstantORM.Core: toQueryJSON', function() {
 
     let schemaPost = {
       table: 'posts',
@@ -24,7 +24,7 @@ module.exports = (InstantORM, Databases) => {
 
       let post = new Post({title: 'Howdy', body: 'hello world'});
 
-      let output = InstantORM.Core.APIResponse.format(post);
+      let output = post.toQueryJSON();
       expect(output).to.have.ownProperty('meta');
       expect(output).to.have.ownProperty('data');
       expect(output.data.length).to.equal(1);
@@ -46,7 +46,7 @@ module.exports = (InstantORM, Databases) => {
 
       posts.setMeta({offset: 1, total: 10});
 
-      let output = InstantORM.Core.APIResponse.format(posts);
+      let output = posts.toQueryJSON();
 
       expect(output).to.have.ownProperty('meta');
       expect(output).to.have.ownProperty('data');
@@ -69,7 +69,7 @@ module.exports = (InstantORM, Databases) => {
 
       groups.setMeta({offset: 1, total: 10});
 
-      let output = InstantORM.Core.APIResponse.format(groups);
+      let output = groups.toQueryJSON();
 
       expect(output).to.have.ownProperty('meta');
       expect(output).to.have.ownProperty('data');
@@ -92,7 +92,7 @@ module.exports = (InstantORM, Databases) => {
 
       groups.setMeta({offset: 1, total: 10});
 
-      let output = InstantORM.Core.APIResponse.format(groups, ['color']);
+      let output = groups.toQueryJSON(['color']);
 
       expect(output).to.have.ownProperty('meta');
       expect(output).to.have.ownProperty('data');

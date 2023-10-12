@@ -222,72 +222,6 @@ class Model {
   }
 
   /**
-  * Get resource data for a model, for API responses and debug information
-  * @param {Array} arrInterface Array of strings representing output columns, or singularly-keyed objects representing relationships and their interface.
-  * @returns {object} Resource object for the model
-  * @deprecated
-  */
-  static toResource (arrInterface) {
-
-    if (!arrInterface || !arrInterface.length) {
-      arrInterface = this.columnNames().concat(
-        Object.keys(this.prototype._joins)
-          .map(r => {
-            let obj = {};
-            obj[r] = this.joinInformation(r).Model.columnNames();
-            return obj;
-          })
-      );
-    }
-
-
-    let columnLookup = this.columnLookup();
-
-    let resourceColumns = arrInterface.map(r => {
-
-      if (typeof r === 'string') {
-
-        let field = columnLookup[r];
-
-        if (!field) {
-          return null;
-        }
-
-        let fieldData = {
-          name: r,
-          type: field ? field.type : 'string'
-        };
-
-        field.array && (fieldData.array = true);
-
-        return fieldData;
-
-      } else if (typeof r === 'object' && r !== null) {
-
-        return null; // FIXME: Deprecated for relationships.
-
-        let key = Object.keys(r)[0];
-        let relationship = this.joinInformation(key);
-
-        if (!relationship) {
-          return null;
-        }
-
-        return relationship.Model.toResource(r[key]);
-
-      }
-
-    }).filter(r => r);
-
-    return {
-      name: this.name,
-      type: 'resource',
-      fields: resourceColumns
-    };
-
-  }
-
-  /**
   * Set the database to be used for this model
   * @param {import('../db/database.js')} db
   * @returns {import('../db/database.js')}
@@ -1115,6 +1049,16 @@ class Model {
     return joins;
 
   };
+
+  /**
+   * Creates a query JSON response: includes a meta and data field for API responses
+   * @param {array} arrInterface
+   * @returns {object}
+   */
+  toQueryJSON (arrInterface) {
+    let arr = ModelArray.from([this]);
+    return arr.toQueryJSON(arrInterface);
+  }
 
   /**
   * Creates a plain object from the Model, with properties matching an optional interface

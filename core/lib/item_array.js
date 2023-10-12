@@ -56,13 +56,10 @@ class ItemArray extends Array {
     let keys = [];
 
     if (this.length) {
-
       keys = Object.keys(this[0]);
-
       if (arrInterface && arrInterface.length) {
         keys = keys.filter(k => (arrInterface.indexOf(k) !== -1));
       }
-
     }
 
     return this.map(m => {
@@ -71,6 +68,24 @@ class ItemArray extends Array {
         return p;
       }, {});
     });
+
+  }
+
+  /**
+   * Creates a query JSON response: includes a meta and data field for API responses
+   * @param {array} arrInterface
+   * @returns {object}
+   */
+  toQueryJSON (arrInterface) {
+
+    const meta = {
+      total: Math.max(this._meta.total, this.length),
+      count: this.length,
+      offset: this._meta.offset
+    };
+    const data = this.toJSON(arrInterface);
+
+    return {meta, data};
 
   }
 

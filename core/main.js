@@ -21,7 +21,6 @@ class InstantORM extends Logger {
       Migration: require('./db/migrator/migration.js'),
       ConfigManager: require('./db/config_manager.js')
     },
-    APIResponse: require('./lib/api_response.js'),
     GraphQuery: require('./lib/graph_query.js'),
     ItemArray: require('./lib/item_array.js'),
     Model: require('./lib/model.js'),

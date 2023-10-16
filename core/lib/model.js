@@ -608,6 +608,10 @@ class Model {
      * @private
      */
     this._errorDetails = {};
+    /**
+     * @private
+     */
+    this._isCreating = false;
 
     return true;
 
@@ -633,10 +637,6 @@ class Model {
      * @private
      */
     this._isSeeding = !!fromSeed;
-    /**
-     * @private
-     */
-    this._isCreating = false;
 
     if (!fromStorage) {
       if (

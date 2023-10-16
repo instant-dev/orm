@@ -16,11 +16,22 @@ module.exports = (InstantORM, Databases) => {
         {name: 'age', type: 'int'},
         {name: 'secret', type: 'string'},
         {name: 'content', type: 'json'},
+        {name: 'is_creating_works', type: 'boolean'},
         {name: 'created_at', type: 'datetime'},
         {name: 'updated_at', type: 'datetime'}
       ]
     };
-    class Parent extends InstantORM.Core.Model {}
+    class Parent extends InstantORM.Core.Model {
+
+      afterSave (txn) {
+
+        if (this.isCreating()) {
+          this.__safeSet__('is_creating_works', true);
+        }
+
+      }
+
+    }
     Parent.hides('secret');
     Parent.setTableSchema(schemaParent);
 
@@ -386,6 +397,7 @@ module.exports = (InstantORM, Databases) => {
         expect(parent.inStorage()).to.equal(true);
         expect(parent.get('name')).to.equal('parent');
         expect(parent.get('age')).to.equal(30);
+        expect(parent.get('is_creating_works')).to.equal(true);
 
       });
 

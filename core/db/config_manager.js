@@ -136,8 +136,10 @@ class ConfigManager extends Logger {
     } else if (typeof cfg === 'string') {
       if (cfg.startsWith(prefix) && cfg.endsWith(suffix)) {
         const key = cfg.slice(prefix.length, -suffix.length).trim();
-        if (!process.env[key]) {
+        if (!(key in process.env)) {
           throw new Error(`: No environment variable matching "${key}" found`);
+        } else if (key !== 'password' && !process.env[key]) {
+          throw new Error(`: Environment variable matching "${key}" is empty`);
         }
         return process.env[key];
       } else {

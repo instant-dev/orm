@@ -105,7 +105,7 @@ class InstantORM extends Logger {
         .map(line => {
           let values = line.split('=');
           let key = values.shift();
-          return {key, value: values.join('')};
+          return {key, value: values.join('=')};
         });
     } else {
       return [];

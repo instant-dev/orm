@@ -121,13 +121,13 @@ class ConfigManager extends Logger {
     return parsed;
   }
 
-  __parseEnvFromConfig__ (cfg, envVars = null) {
+  __parseEnvFromConfig__ (cfg, envVars = null, allowEmpty = false) {
     const prefix = '{{';
     const suffix = '}}';
     if (cfg && typeof cfg === 'object') {
       for (const key in cfg) {
         try {
-          cfg[key] = this.__parseEnvFromConfig__(cfg[key], envVars);
+          cfg[key] = this.__parseEnvFromConfig__(cfg[key], envVars, key === 'password');
         } catch (e) {
           throw new Error(`["${key}"]${e.message}`);
         }
@@ -139,7 +139,7 @@ class ConfigManager extends Logger {
         const key = cfg.slice(prefix.length, -suffix.length).trim();
         if (!(key in envVars)) {
           throw new Error(`: No environment variable matching "${key}" found`);
-        } else if (key !== 'password' && !envVars[key]) {
+        } else if (!envVars[key] && !allowEmpty) {
           throw new Error(`: Environment variable matching "${key}" is empty`);
         }
         return envVars[key];

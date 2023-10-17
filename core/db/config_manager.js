@@ -92,7 +92,7 @@ class ConfigManager extends Logger {
       throw new Error(`Could not write config for ["${env}"]["${name}"]:\n${e.message}`);
     }
     this.__create__();
-    let cfg = this.load();
+    let cfg = this.load(null, false);
     cfg[env] = cfg[env] || {};
     cfg[env][name] = dbCfg;
     let pathname = this.pathname();
@@ -100,7 +100,7 @@ class ConfigManager extends Logger {
     this.log(`Wrote database credentials to "${pathname}"["${env}"]["${name}"]!`);
   }
 
-  load (envVars = null) {
+  load (envVars = null, validateEnvVars = true) {
     let pathname = this.pathname();
     if (!this.exists()) {
       throw new Error(`No database config file found at "${pathname}"`);
@@ -112,11 +112,13 @@ class ConfigManager extends Logger {
     } catch (e) {
       throw new Error(`Database config invalid at "${pathname}":\n${e.message}`);
     }
-    let parsed;
-    try {
-      parsed = this.__parseEnvFromConfig__(json, envVars);
-    } catch (e) {
-      throw new Error(`Database config error "${pathname}"${e.message}`);
+    let parsed = json;
+    if (validateEnvVars) {
+      try {
+        parsed = this.__parseEnvFromConfig__(json, envVars);
+      } catch (e) {
+        throw new Error(`Database config error "${pathname}"${e.message}`);
+      }
     }
     return parsed;
   }

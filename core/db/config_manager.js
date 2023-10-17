@@ -34,9 +34,11 @@ class ConfigManager extends Logger {
   __create__ () {
     this.__check__();
     let pathname = this.pathname();
+    let cachePathname = this.cachePathname();
     if (!this.exists()) {
       fs.writeFileSync(pathname, JSON.stringify({}, null, 2));
     }
+    this.appendGitIgnore(cachePathname);
     return this.appendGitIgnore(pathname);
   }
   

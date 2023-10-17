@@ -100,7 +100,7 @@ class ConfigManager extends Logger {
     this.log(`Wrote database credentials to "${pathname}"["${env}"]["${name}"]!`);
   }
 
-  load () {
+  load (envVars = null) {
     let pathname = this.pathname();
     if (!this.exists()) {
       throw new Error(`No database config file found at "${pathname}"`);
@@ -114,20 +114,20 @@ class ConfigManager extends Logger {
     }
     let parsed;
     try {
-      parsed = this.__parseEnvFromConfig__(json);
+      parsed = this.__parseEnvFromConfig__(json, envVars);
     } catch (e) {
       throw new Error(`Database config error "${pathname}"${e.message}`);
     }
     return parsed;
   }
 
-  __parseEnvFromConfig__ (cfg) {
+  __parseEnvFromConfig__ (cfg, envVars = null) {
     const prefix = '{{';
     const suffix = '}}';
     if (cfg && typeof cfg === 'object') {
       for (const key in cfg) {
         try {
-          cfg[key] = this.__parseEnvFromConfig__(cfg[key]);
+          cfg[key] = this.__parseEnvFromConfig__(cfg[key], envVars);
         } catch (e) {
           throw new Error(`["${key}"]${e.message}`);
         }
@@ -135,13 +135,14 @@ class ConfigManager extends Logger {
       return cfg;
     } else if (typeof cfg === 'string') {
       if (cfg.startsWith(prefix) && cfg.endsWith(suffix)) {
+        envVars = envVars || process.env;
         const key = cfg.slice(prefix.length, -suffix.length).trim();
-        if (!(key in process.env)) {
+        if (!(key in envVars)) {
           throw new Error(`: No environment variable matching "${key}" found`);
-        } else if (key !== 'password' && !process.env[key]) {
+        } else if (key !== 'password' && !envVars[key]) {
           throw new Error(`: Environment variable matching "${key}" is empty`);
         }
-        return process.env[key];
+        return envVars[key];
       } else {
         return cfg;
       }
@@ -150,10 +151,10 @@ class ConfigManager extends Logger {
     }
   }
 
-  read (env, name) {
+  read (env, name, envVars = null) {
     let pathname = this.pathname();
     this.__check__();
-    let cfg = this.load();
+    let cfg = this.load(envVars);
     if (!env || !name) {
       throw new Error(`Must provide env and name`)
     } else if (!cfg[env]) {

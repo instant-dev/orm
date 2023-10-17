@@ -469,6 +469,23 @@ module.exports = (InstantORM, Databases) => {
 
       });
 
+      it('should succeed at reading config with environment variables sent in to read function', async () => {
+
+        const envVars = {DATABASE_HOST: 'my-db-247.com'};
+
+        let error;
+        let cfg;
+
+        try {
+          cfg = Instant.Config.read('development', 'main', envVars);
+        } catch (e) {
+          error = e;
+        }
+
+        expect(cfg.host).to.equal(envVars.DATABASE_HOST);
+
+      });
+
       it('should succeed at writing valid config with environment variables in port', async () => {
 
         let cfg = {

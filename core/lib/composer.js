@@ -745,6 +745,27 @@ class Composer {
 
     return comparisonsArray.map(comparisons => {
 
+      let order = null;
+
+      if ('__order' in comparisons) {
+        order = comparisons.__order.split(' ');
+        delete comparisons.__order;
+        let cModel = Model;
+        let column = order[0].split('__');
+        let field = column.pop();
+        let relName = column.join('__');
+        if (relName) {
+          let rel = cModel.relationship(relName);
+          if (!rel) {
+            return;
+          }
+          cModel = rel.getModel();
+        }
+        if (cModel.isHidden(field)) {
+          order = null;
+        }
+      }
+
       Object.keys(comparisons).forEach(comparison => {
 
         let cModel = Model;
@@ -767,6 +788,10 @@ class Composer {
         }
 
       });
+
+      if (order) {
+        comparisons.__order = order.join(' ');
+      }
 
       if (Object.keys(comparisons).length === 0) {
         return null;

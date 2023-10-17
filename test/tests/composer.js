@@ -636,6 +636,30 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('Should safeWhere and ignore "hidden" order', async () => {
+
+      let parents = await Parent.query()
+        .safeWhere({__order: 'hidden DESC'})
+        .select();
+
+      expect(parents.length).to.equal(10);
+      expect(parents[0].get('hidden')).to.not.equal('f');
+      expect(parents[9].get('hidden')).to.not.equal('a');
+
+    });
+
+    it('Should safeWhere and support order', async () => {
+
+      let parents = await Parent.query()
+        .safeWhere({__order: 'name DESC'})
+        .select();
+
+      expect(parents.length).to.equal(10);
+      expect(parents[0].get('name')).to.equal('Zoolander');
+      expect(parents[9].get('name')).to.equal('Albert');
+
+    });
+
     it('Should safeWhere and ignore "hidden" field with modifier', async () => {
 
       let parents = await Parent.query()

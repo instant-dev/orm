@@ -87,7 +87,7 @@ class ConfigManager extends Logger {
       throw new Error(`env and name must be valid strings`);
     }
     try {
-      this.constructor.validate(dbCfg);
+      this.constructor.validate(dbCfg, true);
     } catch (e) {
       throw new Error(`Could not write config for ["${env}"]["${name}"]:\n${e.message}`);
     }
@@ -112,7 +112,13 @@ class ConfigManager extends Logger {
     } catch (e) {
       throw new Error(`Database config invalid at "${pathname}":\n${e.message}`);
     }
-    return json;
+    let parsed;
+    try {
+      parsed = this.__parseEnvFromConfig__(json);
+    } catch (e) {
+      throw new Error(`Database config error "${pathname}"${e.message}`);
+    }
+    return parsed;
   }
 
   __parseEnvFromConfig__ (cfg) {
@@ -126,6 +132,7 @@ class ConfigManager extends Logger {
           throw new Error(`["${key}"]${e.message}`);
         }
       }
+      return cfg;
     } else if (typeof cfg === 'string') {
       if (cfg.startsWith(prefix) && cfg.endsWith(suffix)) {
         const key = cfg.slice(prefix.length, -suffix.length).trim();
@@ -159,11 +166,6 @@ class ConfigManager extends Logger {
       );
     }
     const config = this.constructor.validate(cfg[env][name]);
-    try {
-      this.__parseEnvFromConfig__(config);
-    } catch (e) {
-      throw new Error(`Configuration error for environment "${env}" database "${name}"${e.message}`);
-    }
     // if tunnel.in_vpc is true it means that when deployed,
     // the database environment should be in a vpc and not need a tunnel
     const currentEnv = this.getProcessEnv();
@@ -177,7 +179,7 @@ class ConfigManager extends Logger {
     return config;
   }
 
-  static validate (cfg) {
+  static validate (cfg, allowEnvVars) {
     let vcfg = {};
     let keys = Object.keys(cfg || {});
     if (!cfg || typeof cfg !== 'object') {
@@ -246,6 +248,13 @@ class ConfigManager extends Logger {
           vcfg[key] = value;
         } else if (key === 'port') {
           if (
+            allowEnvVars &&
+            typeof value === 'string' &&
+            value.startsWith('{{') &&
+            value.endsWith('}}')
+          ) {
+            vcfg[key] = value;
+          } else if (
             parseInt(value) !== parseFloat(value) ||
             isNaN(parseInt(value)) ||
             parseInt(value) < 1 ||
@@ -255,8 +264,9 @@ class ConfigManager extends Logger {
               `Could not validate database config:\n` +
               `"port" must be between 1 - 65535.`
             );
+          } else {
+            vcfg[key] = parseInt(value);
           }
-          vcfg[key] = parseInt(value);
         } else if (key === 'in_vpc') {
           if (value !== void 0 && typeof value !== 'boolean') {
             throw new Error(`"in_vpc" must be true or false`);

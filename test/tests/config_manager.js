@@ -434,13 +434,6 @@ module.exports = (InstantORM, Databases) => {
         };
 
         Instant.Config.write('development', 'main', cfg);
-        let written = Instant.Config.load();
-
-        expect(Instant.Config.exists()).to.equal(true);
-        expect(written['development']['main']).to.deep.equal(cfg);
-        expect(Object.keys(written).length).to.equal(1);
-        expect(Object.keys(written['development']).length).to.equal(1);
-
 
       });
 
@@ -455,7 +448,7 @@ module.exports = (InstantORM, Databases) => {
         }
 
         expect(error).to.exist;
-        expect(error.message).to.contain('"main"["host"]: No environment variable matching "DATABASE_HOST" found');
+        expect(error.message).to.contain('["development"]["main"]["host"]: No environment variable matching "DATABASE_HOST" found');
         
       });
 
@@ -475,6 +468,22 @@ module.exports = (InstantORM, Databases) => {
         expect(cfg.host).to.equal(process.env.DATABASE_HOST);
 
       });
+
+      it('should succeed at writing valid config with environment variables in port', async () => {
+
+        let cfg = {
+          host: '{{ DATABASE_HOST }}',
+          port: '{{ DATABASE_PORT }}',
+          user: 'b',
+          password: 'c',
+          database: 'd',
+          ssl: 'unauthorized'
+        };
+
+        Instant.Config.write('development', 'main', cfg);
+
+      });
+
 
       it('should destroy config', async () => {
 

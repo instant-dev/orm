@@ -92,7 +92,7 @@ class ConfigManager extends Logger {
       throw new Error(`Could not write config for ["${env}"]["${name}"]:\n${e.message}`);
     }
     this.__create__();
-    let cfg = this.load(null, false);
+    let cfg = this.load();
     cfg[env] = cfg[env] || {};
     cfg[env][name] = dbCfg;
     let pathname = this.pathname();
@@ -100,7 +100,7 @@ class ConfigManager extends Logger {
     this.log(`Wrote database credentials to "${pathname}"["${env}"]["${name}"]!`);
   }
 
-  load (envVars = null, validateEnvVars = true) {
+  load (envVars = null) {
     let pathname = this.pathname();
     if (!this.exists()) {
       throw new Error(`No database config file found at "${pathname}"`);
@@ -112,15 +112,7 @@ class ConfigManager extends Logger {
     } catch (e) {
       throw new Error(`Database config invalid at "${pathname}":\n${e.message}`);
     }
-    let parsed = json;
-    if (validateEnvVars) {
-      try {
-        parsed = this.__parseEnvFromConfig__(json, envVars);
-      } catch (e) {
-        throw new Error(`Database config error "${pathname}"${e.message}`);
-      }
-    }
-    return parsed;
+    return json;
   }
 
   __parseEnvFromConfig__ (cfg, envVars = null, allowEmpty = false) {
@@ -170,7 +162,13 @@ class ConfigManager extends Logger {
         `If you are using the Instant CLI, this can be remedied with \`instant db:add --env ${env} --db ${name}\``
       );
     }
-    const config = this.constructor.validate(cfg[env][name]);
+    let parsedConfig;
+    try {
+      parsedConfig = this.__parseEnvFromConfig__(cfg[env][name], envVars);
+    } catch (e) {
+      throw new Error(`Database config error "${pathname}"["${env}"]["${name}"]${e.message}`);
+    }
+    const config = this.constructor.validate(parsedConfig);
     // if tunnel.in_vpc is true it means that when deployed,
     // the database environment should be in a vpc and not need a tunnel
     const currentEnv = this.getProcessEnv();

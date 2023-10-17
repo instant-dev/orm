@@ -422,6 +422,60 @@ module.exports = (InstantORM, Databases) => {
 
       });
 
+      it('should succeed at writing valid config with environment variables', async () => {
+
+        let cfg = {
+          host: '{{ DATABASE_HOST }}',
+          port: 5432,
+          user: 'b',
+          password: 'c',
+          database: 'd',
+          ssl: 'unauthorized'
+        };
+
+        Instant.Config.write('development', 'main', cfg);
+        let written = Instant.Config.load();
+
+        expect(Instant.Config.exists()).to.equal(true);
+        expect(written['development']['main']).to.deep.equal(cfg);
+        expect(Object.keys(written).length).to.equal(1);
+        expect(Object.keys(written['development']).length).to.equal(1);
+
+
+      });
+
+      it('should fail at reading config with missing environment variable', async () => {
+
+        let error;
+
+        try {
+          Instant.Config.read('development', 'main');
+        } catch (e) {
+          error = e;
+        }
+
+        expect(error).to.exist;
+        expect(error.message).to.contain('"main"["host"]: No environment variable matching "DATABASE_HOST" found');
+        
+      });
+
+      it('should succeed at reading config with environment variable set properly', async () => {
+
+        process.env.DATABASE_HOST = 'my-db-host.com';
+
+        let error;
+        let cfg;
+
+        try {
+          cfg = Instant.Config.read('development', 'main');
+        } catch (e) {
+          error = e;
+        }
+
+        expect(cfg.host).to.equal(process.env.DATABASE_HOST);
+
+      });
+
       it('should destroy config', async () => {
 
         Instant.Config.destroy();

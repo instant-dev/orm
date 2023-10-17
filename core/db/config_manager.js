@@ -115,6 +115,32 @@ class ConfigManager extends Logger {
     return json;
   }
 
+  __parseEnvFromConfig__ (cfg) {
+    const prefix = '{{';
+    const suffix = '}}';
+    if (cfg && typeof cfg === 'object') {
+      for (const key in cfg) {
+        try {
+          cfg[key] = this.__parseEnvFromConfig__(cfg[key]);
+        } catch (e) {
+          throw new Error(`["${key}"]${e.message}`);
+        }
+      }
+    } else if (typeof cfg === 'string') {
+      if (cfg.startsWith(prefix) && cfg.endsWith(suffix)) {
+        const key = cfg.slice(prefix.length, -suffix.length).trim();
+        if (!process.env[key]) {
+          throw new Error(`: No environment variable matching "${key}" found`);
+        }
+        return process.env[key];
+      } else {
+        return cfg;
+      }
+    } else {
+      return cfg;
+    }
+  }
+
   read (env, name) {
     let pathname = this.pathname();
     this.__check__();
@@ -133,6 +159,11 @@ class ConfigManager extends Logger {
       );
     }
     const config = this.constructor.validate(cfg[env][name]);
+    try {
+      this.__parseEnvFromConfig__(config);
+    } catch (e) {
+      throw new Error(`Configuration error for environment "${env}" database "${name}"${e.message}`);
+    }
     // if tunnel.in_vpc is true it means that when deployed,
     // the database environment should be in a vpc and not need a tunnel
     const currentEnv = this.getProcessEnv();

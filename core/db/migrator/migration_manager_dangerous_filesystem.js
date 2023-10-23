@@ -139,6 +139,25 @@ class MigrationManagerDangerousFilesystem {
   }
 
   /**
+   * Gets the written schema file from the filesystem
+   */
+  getWrittenSchema () {
+    let pathname = this.self.parent._Schema.constructor.getDirectory('cache');
+    let filename = this.self.parent._Schema.constructor.cacheSchemaFile;
+    let fullpath = path.join(pathname, filename);
+    if (fs.existsSync(fullpath)) {
+      let buffer = fs.readFileSync(fullpath);
+      try {
+        return JSON.parse(buffer.toString());
+      } catch (e) {
+        throw new Error(`Could not parse JSON in "${fullpath}": ${e.message}`);
+      }
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Sees if a seed exists
    */
   hasSeed () {

@@ -550,9 +550,13 @@ class PostgresAdapter extends SQLAdapter {
     if (cfg.tunnel) {
       if (
         typeof cfg.tunnel.private_key === 'string' &&
-        !cfg.tunnel.private_key.startsWith('-----BEGIN RSA PRIVATE KEY-----')
+        !cfg.tunnel.private_key.match(/^-----BEGIN (\w+ )?PRIVATE KEY-----/)
       ) {
-        cfg.tunnel.private_key = fs.readFileSync(cfg.tunnel.private_key).toString();
+        try {
+          cfg.tunnel.private_key = fs.readFileSync(cfg.tunnel.private_key).toString();
+        } catch (e) {
+          throw new Error(`Could not read private key file: ${e.message}`);
+        }
       }
       if (!cfg.tunnel.user) {
         throw new Error(`Missing SSH tunnel "user" in database configuration`);

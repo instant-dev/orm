@@ -379,17 +379,19 @@ class PostgresAdapter extends SQLAdapter {
       };
       table.constraints.forEach(constraint => {
         let column = model.columns.find(column => column.name === constraint.column_name);
-        if (constraint.type === 'p') {
-          column.properties.primary_key = true;
-        } else if (constraint.type === 'u') {
-          column.properties.unique = true;
-        } else if (constraint.type === 'f') {
-          foreignKeys.push({
-            table: table.name,
-            column: constraint.column_name,
-            parentTable: constraint.reference_table,
-            parentColumn: constraint.reference_column
-          });
+        if (column) {
+          if (constraint.type === 'p') {
+            column.properties.primary_key = true;
+          } else if (constraint.type === 'u') {
+            column.properties.unique = true;
+          } else if (constraint.type === 'f') {
+            foreignKeys.push({
+              table: table.name,
+              column: constraint.column_name,
+              parentTable: constraint.reference_table,
+              parentColumn: constraint.reference_column
+            });
+          }
         }
       });
       // Now clean up and format columns

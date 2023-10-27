@@ -6,3 +6,4 @@ _instant/db.json
 .env
 .env.*
 _instant/cache/schema.json
+*.pem

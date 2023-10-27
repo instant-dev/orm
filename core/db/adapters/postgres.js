@@ -44,7 +44,7 @@ class PostgresAdapter extends SQLAdapter {
     if (cfg.tunnel) {
       let result = await this.connectToTunnel(cfg);
       cfg = result.config;
-      this._tunnel = result.tunnel;
+      this._tunnel = result.tunnelObject;
     }
     this.db.log(`Connecting to ${this.name}${this._config.database ? ` database "${this._config.database}"` : ``} as role "${this._config.user}" on ${this._config.host}:${this._config.port} ...`);
     this._pool = new pg.Pool(cfg);
@@ -56,18 +56,17 @@ class PostgresAdapter extends SQLAdapter {
 
   async connectToTunnel () {
     let config = JSON.parse(JSON.stringify(this._config));
-    let tunnel = null;
+    let tunnelObject = null;
     if (config.tunnel) {
-      let tnl = await this.db.createTunnelFromConfig(config);
-      tunnel = tnl.tunnel;
+      tunnelObject = await this.db.createTunnelFromConfig(config);
       delete config.tunnel;
       config.host = 'localhost';
-      config.port = tnl.port;
+      config.port = tunnelObject.port;
       config.ssl = false;
     } else {
       throw new Error(`Could not connect to tunnel: no valid tunnel provided in config`);
     }
-    return {config, tunnel};
+    return {config, tunnelObject};
   }
 
   /**

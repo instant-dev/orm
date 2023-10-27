@@ -4,6 +4,9 @@ const colors = require('colors/safe');
 const { createTunnel } = require('tunnel-ssh');
 const Transaction = require('./transaction.js');
 
+const OPEN_TUNNELS = [];
+const OPEN_TUNNELS_BY_PORT = {};
+
 /**
  * Manages database connection
  */
@@ -140,6 +143,9 @@ class Database extends Logger {
     sshPort = sshPort || 22
     let tnl;
     let localPort = 2345;
+    while (OPEN_TUNNELS_BY_PORT[localPort]) {
+      localPort++;
+    }
     let retries = 100;
     this.log(`Attempting to create SSH tunnel ...`);
     this.log(`From: "localhost"`);
@@ -169,7 +175,7 @@ class Database extends Logger {
         );
         tnl = server;
       } catch (err) {
-        if (retries > 0 && err.message.startsWith('listen EADDRINUSE:')) {
+        if (retries > 0 && err.message.includes('EADDRINUSE')) {
           localPort++;
           retries--;
           if (retries <= 0) {
@@ -181,10 +187,16 @@ class Database extends Logger {
       }
     }
     this.log(`Created SSH tunnel from "localhost:${localPort}" to "${host}:${port}"!`);
-    return {
+    const tunnelObject = {
       tunnel: tnl,
-      port: localPort
+      port: localPort,
+      close: () => {
+        delete OPEN_TUNNELS_BY_PORT[localPort];
+        tnl.close();
+      }
     };
+    OPEN_TUNNELS_BY_PORT[localPort] = tnl;
+    return tunnelObject;
   }
 
   /**

@@ -4,7 +4,6 @@ const colors = require('colors/safe');
 const { createTunnel } = require('tunnel-ssh');
 const Transaction = require('./transaction.js');
 
-const OPEN_TUNNELS = [];
 const OPEN_TUNNELS_BY_PORT = {};
 
 /**

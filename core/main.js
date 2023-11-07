@@ -1,6 +1,5 @@
 const fs = require('fs');
 
-const inflect = require('i')();
 const { VectorManager } = require('@instant.dev/vectors');
 
 const Logger = require('./logger.js');

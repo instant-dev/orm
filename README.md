@@ -197,7 +197,7 @@ Instant.closeDatabase(name);
 And to disconnect from all open databases and reset your connection:
 
 ```javascript
-Instant.disconnect();
+await Instant.disconnect();
 ```
 
 ## Loading a Schema

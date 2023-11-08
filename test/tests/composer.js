@@ -261,12 +261,12 @@ module.exports = (InstantORM, Databases) => {
     after(async () => {
       mainDb.close();
       readonlyDb.close();
-      Instant.disconnect();
+      await Instant.disconnect();
       await Instant.connect(Databases['main']);
       Instant.Migrator.enableDangerous();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
-      Instant.disconnect();
+      await Instant.disconnect();
     });
 
     it('Should query all parents (10)', async () => {

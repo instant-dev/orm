@@ -15,7 +15,7 @@ module.exports = (InstantORM, Databases) => {
       await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
-      Instant.disconnect();
+      await Instant.disconnect();
       Instant.Config.destroy();
     });
 
@@ -25,7 +25,7 @@ module.exports = (InstantORM, Databases) => {
       await Instant.Migrator.Dangerous.reset();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
-      Instant.disconnect();
+      await Instant.disconnect();
       Instant.Config.destroy();
     });
 

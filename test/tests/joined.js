@@ -106,12 +106,12 @@ module.exports = (InstantORM, Databases) => {
 
     after(async () => {
       db.close();
-      Instant.disconnect();
+      await Instant.disconnect();
       await Instant.connect(Databases['main']);
       Instant.Migrator.enableDangerous();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
-      Instant.disconnect();
+      await Instant.disconnect();
     });
 
     it('Should query all users (8)', async () => {

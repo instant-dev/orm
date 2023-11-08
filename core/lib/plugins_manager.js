@@ -11,6 +11,8 @@ class PluginsManager {
 
   constructor () {
     this.plugins = [];
+    this.teardowns = [];
+    this._torndown = false;
   }
 
   /**
@@ -55,6 +57,7 @@ class PluginsManager {
 
   async load () {
     this.plugins = [];
+    this.teardowns = [];
     const cwd = process.cwd();
     const pathname = this.pathname();
     if (fs.existsSync(pathname)) {
@@ -85,7 +88,17 @@ class PluginsManager {
           throw new Error(`Plugin "${pathname}" export "plugin" invalid: must be a function`);
         }
         this.plugins.push(pluginModule.plugin);
+        pluginModule.teardown && this.teardowns.push(pluginModule.teardown);
       }
+    }
+  }
+
+  async teardown (Instant) {
+    if (!this._torndown) {
+      for (const teardown of this.teardowns) {
+        await teardown(Instant);
+      }
+      this._torndown = true;
     }
   }
 
@@ -93,6 +106,7 @@ class PluginsManager {
     for (const plugin of this.plugins) {
       await plugin(Instant);
     }
+    this._torndown = false;
   }
 
 };

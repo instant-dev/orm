@@ -45,22 +45,22 @@ module.exports = (InstantORM, Databases) => {
     };
 
     before(async () => {
-      Instant.disconnect();
+      await Instant.disconnect();
       await Instant.connect(Databases['main'], null);
       Instant.Migrator.enableDangerous();
       Instant.Migrator.Dangerous.filesystem.clear();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
-      Instant.disconnect();
+      await Instant.disconnect();
     });
 
     after(async () => {
-      Instant.disconnect();
+      await Instant.disconnect();
       await Instant.connect(Databases['main']);
       Instant.Migrator.enableDangerous();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
-      Instant.disconnect();
+      await Instant.disconnect();
     });
 
     it('should load a schema via #connect', async () => {
@@ -397,7 +397,7 @@ module.exports = (InstantORM, Databases) => {
 
         let originalSchema = await Instant.Schema.schema;
 
-        Instant.disconnect();
+        await Instant.disconnect();
         await Instant.connect(Databases['main']);
         let schema = await Instant.Schema.schema;
 
@@ -412,7 +412,7 @@ module.exports = (InstantORM, Databases) => {
         Instant.Migrator.enableDangerous();
         await Instant.Migrator.Dangerous.filesystem.clear();
 
-        Instant.disconnect();
+        await Instant.disconnect();
         await Instant.connect(Databases['main']);
         let schema = await Instant.Schema.schema;
 
@@ -427,7 +427,7 @@ module.exports = (InstantORM, Databases) => {
         Instant.Migrator.enableDangerous();
         await Instant.Migrator.Dangerous.drop();
 
-        Instant.disconnect();
+        await Instant.disconnect();
         await Instant.connect(Databases['main']);
         let schema = await Instant.Schema.toJSON();
         schema.migration_id = 1;

@@ -12,24 +12,24 @@ module.exports = (InstantORM, Databases) => {
   describe('InstantORM.Core.DB.Database Extensions', async () => {
 
     before(async () => {
-      Instant.disconnect();
+      await Instant.disconnect();
       await Instant.connect(Databases['main'], null);
       Instant.Migrator.enableDangerous();
       await Instant.Migrator.Dangerous.disableExtension('vector');
       Instant.Migrator.Dangerous.filesystem.clear();
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
-      Instant.disconnect();
+      await Instant.disconnect();
     });
 
     after(async () => {
-      Instant.disconnect();
+      await Instant.disconnect();
       await Instant.connect(Databases['main']);
       Instant.Migrator.enableDangerous();
       await Instant.Migrator.Dangerous.disableExtension('vector');
       await Instant.Migrator.Dangerous.annihilate();
       Instant.Migrator.disableDangerous();
-      Instant.disconnect();
+      await Instant.disconnect();
     });
 
     it('Should find available extensions', async () => {
@@ -412,7 +412,7 @@ module.exports = (InstantORM, Databases) => {
 
       this.timeout(5000);
 
-      Instant.disconnect();
+      await Instant.disconnect();
       Instant.Plugins.__createDirectory__();
 
       let filename = Instant.Plugins.pathname(`000_set_vector_engine.mjs`);

@@ -214,7 +214,6 @@ class InstantORM extends Logger {
         this.Vectors.__initialize__();
         await this.Plugins.teardown(this);
         await this.Plugins.load();
-        await this.Plugins.execute(this);
         let db = await this.addDatabase('main', cfg);
         await this.Plugins.execute(this);
         if (schema === null) {

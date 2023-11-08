@@ -10,9 +10,9 @@ class PluginsManager {
   static supportedEvents = ['afterConnect'];
 
   constructor () {
+    this._torndown = false;
     this.plugins = [];
     this.teardowns = [];
-    this._torndown = false;
   }
 
   /**
@@ -56,6 +56,8 @@ class PluginsManager {
   }
 
   async load () {
+    await this.teardown();
+    this._torndown = false;
     this.plugins = [];
     this.teardowns = [];
     const cwd = process.cwd();

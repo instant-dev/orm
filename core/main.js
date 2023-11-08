@@ -208,7 +208,6 @@ class InstantORM extends Logger {
     this._connecting = true;
     try {
       this.Vectors.__initialize__();
-      await this.Plugins.teardown();
       await this.Plugins.load();
       if (cfg === void 0 && schema === void 0 && this._databases['main']) {
         await this.Plugins.execute(this);

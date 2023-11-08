@@ -208,6 +208,7 @@ class InstantORM extends Logger {
     this._connecting = true;
     try {
       this.Vectors.__initialize__();
+      await this.Plugins.teardown(this);
       await this.Plugins.load();
       if (cfg === void 0 && schema === void 0 && this._databases['main']) {
         await this.Plugins.execute(this);
@@ -253,7 +254,7 @@ class InstantORM extends Logger {
       .filter(name => name !== 'main' && this._databases[name])
       .forEach(name => this.closeDatabase(name));
     this._databases['main'] && this.closeDatabase('main');
-    await this.Plugins.teardown();
+    await this.Plugins.teardown(this);
     this.__initialize__();
     return true;
   }

@@ -56,7 +56,6 @@ class PluginsManager {
   }
 
   async load () {
-    await this.teardown();
     this._torndown = false;
     this.plugins = [];
     this.teardowns = [];

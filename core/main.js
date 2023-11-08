@@ -207,14 +207,14 @@ class InstantORM extends Logger {
     }
     this._connecting = true;
     try {
-      this.Vectors.__initialize__();
-      await this.Plugins.teardown(this);
-      await this.Plugins.load();
       if (cfg === void 0 && schema === void 0 && this._databases['main']) {
-        await this.Plugins.execute(this);
         this._connecting = false;
         return this._databases['main'];
       } else {
+        this.Vectors.__initialize__();
+        await this.Plugins.teardown(this);
+        await this.Plugins.load();
+        await this.Plugins.execute(this);
         let db = await this.addDatabase('main', cfg);
         await this.Plugins.execute(this);
         if (schema === null) {

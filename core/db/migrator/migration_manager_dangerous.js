@@ -209,6 +209,8 @@ class MigrationManagerDangerous {
         queries.push(query);
       }
     }
+    // Update ID so we insert the right schema in the table
+    await this.parent._Schema.update(migrationJSON.id);
     queries.push(
       [
         this.parent._Schema.db.adapter.generateInsertQuery(
@@ -233,7 +235,6 @@ class MigrationManagerDangerous {
       }
       throw e;
     }
-    await this.parent._Schema.update(migrationJSON.id);
     this.parent.log(`Ran migration(id=${migrationJSON.id}, name=${migrationJSON.name}) successfully! (${migrationJSON.up.map(cmd => cmd[0]).join(', ')})`);
     if (writeSchema) {
       this.filesystem.writeSchema(this.parent._Schema);

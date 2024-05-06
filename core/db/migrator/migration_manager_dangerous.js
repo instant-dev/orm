@@ -512,7 +512,7 @@ class MigrationManagerDangerous {
     }
     let migrations = await this.getMigrations();
     let rollbacks = [];
-    for (let i = 0; i < steps; i++) {
+    for (let i = 0; i < Math.min(steps, migrations.length); i++) {
       let migration = migrations.pop();
       rollbacks.push({
         migration: migration,

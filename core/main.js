@@ -58,10 +58,13 @@ class InstantORM extends Logger {
   /**
    * @private
    */
-  __initialize__ () {
+  __initialize__ (initCfg = {}) {
     this.Config = new this.constructor.Core.DB.ConfigManager();
     this.Plugins = new this.constructor.Core.PluginsManager();
     this.Vectors = new this.constructor.Core.VectorManager();
+    if (initCfg.plugins === false) {
+      this.Plugins.disable();
+    }
     /**
      * @private
      */
@@ -266,7 +269,7 @@ class InstantORM extends Logger {
       .forEach(name => this.closeDatabase(name));
     this._databases['main'] && this.closeDatabase('main');
     await this.Plugins.teardown(this);
-    this.__initialize__();
+    this.__initialize__({plugins: this.Plugins._enabled});
     return true;
   }
 

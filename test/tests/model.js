@@ -154,7 +154,7 @@ module.exports = (InstantORM, Databases) => {
 
       let parent = new Parent();
       expect(parent.errorObject()).to.not.equal(null);
-      expect(parent.errorObject().httpStatusCode).to.equal(400);
+      expect(parent.errorObject().statusCode).to.equal(400);
       expect(parent.errorObject().details).to.have.property('name');
       expect(parent.errorObject().details.name[0]).to.equal('should be at least four characters long');
 
@@ -528,7 +528,7 @@ module.exports = (InstantORM, Databases) => {
         }
 
         expect(error).to.exist;
-        expect(error.httpStatusCode).to.equal(400);
+        expect(error.statusCode).to.equal(400);
 
       });
 
@@ -577,7 +577,7 @@ module.exports = (InstantORM, Databases) => {
         }
 
         expect(error).to.exist;
-        expect(error.httpStatusCode).to.equal(400);
+        expect(error.statusCode).to.equal(400);
 
       });
 

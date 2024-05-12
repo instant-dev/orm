@@ -786,7 +786,7 @@ class Model {
       let message = errorObject._query || 'Validation error';
 
       error = new Error(message);
-      error.httpStatusCode = 400;
+      error.statusCode = 400;
       error.details = errorObject;
       error.values = Object.keys(error.details).reduce((values, key) => {
         values[key] = this._data[key];
@@ -1325,7 +1325,7 @@ class Model {
           this.setError(verification.field, verification.message);
         } else {
           const error = new Error(verification.message);
-          error.httpStatusCode = 400;
+          error.statusCode = 400;
           throw error;
         }
       } else {

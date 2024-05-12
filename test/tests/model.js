@@ -156,7 +156,9 @@ module.exports = (InstantORM, Databases) => {
       expect(parent.errorObject()).to.not.equal(null);
       expect(parent.errorObject().statusCode).to.equal(400);
       expect(parent.errorObject().details).to.have.property('name');
-      expect(parent.errorObject().details.name[0]).to.equal('should be at least four characters long');
+      expect(parent.errorObject().details.name).to.exist;
+      expect(parent.errorObject().details.name.message).to.equal('should be at least four characters long');
+      expect(parent.errorObject().details.name.invalid).to.equal(true);
 
     });
 
@@ -636,10 +638,9 @@ module.exports = (InstantORM, Databases) => {
 
         expect(error).to.exist;
         expect(error.details).to.exist;
-        expect(error.details._query).to.be.an('array');
-        expect(error.details._query.length).to.equal(1);
-        expect(error.details._query[0]).to.be.a('string');
-        expect(error.details._query[0]).to.contain('violates unique constraint "special_items_name_unique"');
+        expect(error.details._query).to.exist;
+        expect(error.details._query.message).to.be.a('string');
+        expect(error.details._query.message).to.contain('violates unique constraint "special_items_name_unique"');
         expect(error.identifier).to.contain('violates unique constraint "special_items_name_unique"');
 
       });

@@ -783,7 +783,9 @@ class Model {
     if (this.hasErrors()) {
 
       let errorObject = this.getErrors();
-      let message = errorObject._query || 'Validation error';
+      let message = errorObject._query
+        ? errorObject._query.message
+        : 'Validation error';
 
       error = new Error(message);
       error.statusCode = 400;
@@ -793,7 +795,7 @@ class Model {
         return values;
       }, {});
       if (errorObject._query) {
-        error.identifier = error.details._query[0];
+        error.identifier = error.details._query.message;
       }
 
     }
@@ -820,8 +822,11 @@ class Model {
   getErrors () {
     let obj = {};
     let errors = this._errors;
-    Object.keys(errors).forEach(function(key) {
-      obj[key] = errors[key];
+    Object.keys(errors).forEach(key => {
+      const messages = errors[key];
+      const message = messages[0];
+      const additional = messages.length > 1 ? messages.slice(1) : void 0;
+      obj[key] = {message, invalid: true, additional};
     });
     return obj;
   }

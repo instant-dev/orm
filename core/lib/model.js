@@ -786,6 +786,7 @@ class Model {
       let message = errorObject._query || 'Validation error';
 
       error = new Error(message);
+      error.httpStatusCode = 400;
       error.details = errorObject;
       error.values = Object.keys(error.details).reduce((values, key) => {
         values[key] = this._data[key];
@@ -1323,7 +1324,9 @@ class Model {
         if (verification.field) {
           this.setError(verification.field, verification.message);
         } else {
-          throw new Error(verification.message);
+          const error = new Error(verification.message);
+          error.httpStatusCode = 400;
+          throw error;
         }
       } else {
         this.clearError(verification.field);
@@ -1447,7 +1450,7 @@ class Model {
     let columns = this.fieldList().filter(v => this.isFieldPrimaryKey(v));
     let query = db.adapter.generateDeleteQuery(this.constructor.schema.name, columns);
     try {
-      await db.query(
+      await (txn || db).query(
         query,
         columns.map(v => {
           return db.adapter.sanitize(

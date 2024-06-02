@@ -491,6 +491,7 @@ module.exports = (InstantORM, Databases) => {
           .first();
       } catch (e) {
         expect(e).to.exist;
+        expect(e.statusCode).to.equal(404);
       }
 
     });

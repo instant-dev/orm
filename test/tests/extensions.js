@@ -247,7 +247,7 @@ module.exports = (InstantORM, Databases) => {
         {body: `I am feeling awful`},
         {body: `I am in extreme distress`},
         {body: `I am feeling pretty good`},
-        {body: `I am so-so`}
+        {body: `I am feeling meh`}
       ]);
 
       expect(blogComments).to.exist;
@@ -268,7 +268,7 @@ module.exports = (InstantORM, Databases) => {
       const expectedResults = [
         `I am extremely happy!`,
         `I am feeling pretty good`,
-        `I am so-so`,
+        `I am feeling meh`,
         `I am feeling awful`,
         `I am in extreme distress`
       ];
@@ -300,7 +300,7 @@ module.exports = (InstantORM, Databases) => {
       const expectedResults = [
         `I am extremely happy!`,
         `I am feeling pretty good`,
-        `I am so-so`,
+        `I am feeling meh`,
         `I am feeling awful`,
         `I am in extreme distress`
       ];
@@ -332,7 +332,7 @@ module.exports = (InstantORM, Databases) => {
       const expectedResults = {
         'I am extremely happy!': 'positive',
         'I am feeling pretty good': 'positive',
-        'I am so-so': 'negative',
+        'I am feeling meh': 'negative',
         'I am feeling awful': 'negative',
         'I am in extreme distress': 'negative'
       };
@@ -365,7 +365,7 @@ module.exports = (InstantORM, Databases) => {
       const expectedResults = {
         'I am extremely happy!': 'positive',
         'I am feeling pretty good': 'positive',
-        'I am so-so': 'negative',
+        'I am feeling meh': 'neutral',
         'I am feeling awful': 'negative',
         'I am in extreme distress': 'negative'
       };

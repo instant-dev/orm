@@ -1422,7 +1422,9 @@ class Composer {
   async first (txn) {
     let models = await this.limit(1).select(txn);
     if (!models.length) {
-      throw new Error(`No records for ${this.Model.name} found in your query`);
+      const error = new Error(`No records for ${this.Model.name} found in your query`);
+      error.statusCode = 404;
+      throw error;
     }
     return models[0];
   }

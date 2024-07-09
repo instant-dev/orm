@@ -276,6 +276,18 @@ class Model {
   }
 
   /**
+  * Sets the plugins manager
+  * @private
+  * @param {import('./plugins_manager')} pluginsManager
+  * @returns {boolean}
+  */
+  static setPluginsManager (pluginsManager) {
+    this.prototype.getPlugin = (name) => pluginsManager.getPlugin(name);
+    this.getPlugin = (name) => pluginsManager.getPlugin(name);
+    return true;
+  }
+
+  /**
    * Gets column properties defaultValue nullable, unique, primary_key, auto_increment, array
    * @param {string} field The field on the model
    * @returns {object}

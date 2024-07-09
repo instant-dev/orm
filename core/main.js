@@ -414,7 +414,7 @@ class InstantORM extends Logger {
     } else {
       throw new Error(`Invalid schema provided: ${src}`);
     }
-    this._Schema = new this.constructor.Core.DB.SchemaManager(db, this.Vectors);
+    this._Schema = new this.constructor.Core.DB.SchemaManager(db, this.Vectors, this.Plugins);
     await this._Schema.setSchema(json);
     this._Migrator = new this.constructor.Core.DB.MigrationManager(this._Schema);
     this._Migrator.enableLogs(this._logLevel); // Pass through logging
@@ -459,6 +459,14 @@ class InstantORM extends Logger {
     this.__checkConnection__();
     this.__checkSchema__();
     return this._Schema.getModel(name);
+  }
+
+  /**
+   * Retrieve a specific Plugin
+   * @param {string} name
+   */
+  Plugin (name) {
+    return this.Plugins.getPlugin(name);
   }
 
   /**

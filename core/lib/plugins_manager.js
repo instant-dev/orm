@@ -7,9 +7,9 @@ class PluginsManager {
 
   static rootDirectory = SchemaManager.rootDirectory;
   static pluginsDirectory = 'plugins';
-  static supportedEvents = ['afterConnect'];
 
   constructor () {
+    this._namedPlugins = {};
     this._torndown = false;
     this.plugins = [];
     this.teardowns = [];
@@ -25,6 +25,13 @@ class PluginsManager {
       pathList = pathList.concat(pathname.split('/'));
     }
     SchemaManager.checkdir(path.join.apply(path, pathList));
+  }
+
+  getPlugin (name) {
+    if (!this._namedPlugins[name]) {
+      throw new Error(`Could not find plugin "${name}", check the exported name of the plugin`);
+    }
+    return this._namedPlugins[name] || null;
   }
 
   disable () {
@@ -98,7 +105,7 @@ class PluginsManager {
           } else if (typeof pluginModule.plugin !== 'function') {
             throw new Error(`Plugin "${pathname}" export "plugin" invalid: must be a function`);
           }
-          this.plugins.push(pluginModule.plugin);
+          this.plugins.push(pluginModule);
           pluginModule.teardown && this.teardowns.push(pluginModule.teardown);
         }
       }
@@ -106,6 +113,7 @@ class PluginsManager {
   }
 
   async teardown (Instant) {
+    this._namedPlugins = {};
     if (this._enabled) {
       if (!this._torndown) {
         for (const teardown of this.teardowns) {
@@ -118,8 +126,11 @@ class PluginsManager {
 
   async execute (Instant) {
     if (this._enabled) {
-      for (const plugin of this.plugins) {
-        await plugin(Instant);
+      for (const pluginModule of this.plugins) {
+        const pluginReference = await pluginModule.plugin(Instant);
+        if (pluginModule.name) {
+          this._namedPlugins[pluginModule.name] = pluginReference;
+        }
       }
       this._torndown = false;
     }

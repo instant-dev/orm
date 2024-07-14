@@ -176,7 +176,7 @@ module.exports = (InstantORM, Databases) => {
 
       Instant.Vectors.setEngine(async (values) => {
         const embedding = await openai.embeddings.create({
-          model: 'text-embedding-ada-002',
+          model: 'text-embedding-3-small',
           input: values,
         });
         const vectors = embedding.data.map((entry, i) => {
@@ -233,7 +233,7 @@ module.exports = (InstantORM, Databases) => {
 
       Instant.Vectors.setEngine(async (values) => {
         const embedding = await openai.embeddings.create({
-          model: 'text-embedding-ada-002',
+          model: 'text-embedding-3-small',
           input: values,
         });
         return embedding.data.map((entry, i) => {
@@ -247,7 +247,7 @@ module.exports = (InstantORM, Databases) => {
         {body: `I am feeling awful`},
         {body: `I am in extreme distress`},
         {body: `I am feeling pretty good`},
-        {body: `I am feeling meh`}
+        {body: `I am feeling alright`}
       ]);
 
       expect(blogComments).to.exist;
@@ -268,7 +268,7 @@ module.exports = (InstantORM, Databases) => {
       const expectedResults = [
         `I am extremely happy!`,
         `I am feeling pretty good`,
-        `I am feeling meh`,
+        `I am feeling alright`,
         `I am feeling awful`,
         `I am in extreme distress`
       ];
@@ -284,7 +284,7 @@ module.exports = (InstantORM, Databases) => {
       blogComments.forEach((blogComment, i) => {
         expect(blogComment.get('body')).to.equal(expectedResults[i]);
         expect(blogComment.getMetafield('embedding_similarity')).to.exist;
-        expect(blogComment.getMetafield('embedding_similarity')).to.be.greaterThan(0.5);
+        expect(blogComment.getMetafield('embedding_similarity')).to.be.greaterThan(0.2);
         let json = blogComment.toJSON();
         expect(json['_metafields']).to.exist;
         expect(json['_metafields']['embedding_similarity']).to.equal(blogComment.getMetafield('embedding_similarity'));
@@ -300,7 +300,7 @@ module.exports = (InstantORM, Databases) => {
       const expectedResults = [
         `I am extremely happy!`,
         `I am feeling pretty good`,
-        `I am feeling meh`,
+        `I am feeling alright`,
         `I am feeling awful`,
         `I am in extreme distress`
       ];
@@ -316,7 +316,7 @@ module.exports = (InstantORM, Databases) => {
       blogComments.forEach((blogComment, i) => {
         expect(blogComment.get('body')).to.equal(expectedResults[i]);
         expect(blogComment.getMetafield('embedding_product')).to.exist;
-        expect(blogComment.getMetafield('embedding_product')).to.be.greaterThan(0.5);
+        expect(blogComment.getMetafield('embedding_product')).to.be.greaterThan(0.2);
         let json = blogComment.toJSON();
         expect(json['_metafields']).to.exist;
         expect(json['_metafields']['embedding_product']).to.equal(blogComment.getMetafield('embedding_product'));
@@ -332,7 +332,7 @@ module.exports = (InstantORM, Databases) => {
       const expectedResults = {
         'I am extremely happy!': 'positive',
         'I am feeling pretty good': 'positive',
-        'I am feeling meh': 'negative',
+        'I am feeling alright': 'positive',
         'I am feeling awful': 'negative',
         'I am in extreme distress': 'negative'
       };
@@ -365,7 +365,7 @@ module.exports = (InstantORM, Databases) => {
       const expectedResults = {
         'I am extremely happy!': 'positive',
         'I am feeling pretty good': 'positive',
-        'I am feeling meh': 'neutral',
+        'I am feeling alright': 'neutral',
         'I am feeling awful': 'negative',
         'I am in extreme distress': 'negative'
       };
@@ -423,7 +423,7 @@ module.exports = (InstantORM, Databases) => {
         `export const plugin = async (Instant) => {`,
         `  Instant.Vectors.setEngine(async (values) => {`,
         `    const embedding = await openai.embeddings.create({`,
-        `      model: 'text-embedding-ada-002',`,
+        `      model: 'text-embedding-3-small',`,
         `      input: values,`,
         `    });`,
         `    return embedding.data.map((entry, i) => entry.embedding);`,

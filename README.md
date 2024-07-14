@@ -477,7 +477,7 @@ To set a vector engine, you can use `Instant.Vectors.setEngine()` like so:
 // values will automatically be batched appropriately
 Instant.Vectors.setEngine(async (values) => {
   const embeddingResult = await openai.embeddings.create({
-    model: 'text-embedding-ada-002',
+    model: 'text-embedding-3-small',
     input: values,
   });
   return embeddingResult.data.map(entry => entry.embedding);
@@ -501,7 +501,7 @@ const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 export const plugin = async (Instant) => {
   Instant.Vectors.setEngine(async (values) => {
     const embedding = await openai.embeddings.create({
-      model: 'text-embedding-ada-002',
+      model: 'text-embedding-3-small',
       input: values
     });
     return embedding.data.map((entry, i) => entry.embedding);

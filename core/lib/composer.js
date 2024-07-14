@@ -407,7 +407,7 @@ class Composer {
 
       columns = columns
         .map(c => typeof c !== 'string' ? c : {columnNames: [c], alias: c, transformation: v => v})
-        .map(c => Object.keys(c).reduce((p, k) => { return (p[k] = c[k], p); }, {}));
+        .map(c => ({...c}));
 
       !command.groupBy.length && columns.forEach(c => {
         c.transformation = v => v;
@@ -448,6 +448,15 @@ class Composer {
         }
       });
 
+      // Make sure we keep referencing previous aliases
+      prev.aliases.forEach(alias => {
+        columns.push({
+          columnNames: [alias],
+          alias: alias,
+          transformation: v => v
+        });
+      });
+
       return {
         sql: this.db.adapter.generateSelectQuery(
           prev.sql || {table: this.Model.table()},
@@ -462,7 +471,7 @@ class Composer {
         ),
         params: prev.params.concat(params),
         aliases: prev.aliases.concat(aliases)
-      }
+      };
 
     }, {sql: null, params: [], aliases: []});
 

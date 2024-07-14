@@ -244,10 +244,10 @@ module.exports = (InstantORM, Databases) => {
 
       const BlogCommentFactory = Instant.ModelFactory('BlogComment');
       let blogComments = await BlogCommentFactory.create([
-        {body: `I am feeling awful`},
-        {body: `I am in extreme distress`},
-        {body: `I am feeling pretty good`},
-        {body: `I am feeling alright`}
+        {title: `title1`, body: `I am feeling awful`},
+        {title: `title1`, body: `I am in extreme distress`},
+        {title: `title2`, body: `I am feeling pretty good`},
+        {title: `title3`, body: `I am feeling alright`}
       ]);
 
       expect(blogComments).to.exist;
@@ -387,6 +387,38 @@ module.exports = (InstantORM, Databases) => {
         expect(json['_metafields']['embedding_classification'].similarity['positive']).to.exist;
         expect(json['_metafields']['embedding_classification'].similarity['negative']).to.exist;
         expect(json['_metafields']['embedding_classification'].similarity['neutral']).to.exist;
+      });
+
+    });
+
+    it('Should perform a vector search on a subset of entries', async function () {
+
+      this.timeout(5000);
+
+      // Instant.enableLogs(4);
+
+      const query = `i am having tons of fun!`;
+      const expectedResults = [
+        `I am feeling awful`,
+        `I am in extreme distress`
+      ];
+
+      const BlogComment = Instant.Model('BlogComment');
+      
+      const blogComments = await BlogComment.query()
+        .where({title: 'title1'})
+        .similarity('embedding', 'i am having tons of fun!')
+        .select();
+      
+      expect(blogComments).to.exist;
+      expect(blogComments.length).to.equal(2);
+      blogComments.forEach((blogComment, i) => {
+        expect(blogComment.get('body')).to.equal(expectedResults[i]);
+        expect(blogComment.getMetafield('embedding_similarity')).to.exist;
+        expect(blogComment.getMetafield('embedding_similarity')).to.be.greaterThan(0.2);
+        let json = blogComment.toJSON();
+        expect(json['_metafields']).to.exist;
+        expect(json['_metafields']['embedding_similarity']).to.equal(blogComment.getMetafield('embedding_similarity'));
       });
 
     });

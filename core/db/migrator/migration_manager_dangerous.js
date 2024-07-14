@@ -168,8 +168,13 @@ class MigrationManagerDangerous {
   /**
    * Destroys the existing database, prepares it for migrations, migrates and seeds
    */
-  async bootstrap (seed) {
+  async bootstrap (seed, extensions = []) {
     await this.annihilate();
+    if (extensions.length) {
+      for (const name of extensions) {
+        await this.enableExtension(name);
+      }
+    }
     await this.prepare();
     await this.migrate();
     if (seed) {

@@ -995,7 +995,9 @@ PostgresAdapter.prototype.sanitizeType = {
     return ['f', 't'][v | 0];
   },
   json: v => {
-    return JSON.stringify(v);
+    return (v === null || v === void 0)
+      ? null
+      : JSON.stringify(v);
   },
   vector: v => {
     return (v === null || v === void 0)

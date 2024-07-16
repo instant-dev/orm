@@ -1359,7 +1359,7 @@ class Model {
   * @private
   */
   async __vectorize__ () {
-    const promises = [];
+    const fns = [];
     for (let i = 0; i < this._vectorizationsList.length; i++) {
       const v = this._vectorizationsList[i];
       const hasChanged = v.fields.find(field => this.hasChanged(field));
@@ -1371,16 +1371,16 @@ class Model {
         if (fieldData.type !== 'vector') {
           throw new Error(`Could not vectorize "${v.field}" for "${this.constructor.name}": not a valid vector`);
         }
-        const fn = (async () => {
+        const fn = async () => {
           const str = v.convert.apply(null, v.fields.map(field => this.get(field)));
           const vector = await this._vectorManager.create(str);
           this.set(v.field, vector);
-        })();
-        promises.push(fn);
+        };
+        fns.push(fn);
       }
     }
-    if (promises.length) {
-      await Promise.all(promises);
+    if (fns.length) {
+      await Promise.all(fns.map(fn => fn()));
     }
     return true;
   }

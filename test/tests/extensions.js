@@ -155,6 +155,7 @@ module.exports = (InstantORM, Databases) => {
       });
       
       const BlogComment = Instant.Model('BlogComment');
+      let error;
 
       try {
         const blogComment = await BlogComment.create({body: testPhrase});
@@ -276,7 +277,7 @@ module.exports = (InstantORM, Databases) => {
       const BlogComment = Instant.Model('BlogComment');
       
       const blogComments = await BlogComment.query()
-        .similarity('embedding', 'i am having tons of fun!')
+        .similarity('embedding', query)
         .select();
       
       expect(blogComments).to.exist;
@@ -308,7 +309,7 @@ module.exports = (InstantORM, Databases) => {
       const BlogComment = Instant.Model('BlogComment');
 
       const blogComments = await BlogComment.query()
-        .search('embedding', 'i am having tons of fun!')
+        .search('embedding', query)
         .select();
 
       expect(blogComments).to.exist;
@@ -407,7 +408,7 @@ module.exports = (InstantORM, Databases) => {
       
       const blogComments = await BlogComment.query()
         .where({title: 'title1'})
-        .similarity('embedding', 'i am having tons of fun!')
+        .similarity('embedding', query)
         .select();
       
       expect(blogComments).to.exist;
@@ -423,12 +424,32 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('Should succeed at setting empty body and not create a vector entry', async () => {
+      
+      const BlogComment = Instant.Model('BlogComment');
+      let blogComment;
+      let error;
+
+      try {
+        blogComment = await BlogComment.create({});
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).to.not.exist;
+      expect(blogComment).to.exist;
+      expect(blogComment.get('embedding')).to.equal(null);
+
+    });
+
     it('Should make vector engine defunct again', async () => {
 
       Instant.Vectors.setEngine(async (values) => {
         // do nothing
       });
       
+      let error;
+
       try {
         await Instant.Vectors.create(`I am extremely happy`);
       } catch (e) {

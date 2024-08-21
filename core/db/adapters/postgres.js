@@ -505,7 +505,7 @@ class PostgresAdapter extends SQLAdapter {
       return '';
     }
 
-    return 'postgres://' + user + ':' + password + '@' + host + ':' + port + '/' + database;
+    return 'postgres://' + user + ':' + password + '@' + host + ':' + port + '/' + (database || '');
 
   }
 

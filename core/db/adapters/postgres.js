@@ -63,9 +63,7 @@ class PostgresAdapter extends SQLAdapter {
       config.host = 'localhost';
       config.port = tunnelObject.port;
       config.ssl = false;
-      if (!config.database) {
-        delete config.database;
-      }
+      config.database = config.database || '';
     } else {
       throw new Error(`Could not connect to tunnel: no valid tunnel provided in config`);
     }

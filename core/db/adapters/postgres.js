@@ -40,13 +40,16 @@ class PostgresAdapter extends SQLAdapter {
   }
 
   async connect () {
-    let cfg = this._config;
+    let cfg = JSON.parse(JSON.stringify(this._config));
     if (cfg.tunnel) {
       let result = await this.connectToTunnel(cfg);
       cfg = result.config;
       this._tunnel = result.tunnelObject;
     }
     this.db.log(`Connecting to ${this.name}${this._config.database ? ` database "${this._config.database}"` : ``} as role "${this._config.user}" on ${this._config.host}:${this._config.port} ...`);
+    if (!cfg.database) {
+      cfg.database = 'postgres';
+    }
     this._pool = new pg.Pool(cfg);
     let client = await this.createClient();
     client.release();
@@ -63,7 +66,6 @@ class PostgresAdapter extends SQLAdapter {
       config.host = 'localhost';
       config.port = tunnelObject.port;
       config.ssl = false;
-      config.database = config.database || '';
     } else {
       throw new Error(`Could not connect to tunnel: no valid tunnel provided in config`);
     }

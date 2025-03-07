@@ -290,7 +290,7 @@ class Migration extends Logger {
     createTable: ['table:string', 'arrFieldData:column[]'],
     dropTable: ['table:string'],
     renameTable: ['table:string', 'newTable:string'],
-    alterColumn: ['table:string', 'column:string', 'type:columnType', 'properties:?columnProperties'],
+    alterColumn: ['table:string', 'column:string', 'type:?columnType', 'properties:?columnProperties'],
     addColumn: ['table:string', 'column:string', 'type:columnType', 'properties:?columnProperties'],
     dropColumn: ['table:string', 'column:string'],
     renameColumn: ['table:string', 'column:string', 'newColumn:string'],

@@ -485,7 +485,7 @@ class SchemaManager {
     }
 
     const defaultProperties = (
-      db.adapter.simpleTypes[column[schemaFieldData.type]] || {}
+      this.db.adapter.simpleTypes[column[schemaFieldData.type]] || {}
     ).properties || {};
 
     if (properties) {

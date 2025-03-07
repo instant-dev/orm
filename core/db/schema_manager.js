@@ -484,6 +484,25 @@ class SchemaManager {
       schemaFieldData.type = type;
     }
 
+    const defaultProperties = (
+      db.adapter.simpleTypes[column[schemaFieldData.type]] || {}
+    ).properties || {};
+
+    if (properties) {
+      schemaFieldData.properties = schemaFieldData.properties || {};
+      for (const key in properties) {
+        if (properties[key] === defaultProperties[key]) {
+          delete schemaFieldData.properties[key];
+        } else {
+          schemaFieldData.properties[key] = properties[key];
+        }
+      }
+    }
+
+    if (Object.keys(schemaFieldData.properties || {}).length === 0) {
+      delete schemaFieldData.properties;
+    }
+
     return true;
 
   }

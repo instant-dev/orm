@@ -480,7 +480,9 @@ class SchemaManager {
       throw new Error('Column "' + column + '" of table "' + table + '" does not exist');
     }
 
-    schemaFieldData.type = type;
+    if (type) {
+      schemaFieldData.type = type;
+    }
 
     return true;
 

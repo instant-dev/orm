@@ -450,7 +450,7 @@ class SchemaManager {
   renameTable (table, newTable) {
 
     this.findTable(table, true);
-    this.schema.tables[table].table = newTable;
+    this.schema.tables[table].name = newTable;
     this.schema.tables[newTable] = this.schema.tables[table];
     delete this.schema.tables[table];
     return this.schema.tables[newTable];

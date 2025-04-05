@@ -86,8 +86,10 @@ class ModelArray extends ItemArray {
     let db = this.Model.prototype.db;
     let source = txn ? txn : db;
     let params = this.map(m => m.get('id'));
-    let sql = db.adapter.generateDeleteAllQuery(this.Model.table(), 'id', params);
-    await source.query(sql, params);
+    if (this.length > 0) {
+      let sql = db.adapter.generateDeleteAllQuery(this.Model.table(), 'id', params);
+      await source.query(sql, params);
+    }
     this.forEach(m => m._inStorage = false);
     return this;
   }

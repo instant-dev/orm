@@ -4,6 +4,7 @@ const Transaction = require('../db/transaction.js');
 
 const Composer = require('./composer.js');
 const ModelArray = require('./model_array.js');
+const ModelFactory = require('./model_factory.js');
 const utilities = require('./utilities.js');
 
 const inflect = require('i')();
@@ -257,7 +258,13 @@ class Model {
   */
   static setModelReference (referenceFn) {
     this.prototype.getModel = referenceFn;
+    this.prototype.getModelFactory = function getModelFactory (name) {
+      return new ModelFactory(referenceFn.call(this, name));
+    };
     this.getModel = referenceFn;
+    this.getModelFactory = function getModelFactory (name) {
+      return new ModelFactory(referenceFn.call(this, name));
+    };
     return true;
   }
 

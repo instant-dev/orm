@@ -219,7 +219,7 @@ class SQLAdapter {
               }
               defn = field.transformation.apply(null, args);
             } else {
-              defn = this.generateNullField(field.type);
+              defn = this.generateNullField(field.type, field.properties);
             }
             return `(${defn}) AS ${this.escapeField(field.shortAlias || field.alias)}`;
           }).join(','),
@@ -236,8 +236,8 @@ class SQLAdapter {
 
   }
 
-  generateNullField (type) {
-    return `NULL::${this.getTypeDbName(type)}`;
+  generateNullField (type, properties) {
+    return `NULL::${this.getTypeDbName(type)}${properties?.array ? '[]' : ''}`;
   };
 
   generateCountQuery (subQuery, table) {

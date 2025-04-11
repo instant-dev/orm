@@ -765,7 +765,11 @@ SQLAdapter.prototype.comparatorIgnoresValue = {
 
 SQLAdapter.prototype.comparatorExpectsArray = {
   in: true,
-  not_in: true
+  not_in: true,
+  array_contains: true,
+  not_array_contains: true,
+  array_intersects: true,
+  not_array_intersects: true
 };
 
 SQLAdapter.prototype.documentTypes = [];

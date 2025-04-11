@@ -979,7 +979,7 @@ class PostgresAdapter extends SQLAdapter {
               .reduce((newWhere, key) => {
                 newWhere[key] = where[key];
                 return newWhere;
-            }, {value: value});
+            }, { value: value });
           })
         );
       } else {

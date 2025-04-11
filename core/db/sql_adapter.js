@@ -747,7 +747,11 @@ SQLAdapter.prototype.comparators = {
   not_true: field => `${field} IS NOT TRUE`,
   not_false: field => `${field} IS NOT FALSE`,
   in: field => `ARRAY[${field}] <@ __VAR__`,
-  not_in: field => `NOT (ARRAY[${field}] <@ __VAR__)`
+  not_in: field => `NOT (ARRAY[${field}] <@ __VAR__)`,
+  array_contains: field => `${field} @> __VAR__`,
+  not_array_contains: field => `NOT (${field} @> __VAR__)`,
+  array_intersects: field => `${field} && __VAR__`,
+  not_array_intersects: field => `NOT (${field} && __VAR__)`
 };
 
 SQLAdapter.prototype.comparatorIgnoresValue = {

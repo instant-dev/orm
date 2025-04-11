@@ -684,6 +684,12 @@ PostgresAdapter.prototype.comparators = {
   not_false: field => `${field} IS NOT FALSE`,
   in: field => `ARRAY[${field}] <@ __VAR__`,
   not_in: field => `NOT (ARRAY[${field}] <@ __VAR__)`,
+  array_contains: field => `${field} @> __VAR__`,
+  not_array_contains: field => `NOT (${field} @> __VAR__)`,
+  array_contains: field => `${field} @> __VAR__`,
+  not_array_contains: field => `NOT (${field} @> __VAR__)`,
+  array_intersects: field => `${field} && __VAR__`,
+  not_array_intersects: field => `NOT (${field} && __VAR__)`
   json: (field, value) => {
     return `${field.replace(/"/g,"")} = __VAR__`;
   },

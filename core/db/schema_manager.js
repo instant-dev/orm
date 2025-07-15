@@ -264,7 +264,11 @@ class SchemaManager {
     this.Models = {};
     const Models = await this.readModels(this.schema);
     Object.keys(this.schema.tables).forEach(name => {
-      let className = inflect.classify(name);
+      let useClassName = name; // One off; bases is plural of base, it thinks basis
+      if (useClassName.endsWith('bases')) {
+        useClassName = useClassName.replace(/bases$/, 'base');
+      }
+      let className = inflect.classify(useClassName);
       const _Model = Models[name]
         ? {[className]: class extends Models[name] {}}[className]
         : {[className]: class extends Model {}}[className];

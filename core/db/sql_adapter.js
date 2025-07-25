@@ -203,7 +203,7 @@ class SQLAdapter {
     groupByArray = groupByArray || [];
     orderByArray = orderByArray || [];
 
-    return [
+    const sql = [
       'SELECT ',
         columns === '*'
           ? '*'
@@ -233,6 +233,8 @@ class SQLAdapter {
         this.generateOrderByClause(table, orderByArray, groupByArray, joinArray),
         this.generateLimitClause(limitObj)
     ].join('');
+
+    return sql;
 
   }
 

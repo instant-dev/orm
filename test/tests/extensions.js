@@ -125,6 +125,29 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('Should create a joined table (BlogCommentLike)', async () => {
+      
+      Instant.Migrator.enableDangerous();
+      const migration = await Instant.Migrator.create(2, 'my_second_migration');
+
+      await migration.createTable(
+        'blog_comment_likes',
+        [
+          {name: 'blog_comment_id', type: 'integer'},
+          {name: 'user_id', type: 'integer'},
+        ]
+      );
+      await migration.createForeignKey('blog_comment_likes', 'blog_comment_id', 'blog_comments', 'id');
+
+      await Instant.Migrator.Dangerous.commit(migration);
+
+      expect(migration.toJSON().name).to.equal('my_second_migration');
+
+      expect(Instant.Model('BlogCommentLike')).to.exist;
+      expect(Instant.Model('BlogCommentLike').columnNames()).to.deep.equal(['id', 'blog_comment_id', 'user_id', 'created_at', 'updated_at']);
+
+    });
+
     it('Should fail to vectorize the body field on BlogComment without vector engine', async () => {
 
       const testPhrase = `I am extremely happy`;
@@ -311,6 +334,43 @@ module.exports = (InstantORM, Databases) => {
       const blogComments = await BlogComment.query()
         .search('embedding', query)
         .select();
+
+      expect(blogComments).to.exist;
+      expect(blogComments.length).to.equal(5);
+      blogComments.forEach((blogComment, i) => {
+        expect(blogComment.get('body')).to.equal(expectedResults[i]);
+        expect(blogComment.getMetafield('embedding_product')).to.exist;
+        expect(blogComment.getMetafield('embedding_product')).to.be.greaterThan(0.2);
+        let json = blogComment.toJSON();
+        expect(json['_metafields']).to.exist;
+        expect(json['_metafields']['embedding_product']).to.equal(blogComment.getMetafield('embedding_product'));
+      });
+
+    });
+
+    it('Should perform a vector search (dot product similarity) for related entries and join in a model', async function () {
+
+      this.timeout(5000);
+
+      const query = `i am having tons of fun!`;
+      const expectedResults = [
+        `I am extremely happy!`,
+        `I am feeling pretty good`,
+        `I am feeling alright`,
+        `I am feeling awful`,
+        `I am in extreme distress`
+      ];
+
+      const BlogComment = Instant.Model('BlogComment');
+
+      // Instant.enableLogs(4);
+
+      const blogComments = await BlogComment.query()
+        .join('blogCommentLikes')
+        .search('embedding', query)
+        .select();
+
+      // Instant.enableLogs(0);
 
       expect(blogComments).to.exist;
       expect(blogComments.length).to.equal(5);
@@ -517,6 +577,7 @@ module.exports = (InstantORM, Databases) => {
 
     it('Should disable "vector" extension once table dropped', async () => {
 
+      await Instant.database().query(`DROP TABLE blog_comment_likes`, []);
       await Instant.database().query(`DROP TABLE blog_comments`, []);
 
       const extension = await Instant.Migrator.Dangerous.disableExtension('vector');

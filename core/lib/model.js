@@ -193,6 +193,19 @@ class Model {
     });
   }
 
+  static aliasedColumnQueryInfo (aliasedColumnList) {
+    return aliasedColumnList.map(name => {
+      return {
+        name: name,
+        type: 'any',
+        columnNames: [name],
+        alias: name,
+        transformation: v => v,
+        joined: false
+      }
+    });
+  }
+
   /**
   * Get the model's column lookup data
   * @returns {object}

@@ -586,7 +586,10 @@ class Composer {
   */
   __addJoinsToQuery__ (query, queryInfo, includeColumns) {
 
-    let columns = this.Model.columnQueryInfo(includeColumns);
+    let columns = [].concat(
+      this.Model.columnQueryInfo(includeColumns),
+      this.Model.aliasedColumnQueryInfo(query.aliases)
+    );
     let joins = queryInfo.joins;
 
     // Set join OrderBys... in reverse order

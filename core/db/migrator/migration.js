@@ -417,7 +417,10 @@ class Migration extends Logger {
         if (!(key in db.adapter.foreignKeyBehaviorDefaults)) {
          throw new Error(`Invalid behavior: does not support key "${key}"`);
         }
-        if (behavior[key] === db.adapter.foreignKeyBehaviorDefaults[key]) {
+        if (
+          behavior[key] === db.adapter.foreignKeyBehaviorDefaults[key] ||
+          behavior[key] === void 0
+        ) {
           delete behavior[key];
         }
       });

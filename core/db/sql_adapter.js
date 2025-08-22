@@ -722,7 +722,9 @@ SQLAdapter.prototype.typePropertyDefaults = {
 
 SQLAdapter.prototype.foreignKeyBehaviorDefaults = {
   mock: false,
-  cascade: false
+  cascade: false,
+  alias: null,
+  parentAlias: null
 };
 
 SQLAdapter.prototype.indexTypes = [];

@@ -1363,6 +1363,7 @@ class Model {
       if (!result) {
         if (verification.field) {
           this.setError(verification.field, verification.message);
+          break;
         } else {
           const error = new Error(verification.message);
           error.statusCode = 400;

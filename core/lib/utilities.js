@@ -4,8 +4,8 @@ module.exports = {
     return fn.toString()
       .replace(/\/\*.*?\*\//g, '')
       .replace(/\s+/g, '')
-      .replace(/^function.*?(\(.*?\)).*/gi, '$1')
-      .replace(/^(?:async)?(.*?)=>.*/g, '$1')
+      .replace(/^(?:async\s*)?function.*?(\(.*?\)).*/gi, '$1')
+      .replace(/^(?:async\s*)?(.*?)=>.*/g, '$1')
       .replace(/^\(?(.*?)\)?$/g, '$1')
       .split(',')
       .filter(v => !!v);

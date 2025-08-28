@@ -45,6 +45,13 @@ module.exports = (InstantORM, Databases) => {
       }
     );
 
+    Parent.verifies(
+      'should wait 20ms, have name not be undefined, and have this be instance of parent',
+      async function (name, age) {
+        return name !== void 0 && this instanceof Parent;
+      }
+    );
+
     let schemaHouse = {
       name: 'houses',
       columns: [

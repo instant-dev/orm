@@ -445,6 +445,9 @@ class Model {
     };
 
     const fields = utilities.getFunctionParameters(fnAction).slice(0);
+    if (fields[fields.length - 1] === 'txn') {
+      fields.pop();
+    }
 
     this.prototype._verificationsList.push({
       field: field,
@@ -482,7 +485,7 @@ class Model {
       let verification = verifications[i];
       let result = await verification.action.apply(
         this,
-        verification.fields.map(field => data[field])
+        [].concat(verification.fields.map(field => data[field]), null)
       );
       results.push(result);
     }
@@ -1349,13 +1352,13 @@ class Model {
   * Runs all verifications before saving
   * @private
   */
-  async __verify__ () {
+  async __verify__ (txn = null) {
     // Run through verifications in order they were added
     for (let i = 0; i < this._verificationsList.length; i++) {
       const verification = this._verificationsList[i];
       let result = await verification.action.apply(
         this,
-        verification.fields.map(field => this.get(field))
+        [].concat(verification.fields.map(field => this.get(field)), txn)
       );
       if (!result) {
         if (verification.field) {

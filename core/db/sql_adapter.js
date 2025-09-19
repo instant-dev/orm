@@ -626,7 +626,7 @@ class SQLAdapter {
     });
 
     return !columnEscapedOrderByArray.length ? '' : ' ORDER BY ' + columnEscapedOrderByArray.map(v => {
-      return `${(v.transformation || (v => v)).apply(null, v.escapedColumns)} ${v.direction}`;
+      return `${(v.transformation || (v => v)).apply(null, v.escapedColumns)} ${v.direction} NULLS LAST`;
     }).join(', ');
 
   }

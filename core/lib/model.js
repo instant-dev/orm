@@ -660,7 +660,7 @@ class Model {
   * @param {?boolean} fromSeed Specify if the model was generated from a seed. Defaults to false.
   * @returns {Model}
   */
-  __load__ (data, fromStorage, fromSeed) {
+  __load__ (data, fromStorage, fromSeed, fromSave) {
 
     data = data || {};
 
@@ -692,7 +692,9 @@ class Model {
 
     keys.forEach(key => {
       this.__safeSet__(key, data[key]);
-      this._changed[key] = !fromStorage
+      if (!fromSave) {
+        this._changed[key] = !fromStorage
+      }
     });
 
     this.__validate__();
@@ -1323,6 +1325,7 @@ class Model {
       }
       await this.__save__(txn);
       await this.afterSave(txn);
+      await this.__afterSave__(txn);
     } catch (e) {
       this._isCreating = false;
       if (isNewTransaction) {
@@ -1433,7 +1436,16 @@ class Model {
       throw this.errorObject();
     }
     if (result && result.rows && result.rows.length) {
-      this.__load__(result.rows[0], true);
+      this.__load__(result.rows[0], true, false, true);
+    }
+  }
+
+  /**
+   * Returns hasChanged flag to normal
+   */
+  async __afterSave__ () {
+    for (const key in this._changed) {
+      this._changed[key] = false;
     }
   }
 

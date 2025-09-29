@@ -1400,8 +1400,12 @@ class Model {
         }
         const fn = async () => {
           const str = v.convert.apply(null, v.fields.map(field => this.get(field)));
-          const vector = await this._vectorManager.create(str);
-          this.set(v.field, vector);
+          if (str) {
+            const vector = await this._vectorManager.create(str);
+            this.set(v.field, vector);
+          } else {
+            this.set(v.field, null);
+          }
         };
         fns.push(fn);
       }

@@ -567,6 +567,16 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('Should do a "not_contains" where query properly', async () => {
+
+      let parents = await Parent.query()
+        .where({name__not_contains: 'am'})
+        .select();
+
+      expect(parents.length).to.equal(7);
+
+    });
+
     it('Should do an "icontains" where query properly', async () => {
 
       let parents = await Parent.query()
@@ -574,6 +584,16 @@ module.exports = (InstantORM, Databases) => {
         .select();
 
       expect(parents.length).to.equal(2);
+
+    });
+
+    it('Should do an "not_icontains" where query properly', async () => {
+
+      let parents = await Parent.query()
+        .where({name__not_icontains: 'z'})
+        .select();
+
+      expect(parents.length).to.equal(8);
 
     });
 
@@ -587,6 +607,16 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('Should do an "not_startswith" where query properly', async () => {
+
+      let parents = await Parent.query()
+        .where({name__not_startswith: 'Sam'})
+        .select();
+
+      expect(parents.length).to.equal(8);
+
+    });
+
     it('Should do an "endswith" where query properly', async () => {
 
       let parents = await Parent.query()
@@ -597,6 +627,16 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('Should do an "not_endswith" where query properly', async () => {
+
+      let parents = await Parent.query()
+        .where({name__not_endswith: 'y'})
+        .select();
+
+      expect(parents.length).to.equal(7);
+
+    });
+
     it('Should do an "iendswith" where query properly', async () => {
 
       let parents = await Parent.query()
@@ -604,6 +644,16 @@ module.exports = (InstantORM, Databases) => {
         .select();
 
       expect(parents.length).to.equal(3);
+
+    });
+
+    it('Should do an "not_iendswith" where query properly', async () => {
+
+      let parents = await Parent.query()
+        .where({name__not_iendswith: 'Y'})
+        .select();
+
+      expect(parents.length).to.equal(7);
 
     });
 

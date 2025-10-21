@@ -197,6 +197,11 @@ class MigrationManager extends Logger {
     return queries.join(';')
   }
 
+  executeSql (sql, params) {
+    const [ useSql, useParams ] = this._Schema.executeSql(sql, params);
+    return [ useSql, useParams ];
+  }
+
   createTable (table, arrFieldData) {
     arrFieldData = this._Schema.createTable(table, arrFieldData);
     return this._Schema.db.adapter.generateCreateTableQuery(table, arrFieldData);

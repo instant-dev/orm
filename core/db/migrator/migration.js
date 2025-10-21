@@ -89,6 +89,18 @@ class Migration extends Logger {
     }
   }
 
+  async executeSql (sql, params) {
+    if (!this.parent) {
+      if (!this.name) {
+        this.name = `execute_sql`;
+      }
+      await this.up.executeSql(sql, params);
+      await this.down.executeSql(sql.split('\n').map(line => `-- invert: ${line}`).join('\n'), params);
+    } else {
+      await this.addCommand(['executeSql', sql, params]);
+    }
+  }
+
   async createTable (table, arrFieldData) {
     if (!this.parent) {
       if (!this.name) {
@@ -297,7 +309,8 @@ class Migration extends Logger {
     createIndex: ['table:string', 'column:string', 'type:?indexType'],
     dropIndex: ['table:string', 'column:string'],
     createForeignKey: ['table:string', 'column:string', 'parentTable:string', 'parentColumn:string', 'behavior:?foreignKeyBehavior'],
-    dropForeignKey: ['table:string', 'column:string']
+    dropForeignKey: ['table:string', 'column:string'],
+    executeSql: ['sql:string', 'params:?any[]']
   };
 
   // Validations for the specific types to make sure commands will work
@@ -321,6 +334,9 @@ class Migration extends Logger {
       if (typeof v !== 'object' || v.constructor !== Object) {
         throw new Error(`Invalid argument: expecting object`);
       }
+      return v;
+    },
+    'any': function (v, db) {
       return v;
     },
     'columnType': function (v, db) {

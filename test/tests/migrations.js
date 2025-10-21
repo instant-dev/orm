@@ -150,6 +150,7 @@ module.exports = (InstantORM, Databases) => {
 
       await migration.createTable('blog_posts', [{name: 'title', type: 'string'}]);
       await migration.alterColumn('blog_posts', 'title', 'varchar');
+      await migration.executeSql('SELECT $1', ['Hello World']);
 
       await Instant.Migrator.Dangerous.commit(migration);
 

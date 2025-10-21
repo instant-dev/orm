@@ -413,6 +413,11 @@ class SchemaManager {
     return foreignKey;
   }
 
+  executeSql (sql, params) {
+    params = params || [];
+    return [ sql, params ];
+  }
+
   createTable (table, arrColumnData) {
 
     // Make sure we copy the data so we don't alter original data

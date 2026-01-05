@@ -315,7 +315,7 @@ class Model {
   static getColumnProperties (field) {
     let column = this.column(field);
     if (!column) {
-      throw new Error(`Column "${field}" not found for "${this.getName()}"`);
+      throw new Error(`Column "${field}" not found for "${this.getName()}": If you're seeing this during a migration, you may have dropped or renamed a column without dropping a foreign key reference first.`);
     }
     let db = this.prototype.db;
     let properties = {};

@@ -134,6 +134,7 @@ class InstantORM extends Logger {
    */
   useEnvObject (pathname) {
     const envVars = this.readEnvObject(pathname);
+    process.env._ORIGINAL_NODE_ENV = process.env._ORIGINAL_NODE_ENV || process.env.NODE_ENV;
     Object.keys(envVars).forEach(key => {
       process.env[key] = envVars[key];
     })

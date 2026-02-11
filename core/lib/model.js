@@ -758,7 +758,7 @@ class Model {
 
   /**
    * Retrieves another Model; used to import other models in lifecycle callbacks:
-   * beforeSave(), afterSave(), beforeDestroy(), afterDestroy()
+   * beforeValidate(), beforeSave(), afterSave(), beforeDestroy(), afterDestroy()
    * @param {string} name
    * @returns {typeof Model}
    */
@@ -1288,6 +1288,12 @@ class Model {
   }
 
   /**
+  * Synchronous logic to execute before a model throws an error due to validation errors. Intended to be overwritten when inherited.
+  * @private
+  */
+  beforeValidate () {}
+
+  /**
   * Logic to execute before a model saves. Intended to be overwritten when inherited.
   * @private
   */
@@ -1306,15 +1312,17 @@ class Model {
   * @returns {Model}
   */
   async save (txn, waitForModel = null) {
+    if (!this.inStorage()) {
+      this._isCreating = true;
+    }
+    this.beforeValidate();
     if (this.hasErrors()) {
+      this._isCreating = false;
       throw this.errorObject();
     }
     let isNewTransaction = !txn;
     if (isNewTransaction) {
       txn = this.db.createTransaction();
-    }
-    if (!this.inStorage()) {
-      this._isCreating = true;
     }
     try {
       await this.__verify__(txn);

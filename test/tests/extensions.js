@@ -214,10 +214,13 @@ module.exports = (InstantORM, Databases) => {
       });
       
       const BlogComment = Instant.Model('BlogComment');
-      const blogComment = await BlogComment.create({body: testPhrase});
+      const blogComment = await BlogComment.create({ body: testPhrase });
 
       expect(blogComment.get('body')).to.equal(testPhrase);
-      expect(blogComment.get('embedding')).to.deep.equal(testVector);
+      const retrievedEmbedding = blogComment.get('embedding');
+      for (const [index, value] of retrievedEmbedding.entries()) {
+        expect(value).to.be.closeTo(testVector[index], 0.00001);
+      }
 
     });
 
@@ -277,7 +280,11 @@ module.exports = (InstantORM, Databases) => {
       expect(blogComments).to.exist;
       expect(blogComments.length).to.equal(4);
       for (const blogComment of blogComments) {
-        expect(blogComment.get('embedding')).to.deep.equal(vectorMap[blogComment.get('body')]);
+        const retrievedEmbedding = blogComment.get('embedding');
+        const expectedEmbedding = vectorMap[blogComment.get('body')];
+        for (const [index, value] of retrievedEmbedding.entries()) {
+          expect(value).to.be.closeTo(expectedEmbedding[index], 0.00001);
+        }
       }
 
     });

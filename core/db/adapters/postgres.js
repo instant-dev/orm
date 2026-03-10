@@ -527,7 +527,7 @@ class PostgresAdapter extends SQLAdapter {
 
   parseConnectionString (connectionString, cfg = null) {
     cfg = cfg || this.createDefaultConfig();
-    const match = connectionString.match(/^postgres:\/\/([A-Za-z0-9_]+)(?:\:([A-Za-z0-9_\-]+))?@([A-Za-z0-9_\.\-]+):(\d+)\/([A-Za-z0-9_]+)(\?ssl(?:mode)?=(?:true|false|unauthorized))?$/);
+    const match = connectionString.match(/^(?:(?:postgres|postgresql|pg)?:\/\/)?([A-Za-z0-9_]+)(?:\:([A-Za-z0-9_\-]+))?@([A-Za-z0-9_\.\-]+):(\d+)\/([A-Za-z0-9_]+)(\?ssl(?:mode)?=(?:true|false|unauthorized))?$/);
     if (match) {
       cfg.user = match[1];
       cfg.password = match[2];

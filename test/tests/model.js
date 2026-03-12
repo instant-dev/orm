@@ -75,7 +75,21 @@ module.exports = (InstantORM, Databases) => {
         {name: 'name', type: 'string', properties: {unique: true}}
       ]
     };
-    class SpecialItem extends InstantORM.Core.Model {}
+    class SpecialItem extends InstantORM.Core.Model {
+
+      beforeSave (txn) {
+
+        this._hasIdBeforeSave = this.get('id') !== null;
+
+      }
+
+      afterSave (txn) {
+
+        this._hasIdAfterSave = this.get('id') !== null;
+
+      }
+
+    }
     SpecialItem.setTableSchema(schemaSpecialItem);
 
     class User extends InstantORM.Core.Model {}
@@ -628,7 +642,13 @@ module.exports = (InstantORM, Databases) => {
         let specialItem = await SpecialItem.create({name: 'unique-name'});
 
         expect(specialItem).to.exist;
+
+        expect(specialItem._hasIdBeforeSave).to.equal(false);
+        expect(specialItem._hasIdAfterSave).to.equal(true);
+
+        expect(specialItem.get('id')).to.exist;
         expect(specialItem.get('name')).to.equal('unique-name');
+        expect(specialItem.inStorage()).to.equal(true);
 
       });
 
@@ -649,6 +669,25 @@ module.exports = (InstantORM, Databases) => {
         expect(error.details._query.message).to.be.a('string');
         expect(error.details._query.message).to.contain('violates unique constraint "special_items_name_unique"');
         expect(error.identifier).to.contain('violates unique constraint "special_items_name_unique"');
+
+      });
+
+      it('Should create a special item via new SpecialItem() + .save()', async () => {
+
+        let specialItem = new SpecialItem({name: 'unique-name-2'});
+
+        expect(specialItem.inStorage()).to.equal(false);
+
+        await specialItem.save();
+
+        expect(specialItem).to.exist;
+
+        expect(specialItem._hasIdBeforeSave).to.equal(false);
+        expect(specialItem._hasIdAfterSave).to.equal(true);
+
+        expect(specialItem.get('id')).to.exist;
+        expect(specialItem.get('name')).to.equal('unique-name-2');
+        expect(specialItem.inStorage()).to.equal(true);
 
       });
 

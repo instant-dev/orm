@@ -1407,7 +1407,7 @@ class Model {
           throw new Error(`Could not vectorize "${v.field}" for "${this.constructor.name}": not a valid vector`);
         }
         const fn = async () => {
-          const str = v.convert.apply(null, v.fields.map(field => this.get(field)));
+          const str = v.convert.apply(null, v.fields.map(field => this.get(field))).trim();
           if (str) {
             const vector = await this._vectorManager.create(str);
             this.set(v.field, vector);

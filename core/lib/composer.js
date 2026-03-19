@@ -540,9 +540,10 @@ class Composer {
   * Generate a SQL update query
   * @private
   * @param {object} fields A list of field / value pairs to set
+  * @param {Array} [returningColumns] Columns to return from the update query
   * @returns {Object} has "params" and "sql" properties
   */
-  __generateUpdateQuery__ (fields) {
+  __generateUpdateQuery__ (fields, returningColumns = ['*']) {
 
     let query = this.__generateQuery__(['id'], true);
     let columns = Object.keys(fields);
@@ -567,7 +568,8 @@ class Composer {
       columnNames,
       columnFunctions,
       query.params.length,
-      query.sql
+      query.sql,
+      returningColumns
     );
 
     query.params = query.params.concat(params);
@@ -1378,7 +1380,7 @@ class Composer {
         data && m.read(data);
       });
     }
-    models.setMeta({offset: offset, total: total});
+    models.setMeta({ offset: offset, total: total });
     return models;
   }
 
@@ -1442,7 +1444,7 @@ class Composer {
   }
 
   /**
-  * Execute query as an update query, changed all fields specified.
+  * Execute query as an update query, change all fields specified.
   * @param {object} fields The object containing columns (keys) and associated values you'd like to update
   * @param {Transaction} txn Optional: the transaction to use for the count query
   * @returns {Promise<ModelArray>}
@@ -1470,7 +1472,35 @@ class Composer {
     let countResult = await source.query(countQuery.sql, countQuery.params);
     let result = await source.query(query.sql, query.params);
     let updateResult = await source.query(updateQuery.sql, updateQuery.params);
-    return this.__endProcessor__({countResult, result, updateResult});
+    return this.__endProcessor__({ countResult, result, updateResult });
+  }
+
+  /**
+  * Execute query as an update query, change all fields specified, do not return the updated models
+  * @param {object} fields The object containing columns (keys) and associated values you'd like to update
+  * @param {Transaction} txn Optional: the transaction to use for the count query
+  * @returns {Promise<object>}
+  */
+  async updateWithoutReturning (fields, txn) {
+    if (txn) {
+      if (!(txn instanceof Transaction)) {
+        throw new Error('Must provide valid transaction to Composer#transact');
+      }
+      if (txn.adapter.db !== this.db) {
+        throw new Error('Transaction must belong to Model Database');
+      }
+    }
+    await this.__cacheCommands__();
+    if (this._readonly) {
+      return callback(new Error('Cannot use update in a readonly query.'));
+    }
+    if (this.__isGrouped__()) {
+      throw new Error('Cannot update grouped queries');
+    }
+    let updateQuery = this.__generateUpdateQuery__(fields, []); // no returning columns
+    let source = txn ? txn : this.db;
+    let updateResult = await source.query(updateQuery.sql, updateQuery.params);
+    return updateResult;
   }
 
 }

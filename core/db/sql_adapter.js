@@ -259,7 +259,7 @@ class SQLAdapter {
 
   }
 
-  generateUpdateAllQuery (table, pkColumn, columnNames, columnFunctions, offset, subQuery) {
+  generateUpdateAllQuery (table, pkColumn, columnNames, columnFunctions, offset, subQuery, returningColumns = ['*']) {
 
     let fields = columnNames
       .map(this.escapeField.bind(this))
@@ -280,7 +280,7 @@ class SQLAdapter {
       ` WHERE (`,
         this.escapeField(pkColumn),
         subQuery ? ` IN (${subQuery})` : ` = $1`,
-      `) RETURNING *`
+      `)${returningColumns?.length > 0 ? ` RETURNING ${returningColumns.join(',')}` : ''}`
     ].join('');
 
   }

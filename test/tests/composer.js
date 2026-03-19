@@ -1166,6 +1166,53 @@ module.exports = (InstantORM, Databases) => {
 
     });
 
+    it('Should update all parents names without returning models', async () => {
+
+      let updateResult = await Parent.query()
+        .updateWithoutReturning({name: 'Dave'});
+
+      expect(updateResult.rowCount).to.equal(10);
+
+      let parents = await Parent.query().select();
+
+      expect(parents.length).to.equal(10);
+
+      parents.forEach(parent => {
+        expect(parent.get('name')).to.equal('Dave');
+      });
+
+    });
+
+    it('Should update all childrens ages and license without returning models', async () => {
+
+      let children = await Child.query().orderBy('id').select();
+      let ages = children.map(c => c.get('age'));
+
+      let updateResult = await Child.query()
+        .orderBy('id')
+        .updateWithoutReturning({license: 'DL_APPROVED_HOORAY', age: age => `${age} + 10`});
+
+      expect(updateResult.rowCount).to.equal(children.length);
+
+      children = await Child.query().orderBy('id').select();
+
+      children.forEach((child, i) => {
+        expect(child.get('age')).to.equal(ages[i] + 10);
+        expect(child.get('license')).to.equal('DL_APPROVED_HOORAY');
+      });
+
+    });
+
+    it('Should throw an error when trying to update without returning with a readonly database', async () => {
+
+      try {
+        await Parent.query(readonlyDb).updateWithoutReturning({name: 'Cobb'});
+      } catch (e) {
+        expect(e).to.exist;
+      }
+
+    });
+
     it('Should query pets by datetime', async () => {
 
       let compareDate = new Date(`2020-01-01T00:00:13.370Z`);
